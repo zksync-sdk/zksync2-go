@@ -2,7 +2,6 @@ package zksync2
 
 import (
 	"bytes"
-	"encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math/big"
@@ -13,6 +12,9 @@ var (
 )
 
 const (
+	ZkSyncChainIdMainnet   int64 = 1
+	ZkSyncChainIdLocalhost int64 = 42
+
 	PriorityQueueTypeDeque      uint8 = 0
 	PriorityQueueTypeHeapBuffer uint8 = 1
 	PriorityQueueTypeHeap       uint8 = 2
@@ -63,19 +65,10 @@ var (
 	BlockNumberFinalized BlockNumber = "finalized"
 )
 
-type BigInt struct {
-	*big.Int
+func NewBigZero() *hexutil.Big {
+	return (*hexutil.Big)(new(big.Int))
 }
 
-// MarshalJSON overwrite to encode value as hex string
-func (x *BigInt) MarshalJSON() ([]byte, error) {
-	return json.Marshal(hexutil.EncodeBig(x.Int))
-}
-
-func NewBigInt(x int64) *BigInt {
-	return &BigInt{big.NewInt(x)}
-}
-
-func ToBigInt(x *big.Int) *BigInt {
-	return &BigInt{x}
+func NewBig(n int64) *hexutil.Big {
+	return (*hexutil.Big)(big.NewInt(n))
 }

@@ -94,7 +94,14 @@ func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonc
 		amount = big.NewInt(0)
 	}
 	tx := CreateFunctionCallTransaction(
-		w.es.GetAddress(), to, big.NewInt(0), big.NewInt(0), amount, feeToken.L2Address, data)
+		w.es.GetAddress(),
+		to,
+		big.NewInt(0),
+		big.NewInt(0),
+		amount,
+		feeToken.L2Address,
+		data,
+	)
 	return w.estimateAndSend(tx, nonce)
 }
 
@@ -103,11 +110,15 @@ func (w *Wallet) estimateAndSend(tx *Transaction, nonce *big.Int) (*types.Transa
 	if err != nil {
 		return nil, fmt.Errorf("failed to EstimateGas: %w", err)
 	}
-	fmt.Println(gas)
+	fmt.Println("EstimateGas", gas)
 	chainId := w.es.GetDomain().ChainId
-	fmt.Println(chainId)
+	fmt.Println("chainId", chainId)
 
-	//prepared := NewTransaction712(nonce, tx.To, tx.Value.Int, gas, big.NewInt(0), tx.Data, chainId, tx.Eip712Meta)
+	prepared := NewTransaction712(nonce, tx.To, tx.Value.ToInt(), gas, big.NewInt(0), tx.Data, chainId, tx.Eip712Meta)
+	txr := &TransactionRequest{}
+	txr.FromTx(prepared)
+	signature, err := w.es.SignTypedData(w.es.GetDomain(), txr)
+	fmt.Println("signature", hexutil.Encode(signature), err)
 
 	return nil, nil
 }

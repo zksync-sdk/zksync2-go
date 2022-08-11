@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/miguelmota/go-ethereum-hdwallet"
 	"github.com/pkg/errors"
 )
@@ -14,7 +15,7 @@ type EthSigner interface {
 	GetAddress() common.Address
 	GetDomain() *Eip712Domain
 	SignHash(msg []byte) ([]byte, error)
-	//SignTypedData(d *Eip712Domain,
+	SignTypedData(d *Eip712Domain, data EIP712TypedData) ([]byte, error)
 }
 
 type DefaultEthSigner struct {
@@ -71,6 +72,45 @@ func (s *DefaultEthSigner) GetAddress() common.Address {
 
 func (s *DefaultEthSigner) GetDomain() *Eip712Domain {
 	return s.domain
+}
+
+func (s *DefaultEthSigner) SignTypedData(domain *Eip712Domain, data EIP712TypedData) ([]byte, error) {
+	// compile TypedData structure
+	typedData := apitypes.TypedData{
+		Types: apitypes.Types{
+			data.GetEIP712Type():   data.GetEIP712Types(),
+			domain.GetEIP712Type(): domain.GetEIP712Types(),
+		},
+		PrimaryType: data.GetEIP712Type(),
+		Domain:      domain.GetEIP712Domain(),
+		Message:     data.GetEIP712Message(),
+	}
+	hash, err := s.HashTypedData(typedData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get hash of typed data: %w", err)
+	}
+	sig, err := crypto.Sign(hash, s.pk)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign hash of typed data: %w", err)
+	}
+	if sig[64] < 27 {
+		sig[64] += 27
+	}
+	return sig, nil
+}
+
+func (s *DefaultEthSigner) HashTypedData(data apitypes.TypedData) ([]byte, error) {
+	domain, err := data.HashStruct("EIP712Domain", data.Domain.Map())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get hash of typed data domain: %w", err)
+	}
+	dataHash, err := data.HashStruct(data.PrimaryType, data.Message)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get hash of typed message: %w", err)
+	}
+	prefixedData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domain), string(dataHash)))
+	prefixedDataHash := crypto.Keccak256(prefixedData)
+	return prefixedDataHash, nil
 }
 
 func (s *DefaultEthSigner) SignHash(msg []byte) ([]byte, error) {
