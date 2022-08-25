@@ -8,11 +8,14 @@ import (
 )
 
 var (
-	EthAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	EthAddress              = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	ContractDeployerAddress = common.HexToAddress("0x0000000000000000000000000000000000008006")
+	NonceHolderAddress      = common.HexToAddress("0x0000000000000000000000000000000000008003")
+	MessengerAddress        = common.HexToAddress("0x0000000000000000000000000000000000008008")
 )
 
 const (
-	ZkSyncChainIdMainnet   int64 = 1
+	ZkSyncChainIdMainnet   int64 = 280
 	ZkSyncChainIdLocalhost int64 = 42
 
 	PriorityQueueTypeDeque      uint8 = 0

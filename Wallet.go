@@ -2,6 +2,7 @@ package zksync2
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -26,7 +27,7 @@ type Wallet struct {
 }
 
 func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
-	erc20abi, err := abi.JSON(strings.NewReader(ERC20.ERC20ABI))
+	erc20abi, err := abi.JSON(strings.NewReader(ERC20.ERC20MetaData.ABI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load erc20abi: %w", err)
 	}
@@ -70,7 +71,7 @@ func (w *Wallet) GetNonce() (*big.Int, error) {
 	return w.zp.GetTransactionCount(w.es.GetAddress(), BlockNumberCommitted)
 }
 
-func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonce *big.Int, feeToken *Token) (*types.Transaction, error) {
+func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonce *big.Int, feeToken *Token) (string, error) {
 	var err error
 	if token == nil {
 		token = CreateETH()
@@ -81,14 +82,14 @@ func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonc
 	if nonce == nil {
 		nonce, err = w.GetNonce()
 		if err != nil {
-			return nil, fmt.Errorf("failed to get nonce: %w", err)
+			return "", fmt.Errorf("failed to get nonce: %w", err)
 		}
 	}
 	var data hexutil.Bytes
 	if !token.IsETH() {
 		data, err = w.erc20abi.Pack("transfer", to, amount)
 		if err != nil {
-			return nil, fmt.Errorf("failed to pack transfer function: %w", err)
+			return "", fmt.Errorf("failed to pack transfer function: %w", err)
 		}
 		to = token.L2Address
 		amount = big.NewInt(0)
@@ -99,28 +100,56 @@ func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonc
 		big.NewInt(0),
 		big.NewInt(0),
 		amount,
-		feeToken.L2Address,
 		data,
 	)
 	return w.estimateAndSend(tx, nonce)
 }
 
-func (w *Wallet) estimateAndSend(tx *Transaction, nonce *big.Int) (*types.Transaction, error) {
+func (w *Wallet) Deploy(bytecode []byte, nonce *big.Int) (string, error) {
+	var err error
+	if nonce == nil {
+		nonce, err = w.GetNonce()
+		if err != nil {
+			return "", fmt.Errorf("failed to get nonce: %w", err)
+		}
+	}
+	calldata, err := EncodeCreate2(bytecode, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to encode create2 call: %w", err)
+	}
+	tx := Create2ContractTransaction(
+		w.es.GetAddress(),
+		big.NewInt(0),
+		big.NewInt(0),
+		bytecode,
+		calldata,
+	)
+	return w.estimateAndSend(tx, nonce)
+}
+
+func (w *Wallet) estimateAndSend(tx *Transaction, nonce *big.Int) (string, error) {
+	fmt.Println("nonce", nonce)
+	txj, _ := json.MarshalIndent(tx, "", "  ")
+	fmt.Println("Tx:", string(txj))
+
 	gas, err := w.zp.EstimateGas(tx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to EstimateGas: %w", err)
+		return "", fmt.Errorf("failed to EstimateGas: %w", err)
 	}
 	fmt.Println("EstimateGas", gas)
 	chainId := w.es.GetDomain().ChainId
 	fmt.Println("chainId", chainId)
 
-	prepared := NewTransaction712(nonce, tx.To, tx.Value.ToInt(), gas, big.NewInt(0), tx.Data, chainId, tx.Eip712Meta)
-	txr := &TransactionRequest{}
-	txr.FromTx(prepared)
-	signature, err := w.es.SignTypedData(w.es.GetDomain(), txr)
+	prepared := NewTransaction712(chainId, nonce, gas, tx.To, tx.Value.ToInt(), tx.Data, big.NewInt(0), big.NewInt(0), tx.From, tx.Eip712Meta)
+	signature, err := w.es.SignTypedData(w.es.GetDomain(), prepared)
 	fmt.Println("signature", hexutil.Encode(signature), err)
 
-	return nil, nil
+	rawTx, err := prepared.RLPValues(signature)
+	fmt.Println("rawTx", hexutil.Encode(rawTx), err, len(rawTx))
+
+	txHash, err := w.zp.SendRawTransaction(rawTx)
+	fmt.Println("txHash", txHash, err)
+	return txHash, err
 }
 
 func (w *Wallet) getBridgeContracts() (*BridgeContracts, error) {

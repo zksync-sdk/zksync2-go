@@ -15,16 +15,15 @@ type EIP712TypedData interface {
 }
 
 type Eip712Meta struct {
-	FeeToken       common.Address `json:"feeToken"`
-	ErgsPerPubdata *hexutil.Big   `json:"ergsPerPubdata,omitempty"`
-	ErgsPerStorage *hexutil.Big   `json:"ergsPerStorage,omitempty" rlp:"-"`
-	FactoryDeps    [][]byte       `json:"factoryDeps"`
-	AAParams       *AAParams      `json:"aaParams"`
+	ErgsPerPubdata  *hexutil.Big     `json:"ergsPerPubdata,omitempty"`
+	CustomSignature hexutil.Bytes    `json:"customSignature"`
+	FactoryDeps     []hexutil.Bytes  `json:"factoryDeps"`
+	PaymasterParams *PaymasterParams `json:"paymasterParams"`
 }
 
-type AAParams struct {
-	From      string `json:"from"`
-	Signature []byte `json:"signature"`
+type PaymasterParams struct {
+	Paymaster      common.Address `json:"paymaster"`
+	PaymasterInput hexutil.Bytes  `json:"paymasterInput"`
 }
 
 type Eip712Domain struct {

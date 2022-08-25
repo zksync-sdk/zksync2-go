@@ -14,6 +14,7 @@ type Provider interface {
 	GetBalance(address common.Address, blockNumber BlockNumber, token *Token) (*big.Int, error)
 	GetTransactionCount(address common.Address, blockNumber BlockNumber) (*big.Int, error)
 	EstimateGas(tx *Transaction) (*big.Int, error)
+	SendRawTransaction(tx []byte) (string, error)
 	ZksGetMainContract() (common.Address, error)
 	ZksL1ChainId() (*big.Int, error)
 	ZksGetConfirmedTokens(from uint32, limit uint8) ([]*Token, error)
@@ -78,6 +79,15 @@ func (p *DefaultProvider) EstimateGas(tx *Transaction) (*big.Int, error) {
 		return nil, fmt.Errorf("failed to decode response as big.Int: %w", err)
 	}
 	return resp, nil
+}
+
+func (p *DefaultProvider) SendRawTransaction(tx []byte) (string, error) {
+	var res string
+	err := p.c.Call(&res, "eth_sendRawTransaction", hexutil.Encode(tx))
+	if err != nil {
+		return "", fmt.Errorf("failed to call eth_sendRawTransaction: %w", err)
+	}
+	return res, nil
 }
 
 func (p *DefaultProvider) ZksGetMainContract() (common.Address, error) {
