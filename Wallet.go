@@ -183,7 +183,27 @@ func (w *Wallet) Deploy(bytecode []byte, nonce *big.Int) (string, error) {
 	return w.estimateAndSend(tx, nonce)
 }
 
+func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.Int) (string, error) {
+	var err error
+	if nonce == nil {
+		nonce, err = w.GetNonce()
+		if err != nil {
+			return "", fmt.Errorf("failed to get nonce: %w", err)
+		}
+	}
+	tx := CreateFunctionCallTransaction(
+		w.es.GetAddress(),
+		contract,
+		big.NewInt(0),
+		big.NewInt(0),
+		big.NewInt(0),
+		calldata,
+	)
+	return w.estimateAndSend(tx, nonce)
+}
+
 func (w *Wallet) estimateAndSend(tx *Transaction, nonce *big.Int) (string, error) {
+	// TODO remove debug output
 	fmt.Println("nonce", nonce)
 	txj, _ := json.MarshalIndent(tx, "", "  ")
 	fmt.Println("Tx:", string(txj))
