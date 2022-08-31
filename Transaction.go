@@ -26,7 +26,8 @@ func CreateFunctionCallTransaction(from, to common.Address, ergsLimit, ergsPrice
 		Value:    (*hexutil.Big)(value),
 		Data:     data,
 		Eip712Meta: &Eip712Meta{
-			ErgsPerPubdata:  NewBigZero(),
+			ErgsPerPubdata:  NewBig(160000),
+			CustomSignature: nil,
 			FactoryDeps:     nil,
 			PaymasterParams: nil,
 		},
@@ -42,7 +43,8 @@ func Create2ContractTransaction(from common.Address, ergsLimit, ergsPrice *big.I
 		Value:    nil,
 		Data:     calldata,
 		Eip712Meta: &Eip712Meta{
-			ErgsPerPubdata:  NewBigZero(),
+			ErgsPerPubdata:  NewBig(160000),
+			CustomSignature: nil,
 			FactoryDeps:     []hexutil.Bytes{bytecode},
 			PaymasterParams: nil,
 		},

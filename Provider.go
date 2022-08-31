@@ -11,9 +11,11 @@ import (
 )
 
 type Provider interface {
-	GetBalance(address common.Address, blockNumber BlockNumber, token *Token) (*big.Int, error)
+	GetClient() *ethclient.Client
+	GetBalance(address common.Address, blockNumber BlockNumber) (*big.Int, error)
 	GetTransactionCount(address common.Address, blockNumber BlockNumber) (*big.Int, error)
 	EstimateGas(tx *Transaction) (*big.Int, error)
+	GetGasPrice() (*big.Int, error)
 	SendRawTransaction(tx []byte) (string, error)
 	ZksGetMainContract() (common.Address, error)
 	ZksL1ChainId() (*big.Int, error)
@@ -42,9 +44,13 @@ type DefaultProvider struct {
 	*ethclient.Client
 }
 
-func (p *DefaultProvider) GetBalance(address common.Address, blockNumber BlockNumber, token *Token) (*big.Int, error) {
+func (p *DefaultProvider) GetClient() *ethclient.Client {
+	return p.Client
+}
+
+func (p *DefaultProvider) GetBalance(address common.Address, blockNumber BlockNumber) (*big.Int, error) {
 	var res string
-	err := p.c.Call(&res, "eth_getBalance", address, blockNumber, token.L2Address)
+	err := p.c.Call(&res, "eth_getBalance", address, blockNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query eth_getBalance: %w", err)
 	}
@@ -73,6 +79,19 @@ func (p *DefaultProvider) EstimateGas(tx *Transaction) (*big.Int, error) {
 	err := p.c.Call(&res, "eth_estimateGas", tx, BlockNumberLatest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query eth_estimateGas: %w", err)
+	}
+	resp, err := hexutil.DecodeBig(res)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode response as big.Int: %w", err)
+	}
+	return resp, nil
+}
+
+func (p *DefaultProvider) GetGasPrice() (*big.Int, error) {
+	var res string
+	err := p.c.Call(&res, "eth_gasPrice")
+	if err != nil {
+		return nil, fmt.Errorf("failed to query eth_gasPrice: %w", err)
 	}
 	resp, err := hexutil.DecodeBig(res)
 	if err != nil {

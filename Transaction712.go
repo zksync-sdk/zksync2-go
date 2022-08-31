@@ -17,55 +17,82 @@ const (
 
 type Transaction712 struct {
 	// most like to DynamicFeeTx
-	Nonce      uint64
+	Nonce      *big.Int
 	GasTipCap  *big.Int // a.k.a. maxPriorityFeePerGas
 	GasFeeCap  *big.Int // a.k.a. maxFeePerGas
 	Gas        *big.Int
-	To         *common.Address `rlp:"nil"` // nil means contract creation
+	To         *common.Address
 	Value      *big.Int
 	Data       hexutil.Bytes
 	AccessList types.AccessList
-	// Signature values
-	V, R, S *big.Int
 	// zkSync part
 	ChainID *big.Int
-	From    *common.Address `rlp:"-"` // ?? empty ??
-	// Meta fields   *Eip712Meta
-	ErgsPerPubdata  *hexutil.Big
-	FactoryDeps     []hexutil.Bytes
-	CustomSignature hexutil.Bytes
-	PaymasterParams *PaymasterParams
+	From    *common.Address
+	Meta    *Eip712Meta
 }
 
 func NewTransaction712(chainID *big.Int, nonce *big.Int, gasLimit *big.Int, to common.Address, value *big.Int,
 	data []byte, maxPriorityFeePerGas, maxFeePerGas *big.Int, from common.Address, meta *Eip712Meta) *Transaction712 {
 	return &Transaction712{
-		Nonce:           nonce.Uint64(),
-		GasTipCap:       maxPriorityFeePerGas,
-		GasFeeCap:       maxFeePerGas,
-		Gas:             gasLimit,
-		To:              &to,
-		Value:           value,
-		Data:            data,
-		ChainID:         chainID,
-		From:            &from,
-		ErgsPerPubdata:  meta.ErgsPerPubdata,
-		FactoryDeps:     meta.FactoryDeps,
-		CustomSignature: meta.CustomSignature,
-		PaymasterParams: meta.PaymasterParams,
+		Nonce:     nonce,
+		GasTipCap: maxPriorityFeePerGas,
+		GasFeeCap: maxFeePerGas,
+		Gas:       gasLimit,
+		To:        &to,
+		Value:     value,
+		Data:      data,
+		ChainID:   chainID,
+		From:      &from,
+		Meta:      meta,
 	}
 }
 
 func (tx *Transaction712) RLPValues(sig []byte) ([]byte, error) {
-	if len(sig) == 65 {
-		// set signature's V, R, S values
-		tx.V = big.NewInt(0).SetBytes(sig[64:])
-		tx.R = big.NewInt(0).SetBytes(sig[0:32])
-		tx.S = big.NewInt(0).SetBytes(sig[32:64])
-	} else if len(sig) > 0 {
-		return nil, errors.New("invalid length of signature")
+	// use custom struct to get right RLP sequence and types to use default rlp encoder
+	txRLP := struct {
+		Nonce                uint64
+		MaxPriorityFeePerGas *big.Int
+		MaxFeePerGas         *big.Int
+		GasLimit             *big.Int
+		To                   *common.Address `rlp:"nil"` // nil means contract creation
+		Value                *big.Int
+		Data                 hexutil.Bytes
+		// zkSync part
+		ChainID1 *big.Int // legacy
+		Empty1   string   // legacy
+		Empty2   string   // legacy
+		ChainID2 *big.Int
+		From     *common.Address
+		// Meta fields   *Eip712Meta
+		ErgsPerPubdata  *big.Int
+		FactoryDeps     []hexutil.Bytes
+		CustomSignature hexutil.Bytes
+		PaymasterParams *PaymasterParams
+	}{
+		Nonce:                tx.Nonce.Uint64(),
+		MaxPriorityFeePerGas: tx.GasTipCap,
+		MaxFeePerGas:         tx.GasFeeCap,
+		GasLimit:             tx.Gas,
+		To:                   tx.To,
+		Value:                tx.Value,
+		Data:                 tx.Data,
+		ChainID1:             tx.ChainID,
+		ChainID2:             tx.ChainID,
+		From:                 tx.From,
+		ErgsPerPubdata:       tx.Meta.ErgsPerPubdata.ToInt(),
+		FactoryDeps:          tx.Meta.FactoryDeps,
+		CustomSignature:      tx.Meta.CustomSignature,
+		PaymasterParams:      tx.Meta.PaymasterParams,
 	}
-	res, err := rlp.EncodeToBytes(tx)
+	if len(txRLP.CustomSignature) == 0 {
+		if len(sig) == 65 {
+			txRLP.CustomSignature = sig
+		} else if len(sig) > 0 {
+			return nil, errors.New("invalid length of signature")
+		}
+	}
+
+	res, err := rlp.EncodeToBytes(txRLP)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode RLP bytes: %w", err)
 	}
@@ -97,20 +124,20 @@ func (tx *Transaction712) GetEIP712Types() []apitypes.Type {
 func (tx *Transaction712) GetEIP712Message() apitypes.TypedDataMessage {
 	paymaster := big.NewInt(0)
 	paymasterInput := hexutil.Bytes{}
-	if tx.PaymasterParams != nil {
-		paymaster = big.NewInt(0).SetBytes(tx.PaymasterParams.Paymaster.Bytes())
-		paymasterInput = tx.PaymasterParams.PaymasterInput
+	if tx.Meta != nil && tx.Meta.PaymasterParams != nil {
+		paymaster = big.NewInt(0).SetBytes(tx.Meta.PaymasterParams.Paymaster.Bytes())
+		paymasterInput = tx.Meta.PaymasterParams.PaymasterInput
 	}
 	return apitypes.TypedDataMessage{
 		"txType":                  EIP712TxType,
 		"from":                    big.NewInt(0).SetBytes(tx.From.Bytes()).String(),
 		"to":                      big.NewInt(0).SetBytes(tx.To.Bytes()).String(),
 		"ergsLimit":               tx.Gas.String(),
-		"ergsPerPubdataByteLimit": tx.ErgsPerPubdata.String(),
+		"ergsPerPubdataByteLimit": tx.Meta.ErgsPerPubdata.String(),
 		"maxFeePerErg":            tx.GasFeeCap.String(),
 		"maxPriorityFeePerErg":    tx.GasTipCap.String(),
 		"paymaster":               paymaster.String(),
-		"nonce":                   big.NewInt(0).SetUint64(tx.Nonce).String(),
+		"nonce":                   tx.Nonce.String(),
 		"value":                   tx.Value.String(),
 		"data":                    tx.Data,
 		"factoryDeps":             tx.getFactoryDepsHashes(),
@@ -119,11 +146,11 @@ func (tx *Transaction712) GetEIP712Message() apitypes.TypedDataMessage {
 }
 
 func (tx *Transaction712) getFactoryDepsHashes() []interface{} {
-	if len(tx.FactoryDeps) == 0 {
+	if tx.Meta == nil || len(tx.Meta.FactoryDeps) == 0 {
 		return []interface{}{}
 	}
-	res := make([]interface{}, len(tx.FactoryDeps))
-	for i, d := range tx.FactoryDeps {
+	res := make([]interface{}, len(tx.Meta.FactoryDeps))
+	for i, d := range tx.Meta.FactoryDeps {
 		h, err := HashBytecode(d)
 		if err != nil {
 			panic(fmt.Sprintf("failed to get hash of some bytecode in FactoryDeps"))

@@ -12,8 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/contracts/ERC20"
-	"github.com/zksync-sdk/zksync2-go/contracts/L1ERC20Bridge"
-	"github.com/zksync-sdk/zksync2-go/contracts/L1EthBridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/IL1Bridge"
 	"math/big"
 	"strings"
 )
@@ -52,11 +51,11 @@ func (w *Wallet) CreateEthereumProvider(rpcClient *rpc.Client) (*DefaultEthProvi
 	if err != nil {
 		return nil, fmt.Errorf("failed to getBridgeContracts: %w", err)
 	}
-	l1EthBridge, err := L1EthBridge.NewL1EthBridge(bcs.L1EthDefaultBridge, ethClient)
+	l1EthBridge, err := IL1Bridge.NewIL1Bridge(bcs.L1EthDefaultBridge, ethClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load L1EthBridge: %w", err)
 	}
-	l1ERC20Bridge, err := L1ERC20Bridge.NewL1ERC20Bridge(bcs.L1Erc20DefaultBridge, ethClient)
+	l1ERC20Bridge, err := IL1Bridge.NewIL1Bridge(bcs.L1Erc20DefaultBridge, ethClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load L1ERC20Bridge: %w", err)
 	}
@@ -64,20 +63,38 @@ func (w *Wallet) CreateEthereumProvider(rpcClient *rpc.Client) (*DefaultEthProvi
 }
 
 func (w *Wallet) GetBalance() (*big.Int, error) {
-	return w.zp.GetBalance(w.es.GetAddress(), BlockNumberCommitted, CreateETH())
+	return w.zp.GetBalance(w.es.GetAddress(), BlockNumberCommitted)
+}
+
+func (w *Wallet) GetBalanceOf(address common.Address, token *Token, at BlockNumber) (*big.Int, error) {
+	if token.IsETH() {
+		return w.zp.GetBalance(address, at)
+	}
+	erc20, err := ERC20.NewERC20(token.L2Address, w.zp.GetClient())
+	if err != nil {
+		return nil, fmt.Errorf("failed to load ERC20: %w", err)
+	}
+	opts := &bind.CallOpts{}
+	if at == BlockNumberPending {
+		opts.Pending = true
+	} else if bn, err := hexutil.DecodeBig(string(at)); err == nil && bn != nil {
+		opts.BlockNumber = bn
+	}
+	return erc20.BalanceOf(opts, address)
 }
 
 func (w *Wallet) GetNonce() (*big.Int, error) {
-	return w.zp.GetTransactionCount(w.es.GetAddress(), BlockNumberCommitted)
+	return w.GetNonceAt(BlockNumberCommitted)
 }
 
-func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonce *big.Int, feeToken *Token) (string, error) {
+func (w *Wallet) GetNonceAt(at BlockNumber) (*big.Int, error) {
+	return w.zp.GetTransactionCount(w.es.GetAddress(), at)
+}
+
+func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonce *big.Int) (string, error) {
 	var err error
 	if token == nil {
 		token = CreateETH()
-	}
-	if feeToken == nil {
-		feeToken = CreateETH()
 	}
 	if nonce == nil {
 		nonce, err = w.GetNonce()
@@ -140,7 +157,24 @@ func (w *Wallet) estimateAndSend(tx *Transaction, nonce *big.Int) (string, error
 	chainId := w.es.GetDomain().ChainId
 	fmt.Println("chainId", chainId)
 
-	prepared := NewTransaction712(chainId, nonce, gas, tx.To, tx.Value.ToInt(), tx.Data, big.NewInt(0), big.NewInt(0), tx.From, tx.Eip712Meta)
+	gasPrice, err := w.zp.GetGasPrice()
+	if err != nil {
+		return "", fmt.Errorf("failed to GetGasPrice: %w", err)
+	}
+	fmt.Println("gasPrice", gasPrice)
+
+	prepared := NewTransaction712(
+		chainId,
+		nonce,
+		gas,
+		tx.To,
+		tx.Value.ToInt(),
+		tx.Data,
+		big.NewInt(100000000), // TODO: Estimate correct one
+		gasPrice,
+		tx.From,
+		tx.Eip712Meta,
+	)
 	signature, err := w.es.SignTypedData(w.es.GetDomain(), prepared)
 	fmt.Println("signature", hexutil.Encode(signature), err)
 

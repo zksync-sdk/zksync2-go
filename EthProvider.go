@@ -6,8 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/zksync-sdk/zksync2-go/contracts/L1ERC20Bridge"
-	"github.com/zksync-sdk/zksync2-go/contracts/L1EthBridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/IL1Bridge"
 	"math/big"
 )
 
@@ -16,7 +15,7 @@ type EthProvider interface {
 }
 
 func NewDefaultEthProvider(rpcClient *rpc.Client, auth *bind.TransactOpts,
-	l1EthBridge *L1EthBridge.L1EthBridge, l1ERC20Bridge *L1ERC20Bridge.L1ERC20Bridge) *DefaultEthProvider {
+	l1EthBridge *IL1Bridge.IL1Bridge, l1ERC20Bridge *IL1Bridge.IL1Bridge) *DefaultEthProvider {
 	return &DefaultEthProvider{
 		rc:            rpcClient,
 		ec:            ethclient.NewClient(rpcClient),
@@ -31,8 +30,8 @@ type DefaultEthProvider struct {
 	ec   *ethclient.Client
 	auth *bind.TransactOpts
 
-	l1EthBridge   *L1EthBridge.L1EthBridge
-	l1ERC20Bridge *L1ERC20Bridge.L1ERC20Bridge
+	l1EthBridge   *IL1Bridge.IL1Bridge
+	l1ERC20Bridge *IL1Bridge.IL1Bridge
 }
 
 type GasOptions struct {
@@ -44,10 +43,10 @@ func (p *DefaultEthProvider) Deposit(token *Token, amount *big.Int, address comm
 	auth := p.getAuth(options)
 	if token.IsETH() {
 		auth.Value = amount
-		return p.l1EthBridge.Deposit(auth, address, EthAddress, amount, PriorityQueueTypeDeque)
+		return p.l1EthBridge.Deposit(auth, address, EthAddress, amount)
 	} else {
 		auth.Value = nil
-		return p.l1ERC20Bridge.Deposit(auth, address, token.L1Address, amount, PriorityQueueTypeDeque)
+		return p.l1ERC20Bridge.Deposit(auth, address, token.L1Address, amount)
 	}
 }
 
