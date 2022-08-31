@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/contracts/ERC20"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL1Bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/IL2Bridge"
 	"math/big"
 	"strings"
 )
@@ -21,19 +22,22 @@ type Wallet struct {
 	es EthSigner
 	zp Provider
 
-	bcs      *BridgeContracts
-	erc20abi abi.ABI
+	bcs         *BridgeContracts
+	erc20abi    abi.ABI
+	l2BridgeAbi abi.ABI
 }
 
 func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
 	erc20abi, err := abi.JSON(strings.NewReader(ERC20.ERC20MetaData.ABI))
+	l2BridgeAbi, err := abi.JSON(strings.NewReader(IL2Bridge.IL2BridgeMetaData.ABI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load erc20abi: %w", err)
 	}
 	return &Wallet{
-		es:       es,
-		zp:       zp,
-		erc20abi: erc20abi,
+		es:          es,
+		zp:          zp,
+		erc20abi:    erc20abi,
+		l2BridgeAbi: l2BridgeAbi,
 	}, nil
 }
 
@@ -117,6 +121,41 @@ func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonc
 		big.NewInt(0),
 		big.NewInt(0),
 		amount,
+		data,
+	)
+	return w.estimateAndSend(tx, nonce)
+}
+
+func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonce *big.Int) (string, error) {
+	var err error
+	if token == nil {
+		token = CreateETH()
+	}
+	if nonce == nil {
+		nonce, err = w.GetNonce()
+		if err != nil {
+			return "", fmt.Errorf("failed to get nonce: %w", err)
+		}
+	}
+	var data hexutil.Bytes
+	data, err = w.l2BridgeAbi.Pack("withdraw", to, token.L2Address, amount)
+	if err != nil {
+		return "", fmt.Errorf("failed to pack transfer function: %w", err)
+	}
+	bcs, err := w.getBridgeContracts()
+	if err != nil {
+		return "", fmt.Errorf("failed to getBridgeContracts: %w", err)
+	}
+	l2BridgeAddress := bcs.L2EthDefaultBridge
+	if !token.IsETH() {
+		l2BridgeAddress = bcs.L2Erc20DefaultBridge
+	}
+	tx := CreateFunctionCallTransaction(
+		w.es.GetAddress(),
+		l2BridgeAddress,
+		big.NewInt(0),
+		big.NewInt(0),
+		big.NewInt(0),
 		data,
 	)
 	return w.estimateAndSend(tx, nonce)
