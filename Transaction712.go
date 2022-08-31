@@ -128,6 +128,10 @@ func (tx *Transaction712) GetEIP712Message() apitypes.TypedDataMessage {
 		paymaster = big.NewInt(0).SetBytes(tx.Meta.PaymasterParams.Paymaster.Bytes())
 		paymasterInput = tx.Meta.PaymasterParams.PaymasterInput
 	}
+	value := `0x0`
+	if tx.Value != nil {
+		value = tx.Value.String()
+	}
 	return apitypes.TypedDataMessage{
 		"txType":                  EIP712TxType,
 		"from":                    big.NewInt(0).SetBytes(tx.From.Bytes()).String(),
@@ -138,7 +142,7 @@ func (tx *Transaction712) GetEIP712Message() apitypes.TypedDataMessage {
 		"maxPriorityFeePerErg":    tx.GasTipCap.String(),
 		"paymaster":               paymaster.String(),
 		"nonce":                   tx.Nonce.String(),
-		"value":                   tx.Value.String(),
+		"value":                   value,
 		"data":                    tx.Data,
 		"factoryDeps":             tx.getFactoryDepsHashes(),
 		"paymasterInput":          paymasterInput,
