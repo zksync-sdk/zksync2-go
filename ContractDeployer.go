@@ -12,13 +12,21 @@ import (
 
 var contractDeployerABI *abi.ABI
 
-func EncodeCreate2(bytecode, salt []byte) ([]byte, error) {
+func getContractDeployerABI() (*abi.ABI, error) {
 	if contractDeployerABI == nil {
 		cda, err := abi.JSON(strings.NewReader(ContractDeployer.ContractDeployerMetaData.ABI))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load ContractDeployer ABI: %w", err)
 		}
 		contractDeployerABI = &cda
+	}
+	return contractDeployerABI, nil
+}
+
+func EncodeCreate2(bytecode, calldata, salt []byte) ([]byte, error) {
+	cdABI, err := getContractDeployerABI()
+	if err != nil {
+		return nil, err
 	}
 	// prepare
 	if len(salt) == 0 {
@@ -35,9 +43,76 @@ func EncodeCreate2(bytecode, salt []byte) ([]byte, error) {
 	hash32 := [32]byte{}
 	copy(hash32[:], hash)
 
-	res, err := contractDeployerABI.Pack("create2", salt32, hash32, big.NewInt(0), []byte{})
+	res, err := cdABI.Pack("create2", salt32, hash32, big.NewInt(0), calldata)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack create2 function: %w", err)
+	}
+	return res, nil
+}
+
+func EncodeCreate(bytecode, calldata []byte) ([]byte, error) {
+	cdABI, err := getContractDeployerABI()
+	if err != nil {
+		return nil, err
+	}
+	hash, err := HashBytecode(bytecode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get hash of bytecode: %w", err)
+	}
+	salt32 := [32]byte{} // will be empty
+	hash32 := [32]byte{}
+	copy(hash32[:], hash)
+
+	res, err := cdABI.Pack("create", salt32, hash32, big.NewInt(0), calldata)
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack create function: %w", err)
+	}
+	return res, nil
+}
+
+func EncodeCreate2Account(bytecode, calldata, salt []byte) ([]byte, error) {
+	cdABI, err := getContractDeployerABI()
+	if err != nil {
+		return nil, err
+	}
+	// prepare
+	if len(salt) == 0 {
+		salt = make([]byte, 32)
+	} else if len(salt) != 32 {
+		return nil, errors.New("salt must be 32 bytes")
+	}
+	hash, err := HashBytecode(bytecode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get hash of bytecode: %w", err)
+	}
+	salt32 := [32]byte{}
+	copy(salt32[:], salt)
+	hash32 := [32]byte{}
+	copy(hash32[:], hash)
+
+	res, err := cdABI.Pack("create2Account", salt32, hash32, big.NewInt(0), calldata)
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack create2Account function: %w", err)
+	}
+	return res, nil
+}
+
+func EncodeCreateAccount(bytecode, calldata []byte) ([]byte, error) {
+	cdABI, err := getContractDeployerABI()
+	if err != nil {
+		return nil, err
+	}
+	hash, err := HashBytecode(bytecode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get hash of bytecode: %w", err)
+	}
+	salt32 := [32]byte{} // will be empty
+	hash32 := [32]byte{}
+	copy(hash32[:], hash)
+
+	res, err := cdABI.Pack("createAccount", salt32, hash32, big.NewInt(0), calldata)
+	if err != nil {
+		return nil, fmt.Errorf("failed to pack createAccount function: %w", err)
 	}
 	return res, nil
 }

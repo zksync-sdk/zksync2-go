@@ -27,10 +27,10 @@ type PaymasterParams struct {
 }
 
 type Eip712Domain struct {
-	Name              string         `json:"name"`
-	Version           string         `json:"version"`
-	ChainId           *big.Int       `json:"chainId"`
-	VerifyingContract common.Address `json:"verifyingContract"`
+	Name              string          `json:"name"`
+	Version           string          `json:"version"`
+	ChainId           *big.Int        `json:"chainId"`
+	VerifyingContract *common.Address `json:"verifyingContract"`
 }
 
 func (d *Eip712Domain) GetEIP712Type() string {
@@ -38,21 +38,27 @@ func (d *Eip712Domain) GetEIP712Type() string {
 }
 
 func (d *Eip712Domain) GetEIP712Types() []apitypes.Type {
-	return []apitypes.Type{
+	types := []apitypes.Type{
 		{Name: "name", Type: "string"},
 		{Name: "version", Type: "string"},
 		{Name: "chainId", Type: "uint256"},
-		//{Name: "verifyingContract", Type: "address"},
 	}
+	if d.VerifyingContract != nil {
+		types = append(types, apitypes.Type{Name: "verifyingContract", Type: "address"})
+	}
+	return types
 }
 
 func (d *Eip712Domain) GetEIP712Domain() apitypes.TypedDataDomain {
-	return apitypes.TypedDataDomain{
+	domain := apitypes.TypedDataDomain{
 		Name:    d.Name,
 		Version: d.Version,
 		ChainId: math.NewHexOrDecimal256(d.ChainId.Int64()),
-		//VerifyingContract: d.VerifyingContract.String(),
 	}
+	if d.VerifyingContract != nil {
+		domain.VerifyingContract = d.VerifyingContract.String()
+	}
+	return domain
 }
 
 const (
@@ -65,6 +71,6 @@ func DefaultEip712Domain(chainId int64) *Eip712Domain {
 		Name:              Eip712DomainDefaultName,
 		Version:           Eip712DomainDefaultVersion,
 		ChainId:           big.NewInt(chainId),
-		VerifyingContract: common.Address{},
+		VerifyingContract: nil,
 	}
 }

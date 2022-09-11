@@ -169,7 +169,7 @@ func (w *Wallet) Deploy(bytecode []byte, nonce *big.Int) (string, error) {
 			return "", fmt.Errorf("failed to get nonce: %w", err)
 		}
 	}
-	calldata, err := EncodeCreate2(bytecode, nil)
+	calldata, err := EncodeCreate2(bytecode, nil, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to encode create2 call: %w", err)
 	}
