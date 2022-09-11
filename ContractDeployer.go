@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/zksync-sdk/zksync2-go/contracts/ContractDeployer"
 	"math/big"
 	"strings"
@@ -21,6 +23,34 @@ func getContractDeployerABI() (*abi.ABI, error) {
 		contractDeployerABI = &cda
 	}
 	return contractDeployerABI, nil
+}
+
+func ComputeL2Create2Address(sender common.Address, bytecode, constructor, salt []byte) (common.Address, error) {
+	if len(salt) != 32 {
+		return common.Address{}, errors.New("salt must be 32 bytes")
+	}
+	bytecodeHash, err := HashBytecode(bytecode)
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to get hash of bytecode: %w", err)
+	}
+	bytes := make([]byte, 5*32)                                  // concatenate five 32-bytes slices
+	copy(bytes[0:32], crypto.Keccak256([]byte("zksyncCreate2"))) // 1 - prefix
+	copy(bytes[44:64], sender[:])                                // 2 - sender (20 bytes right padded to 32)
+	copy(bytes[64:96], salt)                                     // 3 - salt
+	copy(bytes[96:128], bytecodeHash)                            // 4 - bytecode hash
+	copy(bytes[128:160], crypto.Keccak256(constructor))          // 5 - constructor hash
+	result := crypto.Keccak256(bytes)
+	return common.BytesToAddress(result[12:]), nil
+}
+
+func ComputeL2CreateAddress(sender common.Address, nonce *big.Int) (common.Address, error) {
+	nonceBytes := nonce.Bytes()
+	bytes := make([]byte, 3*32)                                 // concatenate three 32-bytes slices
+	copy(bytes[0:32], crypto.Keccak256([]byte("zksyncCreate"))) // 1 - prefix
+	copy(bytes[44:64], sender[:])                               // 2 - sender (20 bytes right padded to 32)
+	copy(bytes[64+(32-len(nonceBytes)):96], nonceBytes)         // 3 - nonce (some bytes right padded to 32)
+	result := crypto.Keccak256(bytes)
+	return common.BytesToAddress(result[12:]), nil
 }
 
 func EncodeCreate2(bytecode, calldata, salt []byte) ([]byte, error) {
