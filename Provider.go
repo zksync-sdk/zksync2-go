@@ -25,6 +25,8 @@ type Provider interface {
 	ZksGetL2ToL1MsgProof(block uint32, sender common.Address, msg common.Hash) (*L2ToL1MessageProof, error)
 	ZksGetAllAccountBalances(address common.Address) (map[common.Address]*big.Int, error)
 	ZksGetBridgeContracts() (*BridgeContracts, error)
+	ZksEstimateFee(tx *Transaction) (*Fee, error)
+	ZksGetTestnetPaymaster() (common.Address, error)
 }
 
 func NewDefaultProvider(rawUrl string) (*DefaultProvider, error) {
@@ -194,4 +196,22 @@ func (p *DefaultProvider) ZksGetBridgeContracts() (*BridgeContracts, error) {
 		return nil, fmt.Errorf("failed to query zks_getBridgeContracts: %w", err)
 	}
 	return &res, nil
+}
+
+func (p *DefaultProvider) ZksEstimateFee(tx *Transaction) (*Fee, error) {
+	var res Fee
+	err := p.c.Call(&res, "zks_estimateFee", tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_estimateFee: %w", err)
+	}
+	return &res, nil
+}
+
+func (p *DefaultProvider) ZksGetTestnetPaymaster() (common.Address, error) {
+	var res string
+	err := p.c.Call(&res, "zks_getTestnetPaymaster")
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to query zks_estimateFee: %w", err)
+	}
+	return common.HexToAddress(res), nil
 }

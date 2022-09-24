@@ -58,6 +58,13 @@ type L2ToL1MessageProof struct {
 	Root  common.Hash   `json:"root"`
 }
 
+type Fee struct {
+	ErgsLimit            *hexutil.Big `json:"ergs_limit"`
+	ErgsPerPubdataLimit  *hexutil.Big `json:"ergs_per_pubdata_limit"`
+	MaxFeePerErg         *hexutil.Big `json:"max_fee_per_erg"`
+	MaxPriorityFeePerErg *hexutil.Big `json:"max_priority_fee_per_erg"`
+}
+
 type BlockNumber string // Enums or hex value
 
 var (

@@ -2,7 +2,6 @@ package zksync2
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -12,7 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/contracts/ERC20"
-	"github.com/zksync-sdk/zksync2-go/contracts/IL1Bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL2Bridge"
 	"math/big"
 	"strings"
@@ -55,15 +53,7 @@ func (w *Wallet) CreateEthereumProvider(rpcClient *rpc.Client) (*DefaultEthProvi
 	if err != nil {
 		return nil, fmt.Errorf("failed to getBridgeContracts: %w", err)
 	}
-	l1EthBridge, err := IL1Bridge.NewIL1Bridge(bcs.L1EthDefaultBridge, ethClient)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load L1EthBridge: %w", err)
-	}
-	l1ERC20Bridge, err := IL1Bridge.NewIL1Bridge(bcs.L1Erc20DefaultBridge, ethClient)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load L1ERC20Bridge: %w", err)
-	}
-	return NewDefaultEthProvider(rpcClient, auth, l1EthBridge, l1ERC20Bridge), nil
+	return NewDefaultEthProvider(rpcClient, auth, bcs.L1EthDefaultBridge, bcs.L1Erc20DefaultBridge)
 }
 
 func (w *Wallet) GetBalance() (*big.Int, error) {
@@ -203,25 +193,15 @@ func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.In
 }
 
 func (w *Wallet) estimateAndSend(tx *Transaction, nonce *big.Int) (string, error) {
-	// TODO remove debug output
-	fmt.Println("nonce", nonce)
-	txj, _ := json.MarshalIndent(tx, "", "  ")
-	fmt.Println("Tx:", string(txj))
-
 	gas, err := w.zp.EstimateGas(tx)
 	if err != nil {
 		return "", fmt.Errorf("failed to EstimateGas: %w", err)
 	}
-	fmt.Println("EstimateGas", gas)
 	chainId := w.es.GetDomain().ChainId
-	fmt.Println("chainId", chainId)
-
 	gasPrice, err := w.zp.GetGasPrice()
 	if err != nil {
 		return "", fmt.Errorf("failed to GetGasPrice: %w", err)
 	}
-	fmt.Println("gasPrice", gasPrice)
-
 	prepared := NewTransaction712(
 		chainId,
 		nonce,
@@ -235,14 +215,8 @@ func (w *Wallet) estimateAndSend(tx *Transaction, nonce *big.Int) (string, error
 		tx.Eip712Meta,
 	)
 	signature, err := w.es.SignTypedData(w.es.GetDomain(), prepared)
-	fmt.Println("signature", hexutil.Encode(signature), err)
-
 	rawTx, err := prepared.RLPValues(signature)
-	fmt.Println("rawTx", hexutil.Encode(rawTx), err, len(rawTx))
-
-	txHash, err := w.zp.SendRawTransaction(rawTx)
-	fmt.Println("txHash", txHash, err)
-	return txHash, err
+	return w.zp.SendRawTransaction(rawTx)
 }
 
 func (w *Wallet) getBridgeContracts() (*BridgeContracts, error) {
