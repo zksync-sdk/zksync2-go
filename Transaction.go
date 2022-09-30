@@ -17,7 +17,8 @@ type Transaction struct {
 	Eip712Meta *Eip712Meta
 }
 
-func CreateFunctionCallTransaction(from, to common.Address, ergsLimit, ergsPrice, value *big.Int, data hexutil.Bytes) *Transaction {
+func CreateFunctionCallTransaction(from, to common.Address, ergsPrice, ergsLimit, value *big.Int, data hexutil.Bytes,
+	customSignature hexutil.Bytes, paymasterParams *PaymasterParams) *Transaction {
 	return &Transaction{
 		From:     from,
 		To:       to,
@@ -27,14 +28,21 @@ func CreateFunctionCallTransaction(from, to common.Address, ergsLimit, ergsPrice
 		Data:     data,
 		Eip712Meta: &Eip712Meta{
 			ErgsPerPubdata:  NewBig(160000),
-			CustomSignature: nil,
+			CustomSignature: customSignature,
 			FactoryDeps:     nil,
-			PaymasterParams: nil,
+			PaymasterParams: paymasterParams,
 		},
 	}
 }
 
-func Create2ContractTransaction(from common.Address, ergsLimit, ergsPrice *big.Int, bytecode, calldata hexutil.Bytes) *Transaction {
+func Create2ContractTransaction(from common.Address, ergsPrice, ergsLimit *big.Int,
+	bytecode, calldata hexutil.Bytes, deps []hexutil.Bytes,
+	customSignature hexutil.Bytes, paymasterParams *PaymasterParams) *Transaction {
+	if len(deps) > 0 {
+		deps = append(deps, bytecode)
+	} else {
+		deps = []hexutil.Bytes{bytecode}
+	}
 	return &Transaction{
 		From:     from,
 		To:       ContractDeployerAddress,
@@ -44,9 +52,9 @@ func Create2ContractTransaction(from common.Address, ergsLimit, ergsPrice *big.I
 		Data:     calldata,
 		Eip712Meta: &Eip712Meta{
 			ErgsPerPubdata:  NewBig(160000),
-			CustomSignature: nil,
-			FactoryDeps:     []hexutil.Bytes{bytecode},
-			PaymasterParams: nil,
+			CustomSignature: customSignature,
+			FactoryDeps:     deps,
+			PaymasterParams: paymasterParams,
 		},
 	}
 }

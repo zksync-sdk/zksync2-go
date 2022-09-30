@@ -112,8 +112,9 @@ func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonc
 		big.NewInt(0),
 		amount,
 		data,
+		nil, nil,
 	)
-	return w.estimateAndSend(tx, nonce)
+	return w.EstimateAndSend(tx, nonce)
 }
 
 func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonce *big.Int) (string, error) {
@@ -147,11 +148,12 @@ func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonc
 		big.NewInt(0),
 		big.NewInt(0),
 		data,
+		nil, nil,
 	)
-	return w.estimateAndSend(tx, nonce)
+	return w.EstimateAndSend(tx, nonce)
 }
 
-func (w *Wallet) Deploy(bytecode []byte, nonce *big.Int) (string, error) {
+func (w *Wallet) Deploy(bytecode []byte, calldata []byte, salt []byte, deps [][]byte, nonce *big.Int) (string, error) {
 	var err error
 	if nonce == nil {
 		nonce, err = w.GetNonce()
@@ -159,18 +161,27 @@ func (w *Wallet) Deploy(bytecode []byte, nonce *big.Int) (string, error) {
 			return "", fmt.Errorf("failed to get nonce: %w", err)
 		}
 	}
-	calldata, err := EncodeCreate2(bytecode, nil, nil)
+	data, err := EncodeCreate2(bytecode, calldata, salt)
 	if err != nil {
 		return "", fmt.Errorf("failed to encode create2 call: %w", err)
+	}
+	var factoryDeps []hexutil.Bytes
+	if len(deps) > 0 {
+		factoryDeps = make([]hexutil.Bytes, len(deps))
+		for i, d := range deps {
+			factoryDeps[i] = d
+		}
 	}
 	tx := Create2ContractTransaction(
 		w.es.GetAddress(),
 		big.NewInt(0),
 		big.NewInt(0),
 		bytecode,
-		calldata,
+		data,
+		factoryDeps,
+		nil, nil,
 	)
-	return w.estimateAndSend(tx, nonce)
+	return w.EstimateAndSend(tx, nonce)
 }
 
 func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.Int) (string, error) {
@@ -188,11 +199,12 @@ func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.In
 		big.NewInt(0),
 		big.NewInt(0),
 		calldata,
+		nil, nil,
 	)
-	return w.estimateAndSend(tx, nonce)
+	return w.EstimateAndSend(tx, nonce)
 }
 
-func (w *Wallet) estimateAndSend(tx *Transaction, nonce *big.Int) (string, error) {
+func (w *Wallet) EstimateAndSend(tx *Transaction, nonce *big.Int) (string, error) {
 	gas, err := w.zp.EstimateGas(tx)
 	if err != nil {
 		return "", fmt.Errorf("failed to EstimateGas: %w", err)
