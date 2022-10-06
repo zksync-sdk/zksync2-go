@@ -6,7 +6,6 @@ require (
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/miguelmota/go-ethereum-hdwallet v0.1.1
 	github.com/pkg/errors v0.9.1
-	github.com/storyicon/sigverify v1.1.0
 )
 
 require (

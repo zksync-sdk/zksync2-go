@@ -62,6 +62,9 @@ type GasOptions struct {
 }
 
 func (p *DefaultEthProvider) ApproveDeposit(token *Token, limit *big.Int, options *GasOptions) (*types.Transaction, error) {
+	if token == nil {
+		token = CreateETH()
+	}
 	auth := p.getAuth(options)
 	erc20, err := ERC20.NewERC20(token.L1Address, p.ec)
 	if err != nil {
@@ -74,6 +77,9 @@ func (p *DefaultEthProvider) ApproveDeposit(token *Token, limit *big.Int, option
 }
 
 func (p *DefaultEthProvider) IsDepositApproved(token *Token, to common.Address, threshold *big.Int) (bool, error) {
+	if token == nil {
+		token = CreateETH()
+	}
 	erc20, err := ERC20.NewERC20(token.L1Address, p.ec)
 	if err != nil {
 		return false, fmt.Errorf("failed to load ERC20: %w", err)
@@ -89,6 +95,9 @@ func (p *DefaultEthProvider) IsDepositApproved(token *Token, to common.Address, 
 }
 
 func (p *DefaultEthProvider) Deposit(token *Token, amount *big.Int, address common.Address, options *GasOptions) (*types.Transaction, error) {
+	if token == nil {
+		token = CreateETH()
+	}
 	auth := p.getAuth(options)
 	if token.IsETH() {
 		auth.Value = amount

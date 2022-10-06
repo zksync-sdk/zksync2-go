@@ -26,8 +26,13 @@ func getContractDeployerABI() (*abi.ABI, error) {
 }
 
 func ComputeL2Create2Address(sender common.Address, bytecode, constructor, salt []byte) (common.Address, error) {
-	if len(salt) != 32 {
+	if len(salt) == 0 {
+		salt = make([]byte, 32)
+	} else if len(salt) != 32 {
 		return common.Address{}, errors.New("salt must be 32 bytes")
+	}
+	if constructor == nil {
+		constructor = []byte{}
 	}
 	bytecodeHash, err := HashBytecode(bytecode)
 	if err != nil {
