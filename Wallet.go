@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/contracts/ERC20"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL2Bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/IL2Messenger"
 	"math/big"
 	"strings"
 )
@@ -23,19 +24,28 @@ type Wallet struct {
 	bcs         *BridgeContracts
 	erc20abi    abi.ABI
 	l2BridgeAbi abi.ABI
+	l2Messenger abi.ABI
 }
 
 func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
 	erc20abi, err := abi.JSON(strings.NewReader(ERC20.ERC20MetaData.ABI))
-	l2BridgeAbi, err := abi.JSON(strings.NewReader(IL2Bridge.IL2BridgeMetaData.ABI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load erc20abi: %w", err)
+	}
+	l2BridgeAbi, err := abi.JSON(strings.NewReader(IL2Bridge.IL2BridgeMetaData.ABI))
+	if err != nil {
+		return nil, fmt.Errorf("failed to load l2BridgeAbi: %w", err)
+	}
+	l2Messenger, err := abi.JSON(strings.NewReader(IL2Messenger.IL2MessengerMetaData.ABI))
+	if err != nil {
+		return nil, fmt.Errorf("failed to load l2Messenger: %w", err)
 	}
 	return &Wallet{
 		es:          es,
 		zp:          zp,
 		erc20abi:    erc20abi,
 		l2BridgeAbi: l2BridgeAbi,
+		l2Messenger: l2Messenger,
 	}, nil
 }
 
@@ -199,6 +209,31 @@ func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.In
 		big.NewInt(0),
 		big.NewInt(0),
 		calldata,
+		nil, nil,
+	)
+	return w.EstimateAndSend(tx, nonce)
+}
+
+func (w *Wallet) SendMessageToL1(message []byte, nonce *big.Int) (string, error) {
+	var err error
+	if nonce == nil {
+		nonce, err = w.GetNonce()
+		if err != nil {
+			return "", fmt.Errorf("failed to get nonce: %w", err)
+		}
+	}
+	var data hexutil.Bytes
+	data, err = w.l2Messenger.Pack("sendToL1", message)
+	if err != nil {
+		return "", fmt.Errorf("failed to pack sendToL1 function: %w", err)
+	}
+	tx := CreateFunctionCallTransaction(
+		w.es.GetAddress(),
+		MessengerAddress,
+		big.NewInt(0),
+		big.NewInt(0),
+		big.NewInt(0),
+		data,
 		nil, nil,
 	)
 	return w.EstimateAndSend(tx, nonce)
