@@ -78,7 +78,7 @@ func EncodeCreate2(bytecode, calldata, salt []byte) ([]byte, error) {
 	hash32 := [32]byte{}
 	copy(hash32[:], hash)
 
-	res, err := cdABI.Pack("create2", salt32, hash32, big.NewInt(0), calldata)
+	res, err := cdABI.Pack("create2", salt32, hash32, calldata)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack create2 function: %w", err)
 	}
@@ -98,7 +98,7 @@ func EncodeCreate(bytecode, calldata []byte) ([]byte, error) {
 	hash32 := [32]byte{}
 	copy(hash32[:], hash)
 
-	res, err := cdABI.Pack("create", salt32, hash32, big.NewInt(0), calldata)
+	res, err := cdABI.Pack("create", salt32, hash32, calldata)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack create function: %w", err)
 	}
@@ -125,7 +125,7 @@ func EncodeCreate2Account(bytecode, calldata, salt []byte) ([]byte, error) {
 	hash32 := [32]byte{}
 	copy(hash32[:], hash)
 
-	res, err := cdABI.Pack("create2Account", salt32, hash32, big.NewInt(0), calldata)
+	res, err := cdABI.Pack("create2Account", salt32, hash32, calldata)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack create2Account function: %w", err)
 	}
@@ -145,7 +145,7 @@ func EncodeCreateAccount(bytecode, calldata []byte) ([]byte, error) {
 	hash32 := [32]byte{}
 	copy(hash32[:], hash)
 
-	res, err := cdABI.Pack("createAccount", salt32, hash32, big.NewInt(0), calldata)
+	res, err := cdABI.Pack("createAccount", salt32, hash32, calldata)
 	if err != nil {
 		return nil, fmt.Errorf("failed to pack createAccount function: %w", err)
 	}
