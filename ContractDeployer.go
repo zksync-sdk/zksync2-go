@@ -153,14 +153,21 @@ func EncodeCreateAccount(bytecode, calldata []byte) ([]byte, error) {
 }
 
 func HashBytecode(bytecode []byte) ([]byte, error) {
+	if len(bytecode)%32 != 0 {
+		return nil, errors.New("bytecode length in bytes must be divisible by 32")
+	}
 	bytecodeHash := sha256.Sum256(bytecode)
 	// get real length of bytecode, which is presented as 32-byte words
 	length := big.NewInt(int64(len(bytecode) / 32))
 	if length.BitLen() > 16 {
 		return nil, errors.New("bytecode length must be less than 2^16 bytes")
 	}
+	// replace first 2 bytes of hash with version
+	version := []byte{1, 0}
+	copy(bytecodeHash[0:2], version)
+	// replace second 2 bytes of hash with bytecode length
 	length2b := make([]byte, 2)
 	length2b = length.FillBytes(length2b) // 0-padded in 2 bytes
-	// replace first 2 bytes of hash with bytecode length
-	return append(length2b, bytecodeHash[2:]...), nil
+	copy(bytecodeHash[2:4], length2b)
+	return bytecodeHash[:], nil
 }
