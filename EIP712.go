@@ -15,7 +15,7 @@ type EIP712TypedData interface {
 }
 
 type Eip712Meta struct {
-	ErgsPerPubdata  *hexutil.Big     `json:"ergsPerPubdata,omitempty"`
+	GasPerPubdata   *hexutil.Big     `json:"gasPerPubdata,omitempty"`
 	CustomSignature hexutil.Bytes    `json:"customSignature"`
 	FactoryDeps     []hexutil.Bytes  `json:"factoryDeps"`
 	PaymasterParams *PaymasterParams `json:"paymasterParams"`

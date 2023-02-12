@@ -59,10 +59,10 @@ type L2ToL1MessageProof struct {
 }
 
 type Fee struct {
-	ErgsLimit            *hexutil.Big `json:"ergs_limit"`
-	ErgsPerPubdataLimit  *hexutil.Big `json:"ergs_per_pubdata_limit"`
-	MaxFeePerErg         *hexutil.Big `json:"max_fee_per_erg"`
-	MaxPriorityFeePerErg *hexutil.Big `json:"max_priority_fee_per_erg"`
+	GasLimit             *hexutil.Big `json:"gas_limit"`
+	GasPerPubdataLimit   *hexutil.Big `json:"gas_per_pubdata_limit"`
+	MaxFeePerGas         *hexutil.Big `json:"max_fee_per_gas"`
+	MaxPriorityFeePerGas *hexutil.Big `json:"max_priority_fee_per_gas"`
 }
 
 type BlockNumber string // Enums or hex value
