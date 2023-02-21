@@ -9,12 +9,15 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/contracts/ERC20"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL1Bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/IZkSync"
 	"math/big"
 )
 
 var (
-	MaxApproveAmount = big.NewInt(0).Sub(big.NewInt(0).Exp(big.NewInt(2), big.NewInt(256), nil), big.NewInt(1))
-	DefaultThreshold = big.NewInt(0).Exp(big.NewInt(2), big.NewInt(255), nil)
+	MaxApproveAmount             = big.NewInt(0).Sub(big.NewInt(0).Exp(big.NewInt(2), big.NewInt(256), nil), big.NewInt(1))
+	DefaultThreshold             = big.NewInt(0).Exp(big.NewInt(2), big.NewInt(255), nil)
+	RecommendedDepositL2GasLimit = big.NewInt(10000000)
+	DepositGasPerPubdataLimit    = big.NewInt(800)
 )
 
 type EthProvider interface {
@@ -24,11 +27,11 @@ type EthProvider interface {
 }
 
 func NewDefaultEthProvider(rpcClient *rpc.Client, auth *bind.TransactOpts,
-	l1EthBridgeAddress, l1ERC20BridgeAddress common.Address) (*DefaultEthProvider, error) {
+	mainContractAddress, l1ERC20BridgeAddress common.Address) (*DefaultEthProvider, error) {
 	ec := ethclient.NewClient(rpcClient)
-	l1EthBridge, err := IL1Bridge.NewIL1Bridge(l1EthBridgeAddress, ec)
+	iZkSync, err := IZkSync.NewIZkSync(mainContractAddress, ec)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load L1EthBridge: %w", err)
+		return nil, fmt.Errorf("failed to load IZkSync: %w", err)
 	}
 	l1ERC20Bridge, err := IL1Bridge.NewIL1Bridge(l1ERC20BridgeAddress, ec)
 	if err != nil {
@@ -38,10 +41,10 @@ func NewDefaultEthProvider(rpcClient *rpc.Client, auth *bind.TransactOpts,
 		rc:                   rpcClient,
 		ec:                   ec,
 		auth:                 auth,
-		l1EthBridgeAddress:   l1EthBridgeAddress,
+		mainContractAddress:  mainContractAddress,
 		l1ERC20BridgeAddress: l1ERC20BridgeAddress,
-		l1EthBridge:          l1EthBridge,
 		l1ERC20Bridge:        l1ERC20Bridge,
+		iZkSync:              iZkSync,
 	}, nil
 }
 
@@ -50,10 +53,10 @@ type DefaultEthProvider struct {
 	ec   *ethclient.Client
 	auth *bind.TransactOpts
 
-	l1EthBridgeAddress   common.Address
+	mainContractAddress  common.Address
 	l1ERC20BridgeAddress common.Address
-	l1EthBridge          *IL1Bridge.IL1Bridge
 	l1ERC20Bridge        *IL1Bridge.IL1Bridge
+	iZkSync              *IZkSync.IZkSync
 }
 
 type GasOptions struct {
@@ -101,11 +104,29 @@ func (p *DefaultEthProvider) Deposit(token *Token, amount *big.Int, address comm
 	auth := p.getAuth(options)
 	if token.IsETH() {
 		auth.Value = amount
-		return p.l1EthBridge.Deposit(auth, address, EthAddress, amount)
+		return p.RequestExecute(address, amount, nil,
+			RecommendedDepositL2GasLimit, DepositGasPerPubdataLimit,
+			nil, address, auth)
 	} else {
 		auth.Value = nil
-		return p.l1ERC20Bridge.Deposit(auth, address, token.L1Address, amount)
+		return p.l1ERC20Bridge.Deposit(auth,
+			address, token.L1Address, amount,
+			RecommendedDepositL2GasLimit, DepositGasPerPubdataLimit)
 	}
+}
+
+func (p *DefaultEthProvider) RequestExecute(contractL2 common.Address, l2Value *big.Int, calldata []byte,
+	l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int,
+	factoryDeps [][]byte, refundRecipient common.Address, auth *bind.TransactOpts) (*types.Transaction, error) {
+	return p.iZkSync.RequestL2Transaction(auth,
+		contractL2,
+		l2Value,
+		calldata,
+		l2GasLimit,
+		l2GasPerPubdataByteLimit,
+		factoryDeps,
+		refundRecipient,
+	)
 }
 
 // getAuth make a new copy of origin TransactOpts to be used safely for each call

@@ -1,6 +1,7 @@
 package zksync2
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -11,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/contracts/ERC20"
+	"github.com/zksync-sdk/zksync2-go/contracts/IEthToken"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL2Bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL2Messenger"
 	"math/big"
@@ -21,16 +23,22 @@ type Wallet struct {
 	es EthSigner
 	zp Provider
 
-	bcs         *BridgeContracts
-	erc20abi    abi.ABI
-	l2BridgeAbi abi.ABI
-	l2Messenger abi.ABI
+	bcs          *BridgeContracts
+	mainContract common.Address
+	erc20abi     abi.ABI
+	ethTokenAbi  abi.ABI
+	l2BridgeAbi  abi.ABI
+	l2Messenger  abi.ABI
 }
 
 func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
 	erc20abi, err := abi.JSON(strings.NewReader(ERC20.ERC20MetaData.ABI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load erc20abi: %w", err)
+	}
+	ethTokenAbi, err := abi.JSON(strings.NewReader(IEthToken.IEthTokenMetaData.ABI))
+	if err != nil {
+		return nil, fmt.Errorf("failed to load ethTokenAbi: %w", err)
 	}
 	l2BridgeAbi, err := abi.JSON(strings.NewReader(IL2Bridge.IL2BridgeMetaData.ABI))
 	if err != nil {
@@ -44,6 +52,7 @@ func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
 		es:          es,
 		zp:          zp,
 		erc20abi:    erc20abi,
+		ethTokenAbi: ethTokenAbi,
 		l2BridgeAbi: l2BridgeAbi,
 		l2Messenger: l2Messenger,
 	}, nil
@@ -59,11 +68,15 @@ func (w *Wallet) CreateEthereumProvider(rpcClient *rpc.Client) (*DefaultEthProvi
 	if err != nil {
 		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
 	}
+	mc, err := w.getMainContract()
+	if err != nil {
+		return nil, fmt.Errorf("failed to getMainContract: %w", err)
+	}
 	bcs, err := w.getBridgeContracts()
 	if err != nil {
 		return nil, fmt.Errorf("failed to getBridgeContracts: %w", err)
 	}
-	return NewDefaultEthProvider(rpcClient, auth, bcs.L1EthDefaultBridge, bcs.L1Erc20DefaultBridge)
+	return NewDefaultEthProvider(rpcClient, auth, mc, bcs.L1Erc20DefaultBridge)
 }
 
 func (w *Wallet) GetBalance() (*big.Int, error) {
@@ -139,28 +152,41 @@ func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonc
 		}
 	}
 	var data hexutil.Bytes
-	data, err = w.l2BridgeAbi.Pack("withdraw", to, token.L2Address, amount)
-	if err != nil {
-		return "", fmt.Errorf("failed to pack transfer function: %w", err)
+	if token.IsETH() {
+		data, err = w.ethTokenAbi.Pack("withdraw", to)
+		if err != nil {
+			return "", fmt.Errorf("failed to pack withdraw function: %w", err)
+		}
+		tx := CreateFunctionCallTransaction(
+			w.es.GetAddress(),
+			EthAddress,
+			big.NewInt(0),
+			big.NewInt(0),
+			amount,
+			data,
+			nil, nil,
+		)
+		return w.EstimateAndSend(tx, nonce)
+	} else {
+		data, err = w.l2BridgeAbi.Pack("withdraw", to, token.L2Address, amount)
+		if err != nil {
+			return "", fmt.Errorf("failed to pack withdraw function: %w", err)
+		}
+		bcs, err := w.getBridgeContracts()
+		if err != nil {
+			return "", fmt.Errorf("failed to getBridgeContracts: %w", err)
+		}
+		tx := CreateFunctionCallTransaction(
+			w.es.GetAddress(),
+			bcs.L2Erc20DefaultBridge,
+			big.NewInt(0),
+			big.NewInt(0),
+			big.NewInt(0),
+			data,
+			nil, nil,
+		)
+		return w.EstimateAndSend(tx, nonce)
 	}
-	bcs, err := w.getBridgeContracts()
-	if err != nil {
-		return "", fmt.Errorf("failed to getBridgeContracts: %w", err)
-	}
-	l2BridgeAddress := bcs.L2EthDefaultBridge
-	if !token.IsETH() {
-		l2BridgeAddress = bcs.L2Erc20DefaultBridge
-	}
-	tx := CreateFunctionCallTransaction(
-		w.es.GetAddress(),
-		l2BridgeAddress,
-		big.NewInt(0),
-		big.NewInt(0),
-		big.NewInt(0),
-		data,
-		nil, nil,
-	)
-	return w.EstimateAndSend(tx, nonce)
 }
 
 func (w *Wallet) Deploy(bytecode []byte, calldata []byte, salt []byte, deps [][]byte, nonce *big.Int) (string, error) {
@@ -264,6 +290,18 @@ func (w *Wallet) EstimateAndSend(tx *Transaction, nonce *big.Int) (string, error
 	signature, err := w.es.SignTypedData(w.es.GetDomain(), prepared)
 	rawTx, err := prepared.RLPValues(signature)
 	return w.zp.SendRawTransaction(rawTx)
+}
+
+func (w *Wallet) getMainContract() (common.Address, error) {
+	if !bytes.Equal(w.mainContract.Bytes(), common.Address{}.Bytes()) {
+		return w.mainContract, nil
+	}
+	var err error
+	w.mainContract, err = w.zp.ZksGetMainContract()
+	if err != nil {
+		return common.Address{}, err
+	}
+	return w.mainContract, nil
 }
 
 func (w *Wallet) getBridgeContracts() (*BridgeContracts, error) {

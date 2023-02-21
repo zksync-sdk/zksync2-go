@@ -22,11 +22,13 @@ type Provider interface {
 	ZksGetConfirmedTokens(from uint32, limit uint8) ([]*Token, error)
 	ZksIsTokenLiquid(address common.Address) (bool, error)
 	ZksGetTokenPrice(address common.Address) (*big.Float, error)
+	ZksGetL2ToL1LogProof(txHash common.Hash, logIndex int) (*L2ToL1MessageProof, error)
 	ZksGetL2ToL1MsgProof(block uint32, sender common.Address, msg common.Hash) (*L2ToL1MessageProof, error)
 	ZksGetAllAccountBalances(address common.Address) (map[common.Address]*big.Int, error)
 	ZksGetBridgeContracts() (*BridgeContracts, error)
 	ZksEstimateFee(tx *Transaction) (*Fee, error)
 	ZksGetTestnetPaymaster() (common.Address, error)
+	ZksGetBlockDetails(block uint32) (*BlockDetails, error)
 }
 
 func NewDefaultProvider(rawUrl string) (*DefaultProvider, error) {
@@ -164,6 +166,15 @@ func (p *DefaultProvider) ZksGetTokenPrice(address common.Address) (*big.Float, 
 	return resp, nil
 }
 
+func (p *DefaultProvider) ZksGetL2ToL1LogProof(txHash common.Hash, logIndex int) (*L2ToL1MessageProof, error) {
+	res := L2ToL1MessageProof{}
+	err := p.c.Call(&res, "zks_getL2ToL1LogProof", txHash, logIndex)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getL2ToL1LogProof: %w", err)
+	}
+	return &res, nil
+}
+
 func (p *DefaultProvider) ZksGetL2ToL1MsgProof(block uint32, sender common.Address, msg common.Hash) (*L2ToL1MessageProof, error) {
 	res := L2ToL1MessageProof{}
 	err := p.c.Call(&res, "zks_getL2ToL1MsgProof", block, sender, msg)
@@ -214,4 +225,13 @@ func (p *DefaultProvider) ZksGetTestnetPaymaster() (common.Address, error) {
 		return common.Address{}, fmt.Errorf("failed to query zks_estimateFee: %w", err)
 	}
 	return common.HexToAddress(res), nil
+}
+
+func (p *DefaultProvider) ZksGetBlockDetails(block uint32) (*BlockDetails, error) {
+	var res BlockDetails
+	err := p.c.Call(&res, "zks_getBlockDetails", block)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getBlockDetails: %w", err)
+	}
+	return &res, nil
 }

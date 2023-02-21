@@ -5,6 +5,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math/big"
+	"time"
 )
 
 var (
@@ -25,9 +26,7 @@ const (
 
 type BridgeContracts struct {
 	L1Erc20DefaultBridge common.Address `json:"l1Erc20DefaultBridge"`
-	L1EthDefaultBridge   common.Address `json:"l1EthDefaultBridge"`
 	L2Erc20DefaultBridge common.Address `json:"l2Erc20DefaultBridge"`
-	L2EthDefaultBridge   common.Address `json:"l2EthDefaultBridge"`
 }
 
 type Token struct {
@@ -74,6 +73,21 @@ var (
 	BlockNumberCommitted BlockNumber = "committed"
 	BlockNumberFinalized BlockNumber = "finalized"
 )
+
+type BlockDetails struct {
+	CommitTxHash  common.Hash `json:"commitTxHash"`
+	CommittedAt   time.Time   `json:"committedAt"`
+	ExecuteTxHash common.Hash `json:"executeTxHash"`
+	ExecutedAt    time.Time   `json:"executedAt"`
+	L1TxCount     int         `json:"l1TxCount"`
+	L2TxCount     int         `json:"l2TxCount"`
+	Number        int         `json:"number"`
+	ProveTxHash   common.Hash `json:"proveTxHash"`
+	ProvenAt      time.Time   `json:"provenAt"`
+	RootHash      common.Hash `json:"rootHash"`
+	Status        string      `json:"status"`
+	Timestamp     uint        `json:"timestamp"`
+}
 
 func NewBigZero() *hexutil.Big {
 	return (*hexutil.Big)(new(big.Int))
