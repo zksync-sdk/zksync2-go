@@ -1,6 +1,7 @@
 package zksync2
 
 import (
+	"context"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -24,6 +25,10 @@ type EthProvider interface {
 	ApproveDeposit(token *Token, limit *big.Int, options *GasOptions) (*types.Transaction, error)
 	IsDepositApproved(token *Token, to common.Address, threshold *big.Int) (bool, error)
 	Deposit(token *Token, amount *big.Int, address common.Address, options *GasOptions) (*types.Transaction, error)
+	RequestExecute(contractL2 common.Address, l2Value *big.Int, calldata []byte,
+		l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int,
+		factoryDeps [][]byte, refundRecipient common.Address, auth *bind.TransactOpts) (*types.Transaction, error)
+	GetBaseCost(l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int, gasPrice *big.Int) (*big.Int, error)
 }
 
 func NewDefaultEthProvider(rpcClient *rpc.Client, auth *bind.TransactOpts,
@@ -102,13 +107,17 @@ func (p *DefaultEthProvider) Deposit(token *Token, amount *big.Int, address comm
 		token = CreateETH()
 	}
 	auth := p.getAuth(options)
+	baseCost, err := p.GetBaseCost(RecommendedDepositL2GasLimit, DepositGasPerPubdataLimit, auth.GasPrice)
+	if err != nil {
+		return nil, fmt.Errorf("failed to GetBaseCost: %w", err)
+	}
 	if token.IsETH() {
-		auth.Value = amount
+		auth.Value = auth.Value.Add(baseCost, amount)
 		return p.RequestExecute(address, amount, nil,
 			RecommendedDepositL2GasLimit, DepositGasPerPubdataLimit,
 			nil, address, auth)
 	} else {
-		auth.Value = nil
+		auth.Value = baseCost
 		return p.l1ERC20Bridge.Deposit(auth,
 			address, token.L1Address, amount,
 			RecommendedDepositL2GasLimit, DepositGasPerPubdataLimit)
@@ -126,6 +135,20 @@ func (p *DefaultEthProvider) RequestExecute(contractL2 common.Address, l2Value *
 		l2GasPerPubdataByteLimit,
 		factoryDeps,
 		refundRecipient,
+	)
+}
+
+func (p *DefaultEthProvider) GetBaseCost(l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int, gasPrice *big.Int) (*big.Int, error) {
+	if gasPrice == nil {
+		var err error
+		if gasPrice, err = p.ec.SuggestGasPrice(context.Background()); err != nil {
+			return nil, err
+		}
+	}
+	return p.iZkSync.L2TransactionBaseCost(&bind.CallOpts{},
+		gasPrice,
+		l2GasLimit,
+		l2GasPerPubdataByteLimit,
 	)
 }
 
