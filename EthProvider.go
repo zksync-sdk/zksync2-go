@@ -22,12 +22,19 @@ var (
 )
 
 type EthProvider interface {
+	GetClient() *ethclient.Client
 	ApproveDeposit(token *Token, limit *big.Int, options *GasOptions) (*types.Transaction, error)
 	IsDepositApproved(token *Token, to common.Address, threshold *big.Int) (bool, error)
 	Deposit(token *Token, amount *big.Int, address common.Address, options *GasOptions) (*types.Transaction, error)
 	RequestExecute(contractL2 common.Address, l2Value *big.Int, calldata []byte,
 		l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int,
 		factoryDeps [][]byte, refundRecipient common.Address, auth *bind.TransactOpts) (*types.Transaction, error)
+	FinalizeEthWithdrawal(l2BlockNumber *big.Int, l2MessageIndex *big.Int, l2TxNumberInBlock *big.Int,
+		message []byte, proof []common.Hash, options *GasOptions) (*types.Transaction, error)
+	FinalizeWithdrawal(l1BridgeAddress common.Address, l2BlockNumber *big.Int, l2MessageIndex *big.Int,
+		l2TxNumberInBlock *big.Int, message []byte, proof []common.Hash, options *GasOptions) (*types.Transaction, error)
+	IsEthWithdrawalFinalized(l2BlockNumber *big.Int, l2MessageIndex *big.Int) (bool, error)
+	IsWithdrawalFinalized(l1BridgeAddress common.Address, l2BlockNumber *big.Int, l2MessageIndex *big.Int) (bool, error)
 	GetBaseCost(l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int, gasPrice *big.Int) (*big.Int, error)
 }
 
@@ -62,6 +69,10 @@ type DefaultEthProvider struct {
 	l1ERC20BridgeAddress common.Address
 	l1ERC20Bridge        *IL1Bridge.IL1Bridge
 	iZkSync              *IZkSync.IZkSync
+}
+
+func (p *DefaultEthProvider) GetClient() *ethclient.Client {
+	return p.ec
 }
 
 type GasOptions struct {
@@ -112,7 +123,7 @@ func (p *DefaultEthProvider) Deposit(token *Token, amount *big.Int, address comm
 		return nil, fmt.Errorf("failed to GetBaseCost: %w", err)
 	}
 	if token.IsETH() {
-		auth.Value = auth.Value.Add(baseCost, amount)
+		auth.Value = big.NewInt(0).Add(baseCost, amount)
 		return p.RequestExecute(address, amount, nil,
 			RecommendedDepositL2GasLimit, DepositGasPerPubdataLimit,
 			nil, address, auth)
@@ -135,6 +146,61 @@ func (p *DefaultEthProvider) RequestExecute(contractL2 common.Address, l2Value *
 		l2GasPerPubdataByteLimit,
 		factoryDeps,
 		refundRecipient,
+	)
+}
+
+func (p *DefaultEthProvider) FinalizeEthWithdrawal(l2BlockNumber *big.Int, l2MessageIndex *big.Int,
+	l2TxNumberInBlock *big.Int, message []byte, proof []common.Hash, options *GasOptions) (*types.Transaction, error) {
+	proof32 := make([][32]byte, len(proof))
+	for i, pr := range proof {
+		proof32[i] = pr
+	}
+	auth := p.getAuth(options)
+	return p.iZkSync.FinalizeEthWithdrawal(auth,
+		l2BlockNumber,
+		l2MessageIndex,
+		uint16(l2TxNumberInBlock.Uint64()),
+		message,
+		proof32,
+	)
+}
+
+func (p *DefaultEthProvider) FinalizeWithdrawal(l1BridgeAddress common.Address, l2BlockNumber *big.Int, l2MessageIndex *big.Int,
+	l2TxNumberInBlock *big.Int, message []byte, proof []common.Hash, options *GasOptions) (*types.Transaction, error) {
+	l1Bridge, err := IL1Bridge.NewIL1Bridge(l1BridgeAddress, p.ec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init l1Bridge: %w", err)
+	}
+	proof32 := make([][32]byte, len(proof))
+	for i, pr := range proof {
+		proof32[i] = pr
+	}
+	auth := p.getAuth(options)
+	return l1Bridge.FinalizeWithdrawal(auth,
+		l2BlockNumber,
+		l2MessageIndex,
+		uint16(l2TxNumberInBlock.Uint64()),
+		message,
+		proof32,
+	)
+}
+
+func (p *DefaultEthProvider) IsEthWithdrawalFinalized(l2BlockNumber *big.Int, l2MessageIndex *big.Int) (bool, error) {
+	return p.iZkSync.IsEthWithdrawalFinalized(&bind.CallOpts{},
+		l2BlockNumber,
+		l2MessageIndex,
+	)
+}
+
+func (p *DefaultEthProvider) IsWithdrawalFinalized(l1BridgeAddress common.Address, l2BlockNumber *big.Int,
+	l2MessageIndex *big.Int) (bool, error) {
+	l1Bridge, err := IL1Bridge.NewIL1Bridge(l1BridgeAddress, p.ec)
+	if err != nil {
+		return false, fmt.Errorf("failed to init l1Bridge: %w", err)
+	}
+	return l1Bridge.IsWithdrawalFinalized(&bind.CallOpts{},
+		l2BlockNumber,
+		l2MessageIndex,
 	)
 }
 

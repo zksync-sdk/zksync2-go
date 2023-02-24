@@ -3,16 +3,19 @@ package zksync2
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/contracts/ERC20"
 	"github.com/zksync-sdk/zksync2-go/contracts/IEthToken"
+	"github.com/zksync-sdk/zksync2-go/contracts/IL1Messenger"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL2Bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL2Messenger"
 	"math/big"
@@ -28,6 +31,7 @@ type Wallet struct {
 	erc20abi     abi.ABI
 	ethTokenAbi  abi.ABI
 	l2BridgeAbi  abi.ABI
+	l1Messenger  abi.ABI
 	l2Messenger  abi.ABI
 }
 
@@ -44,6 +48,10 @@ func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load l2BridgeAbi: %w", err)
 	}
+	l1Messenger, err := abi.JSON(strings.NewReader(IL1Messenger.IL1MessengerMetaData.ABI))
+	if err != nil {
+		return nil, fmt.Errorf("failed to load l1Messenger: %w", err)
+	}
 	l2Messenger, err := abi.JSON(strings.NewReader(IL2Messenger.IL2MessengerMetaData.ABI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load l2Messenger: %w", err)
@@ -54,6 +62,7 @@ func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
 		erc20abi:    erc20abi,
 		ethTokenAbi: ethTokenAbi,
 		l2BridgeAbi: l2BridgeAbi,
+		l1Messenger: l1Messenger,
 		l2Messenger: l2Messenger,
 	}, nil
 }
@@ -108,7 +117,7 @@ func (w *Wallet) GetNonceAt(at BlockNumber) (*big.Int, error) {
 	return w.zp.GetTransactionCount(w.es.GetAddress(), at)
 }
 
-func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonce *big.Int) (string, error) {
+func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonce *big.Int) (common.Hash, error) {
 	var err error
 	if token == nil {
 		token = CreateETH()
@@ -116,14 +125,14 @@ func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonc
 	if nonce == nil {
 		nonce, err = w.GetNonce()
 		if err != nil {
-			return "", fmt.Errorf("failed to get nonce: %w", err)
+			return common.Hash{}, fmt.Errorf("failed to get nonce: %w", err)
 		}
 	}
 	var data hexutil.Bytes
 	if !token.IsETH() {
 		data, err = w.erc20abi.Pack("transfer", to, amount)
 		if err != nil {
-			return "", fmt.Errorf("failed to pack transfer function: %w", err)
+			return common.Hash{}, fmt.Errorf("failed to pack transfer function: %w", err)
 		}
 		to = token.L2Address
 		amount = big.NewInt(0)
@@ -140,7 +149,7 @@ func (w *Wallet) Transfer(to common.Address, amount *big.Int, token *Token, nonc
 	return w.EstimateAndSend(tx, nonce)
 }
 
-func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonce *big.Int) (string, error) {
+func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonce *big.Int) (common.Hash, error) {
 	var err error
 	if token == nil {
 		token = CreateETH()
@@ -148,18 +157,18 @@ func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonc
 	if nonce == nil {
 		nonce, err = w.GetNonce()
 		if err != nil {
-			return "", fmt.Errorf("failed to get nonce: %w", err)
+			return common.Hash{}, fmt.Errorf("failed to get nonce: %w", err)
 		}
 	}
 	var data hexutil.Bytes
 	if token.IsETH() {
 		data, err = w.ethTokenAbi.Pack("withdraw", to)
 		if err != nil {
-			return "", fmt.Errorf("failed to pack withdraw function: %w", err)
+			return common.Hash{}, fmt.Errorf("failed to pack withdraw function: %w", err)
 		}
 		tx := CreateFunctionCallTransaction(
 			w.es.GetAddress(),
-			EthAddress,
+			L2EthTokenAddress,
 			big.NewInt(0),
 			big.NewInt(0),
 			amount,
@@ -170,11 +179,11 @@ func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonc
 	} else {
 		data, err = w.l2BridgeAbi.Pack("withdraw", to, token.L2Address, amount)
 		if err != nil {
-			return "", fmt.Errorf("failed to pack withdraw function: %w", err)
+			return common.Hash{}, fmt.Errorf("failed to pack withdraw function: %w", err)
 		}
 		bcs, err := w.getBridgeContracts()
 		if err != nil {
-			return "", fmt.Errorf("failed to getBridgeContracts: %w", err)
+			return common.Hash{}, fmt.Errorf("failed to getBridgeContracts: %w", err)
 		}
 		tx := CreateFunctionCallTransaction(
 			w.es.GetAddress(),
@@ -189,17 +198,123 @@ func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonc
 	}
 }
 
-func (w *Wallet) Deploy(bytecode []byte, calldata []byte, salt []byte, deps [][]byte, nonce *big.Int) (string, error) {
+func (w *Wallet) FinalizeWithdraw(withdrawalHash common.Hash, index int, ep EthProvider) (common.Hash, error) {
+	log, l1BatchTxId, err := w.getWithdrawalLog(withdrawalHash, index)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get WithdrawalLog: %w", err)
+	}
+	l2ToL1LogIndex, _, err := w.getWithdrawalL2ToL1Log(withdrawalHash, index)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get WithdrawalL2ToL1Log: %w", err)
+	}
+	if len(log.Topics) < 2 {
+		return common.Hash{}, errors.New("not enough Topics count")
+	}
+	sender := common.BytesToAddress(log.Topics[1].Bytes()[12:])
+	proof, err := w.zp.ZksGetL2ToL1LogProof(withdrawalHash, l2ToL1LogIndex)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
+	}
+	ev, err := w.l1Messenger.EventByID(log.Topics[0])
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get EventByID: %w", err)
+	}
+	dl, err := w.l1Messenger.Unpack(ev.Name, log.Data)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to Unpack log data: %w", err)
+	}
+	message := dl[0].([]byte)
+
+	// ETH token
+	if sender == L2EthTokenAddress {
+		tx, err := ep.FinalizeEthWithdrawal(
+			log.L1BatchNumber.ToInt(),
+			big.NewInt(int64(proof.Id)),
+			l1BatchTxId,
+			message,
+			proof.Proof,
+			nil,
+		)
+		if err != nil {
+			return common.Hash{}, fmt.Errorf("failed to FinalizeEthWithdrawal: %w", err)
+		}
+		return tx.Hash(), nil
+	}
+	// other tokens
+	l2Bridge, err := IL2Bridge.NewIL2Bridge(sender, w.zp.GetClient())
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to init l2Bridge: %w", err)
+	}
+	l1BridgeAddress, err := l2Bridge.L1Bridge(&bind.CallOpts{})
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get l1BridgeAddress: %w", err)
+	}
+	tx, err := ep.FinalizeWithdrawal(
+		l1BridgeAddress,
+		log.L1BatchNumber.ToInt(),
+		big.NewInt(int64(proof.Id)),
+		l1BatchTxId,
+		message,
+		proof.Proof,
+		nil,
+	)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to FinalizeWithdrawal: %w", err)
+	}
+	return tx.Hash(), nil
+}
+
+func (w *Wallet) IsWithdrawFinalized(withdrawalHash common.Hash, index int, ep EthProvider) (bool, error) {
+	log, _, err := w.getWithdrawalLog(withdrawalHash, index)
+	if err != nil {
+		return false, fmt.Errorf("failed to get WithdrawalLog: %w", err)
+	}
+	l2ToL1LogIndex, _, err := w.getWithdrawalL2ToL1Log(withdrawalHash, index)
+	if err != nil {
+		return false, fmt.Errorf("failed to get WithdrawalL2ToL1Log: %w", err)
+	}
+	if len(log.Topics) < 2 {
+		return false, errors.New("not enough Topics count")
+	}
+	sender := common.BytesToAddress(log.Topics[1].Bytes()[12:])
+	proof, err := w.zp.ZksGetL2ToL1LogProof(withdrawalHash, l2ToL1LogIndex)
+	if err != nil {
+		return false, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
+	}
+	// ETH token
+	if sender == L2EthTokenAddress {
+		return ep.IsEthWithdrawalFinalized(
+			log.L1BatchNumber.ToInt(),
+			big.NewInt(int64(proof.Id)),
+		)
+	}
+	// other tokens
+	l2Bridge, err := IL2Bridge.NewIL2Bridge(sender, w.zp.GetClient())
+	if err != nil {
+		return false, fmt.Errorf("failed to init l2Bridge: %w", err)
+	}
+	l1BridgeAddress, err := l2Bridge.L1Bridge(&bind.CallOpts{})
+	if err != nil {
+		return false, fmt.Errorf("failed to get l1BridgeAddress: %w", err)
+	}
+	return ep.IsWithdrawalFinalized(
+		l1BridgeAddress,
+		log.L1BatchNumber.ToInt(),
+		big.NewInt(int64(proof.Id)),
+	)
+}
+
+func (w *Wallet) Deploy(bytecode []byte, calldata []byte, salt []byte, deps [][]byte, nonce *big.Int) (common.Hash, error) {
 	var err error
 	if nonce == nil {
 		nonce, err = w.GetNonce()
 		if err != nil {
-			return "", fmt.Errorf("failed to get nonce: %w", err)
+			return common.Hash{}, fmt.Errorf("failed to get nonce: %w", err)
 		}
 	}
 	data, err := EncodeCreate2(bytecode, calldata, salt)
 	if err != nil {
-		return "", fmt.Errorf("failed to encode create2 call: %w", err)
+		return common.Hash{}, fmt.Errorf("failed to encode create2 call: %w", err)
 	}
 	var factoryDeps []hexutil.Bytes
 	if len(deps) > 0 {
@@ -220,12 +335,12 @@ func (w *Wallet) Deploy(bytecode []byte, calldata []byte, salt []byte, deps [][]
 	return w.EstimateAndSend(tx, nonce)
 }
 
-func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.Int) (string, error) {
+func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.Int) (common.Hash, error) {
 	var err error
 	if nonce == nil {
 		nonce, err = w.GetNonce()
 		if err != nil {
-			return "", fmt.Errorf("failed to get nonce: %w", err)
+			return common.Hash{}, fmt.Errorf("failed to get nonce: %w", err)
 		}
 	}
 	tx := CreateFunctionCallTransaction(
@@ -240,18 +355,18 @@ func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.In
 	return w.EstimateAndSend(tx, nonce)
 }
 
-func (w *Wallet) SendMessageToL1(message []byte, nonce *big.Int) (string, error) {
+func (w *Wallet) SendMessageToL1(message []byte, nonce *big.Int) (common.Hash, error) {
 	var err error
 	if nonce == nil {
 		nonce, err = w.GetNonce()
 		if err != nil {
-			return "", fmt.Errorf("failed to get nonce: %w", err)
+			return common.Hash{}, fmt.Errorf("failed to get nonce: %w", err)
 		}
 	}
 	var data hexutil.Bytes
 	data, err = w.l2Messenger.Pack("sendToL1", message)
 	if err != nil {
-		return "", fmt.Errorf("failed to pack sendToL1 function: %w", err)
+		return common.Hash{}, fmt.Errorf("failed to pack sendToL1 function: %w", err)
 	}
 	tx := CreateFunctionCallTransaction(
 		w.es.GetAddress(),
@@ -265,15 +380,15 @@ func (w *Wallet) SendMessageToL1(message []byte, nonce *big.Int) (string, error)
 	return w.EstimateAndSend(tx, nonce)
 }
 
-func (w *Wallet) EstimateAndSend(tx *Transaction, nonce *big.Int) (string, error) {
+func (w *Wallet) EstimateAndSend(tx *Transaction, nonce *big.Int) (common.Hash, error) {
 	gas, err := w.zp.EstimateGas(tx)
 	if err != nil {
-		return "", fmt.Errorf("failed to EstimateGas: %w", err)
+		return common.Hash{}, fmt.Errorf("failed to EstimateGas: %w", err)
 	}
 	chainId := w.es.GetDomain().ChainId
 	gasPrice, err := w.zp.GetGasPrice()
 	if err != nil {
-		return "", fmt.Errorf("failed to GetGasPrice: %w", err)
+		return common.Hash{}, fmt.Errorf("failed to GetGasPrice: %w", err)
 	}
 	prepared := NewTransaction712(
 		chainId,
@@ -335,4 +450,45 @@ func (w *Wallet) newTransactorWithSigner(ethSigner EthSigner, chainID *big.Int) 
 			return tx.WithSignature(signer, signature)
 		},
 	}, nil
+}
+
+func (w *Wallet) getWithdrawalLog(withdrawalHash common.Hash, index int) (*Log, *big.Int, error) {
+	receipt, err := w.zp.GetTransactionReceipt(withdrawalHash)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
+	}
+	fLogs := make([]*Log, 0)
+	for _, l := range receipt.Logs {
+		if l.Address == MessengerAddress && len(l.Topics) > 0 &&
+			bytes.Equal(l.Topics[0].Bytes(), crypto.Keccak256([]byte("L1MessageSent(address,bytes32,bytes)"))) {
+			fLogs = append(fLogs, l)
+		}
+	}
+	if len(fLogs) < index+1 {
+		return nil, nil, errors.New("withdrawal log not found")
+	}
+	return fLogs[index], receipt.L1BatchTxIndex.ToInt(), nil
+}
+
+func (w *Wallet) getWithdrawalL2ToL1Log(withdrawalHash common.Hash, index int) (int, *L2ToL1Log, error) {
+	receipt, err := w.zp.GetTransactionReceipt(withdrawalHash)
+	if err != nil {
+		return 0, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
+	}
+	fLogs := make([]struct {
+		i int
+		l *L2ToL1Log
+	}, 0)
+	for i, l := range receipt.L2ToL1Logs {
+		if l.Sender == MessengerAddress {
+			fLogs = append(fLogs, struct {
+				i int
+				l *L2ToL1Log
+			}{i, l})
+		}
+	}
+	if len(fLogs) < index+1 {
+		return 0, nil, errors.New("withdrawal L2ToL1 log not found")
+	}
+	return fLogs[index].i, fLogs[index].l, nil
 }

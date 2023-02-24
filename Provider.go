@@ -14,9 +14,10 @@ type Provider interface {
 	GetClient() *ethclient.Client
 	GetBalance(address common.Address, blockNumber BlockNumber) (*big.Int, error)
 	GetTransactionCount(address common.Address, blockNumber BlockNumber) (*big.Int, error)
+	GetTransactionReceipt(txHash common.Hash) (*TransactionReceipt, error)
 	EstimateGas(tx *Transaction) (*big.Int, error)
 	GetGasPrice() (*big.Int, error)
-	SendRawTransaction(tx []byte) (string, error)
+	SendRawTransaction(tx []byte) (common.Hash, error)
 	ZksGetMainContract() (common.Address, error)
 	ZksL1ChainId() (*big.Int, error)
 	ZksGetConfirmedTokens(from uint32, limit uint8) ([]*Token, error)
@@ -78,6 +79,15 @@ func (p *DefaultProvider) GetTransactionCount(address common.Address, blockNumbe
 	return resp, nil
 }
 
+func (p *DefaultProvider) GetTransactionReceipt(txHash common.Hash) (*TransactionReceipt, error) {
+	var resp *TransactionReceipt
+	err := p.c.Call(&resp, "eth_getTransactionReceipt", txHash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query eth_getTransactionReceipt: %w", err)
+	}
+	return resp, nil
+}
+
 func (p *DefaultProvider) EstimateGas(tx *Transaction) (*big.Int, error) {
 	var res string
 	err := p.c.Call(&res, "eth_estimateGas", tx, BlockNumberLatest)
@@ -104,13 +114,13 @@ func (p *DefaultProvider) GetGasPrice() (*big.Int, error) {
 	return resp, nil
 }
 
-func (p *DefaultProvider) SendRawTransaction(tx []byte) (string, error) {
+func (p *DefaultProvider) SendRawTransaction(tx []byte) (common.Hash, error) {
 	var res string
 	err := p.c.Call(&res, "eth_sendRawTransaction", hexutil.Encode(tx))
 	if err != nil {
-		return "", fmt.Errorf("failed to call eth_sendRawTransaction: %w", err)
+		return common.Hash{}, fmt.Errorf("failed to call eth_sendRawTransaction: %w", err)
 	}
-	return res, nil
+	return common.HexToHash(res), nil
 }
 
 func (p *DefaultProvider) ZksGetMainContract() (common.Address, error) {

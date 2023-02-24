@@ -2,8 +2,10 @@ package zksync2
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"time"
 )
@@ -11,8 +13,8 @@ import (
 var (
 	EthAddress              = common.HexToAddress("0x0000000000000000000000000000000000000000")
 	ContractDeployerAddress = common.HexToAddress("0x0000000000000000000000000000000000008006")
-	NonceHolderAddress      = common.HexToAddress("0x0000000000000000000000000000000000008003")
 	MessengerAddress        = common.HexToAddress("0x0000000000000000000000000000000000008008")
+	L2EthTokenAddress       = common.HexToAddress("0x000000000000000000000000000000000000800a")
 )
 
 const (
@@ -79,14 +81,127 @@ type BlockDetails struct {
 	CommittedAt   time.Time   `json:"committedAt"`
 	ExecuteTxHash common.Hash `json:"executeTxHash"`
 	ExecutedAt    time.Time   `json:"executedAt"`
-	L1TxCount     int         `json:"l1TxCount"`
-	L2TxCount     int         `json:"l2TxCount"`
-	Number        int         `json:"number"`
+	L1TxCount     uint        `json:"l1TxCount"`
+	L2TxCount     uint        `json:"l2TxCount"`
+	Number        uint        `json:"number"`
 	ProveTxHash   common.Hash `json:"proveTxHash"`
 	ProvenAt      time.Time   `json:"provenAt"`
 	RootHash      common.Hash `json:"rootHash"`
 	Status        string      `json:"status"`
 	Timestamp     uint        `json:"timestamp"`
+}
+
+type Log struct {
+	types.Log
+	L1BatchNumber *hexutil.Big `json:"l1BatchNumber"`
+}
+
+func (l Log) MarshalJSON() ([]byte, error) {
+	// get json of embedded types.Log with its custom marshaller
+	lj, err := json.Marshal(l.Log)
+	if err != nil {
+		return nil, err
+	}
+	// decode back to abstract struct
+	var buf map[string]interface{}
+	if err := json.Unmarshal(lj, &buf); err != nil {
+		return nil, err
+	}
+	// mixin our fields
+	buf["l1BatchNumber"] = l.L1BatchNumber
+	// encode to json again all together
+	return json.Marshal(&buf)
+}
+
+func (l *Log) UnmarshalJSON(input []byte) error {
+	if err := l.Log.UnmarshalJSON(input); err != nil {
+		return err
+	}
+	type Log struct {
+		L1BatchNumber *hexutil.Big `json:"l1BatchNumber"`
+	}
+	var dec Log
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	l.L1BatchNumber = dec.L1BatchNumber
+	return nil
+}
+
+type L2ToL1Log struct {
+	BlockNumber      *hexutil.Big   `json:"blockNumber"`
+	BlockHash        common.Hash    `json:"blockHash"`
+	L1BatchNumber    *hexutil.Big   `json:"l1BatchNumber"`
+	TransactionIndex *hexutil.Uint  `json:"transactionIndex"`
+	ShardId          *hexutil.Uint  `json:"shardId"`
+	IsService        bool           `json:"isService"`
+	Sender           common.Address `json:"sender"`
+	Key              string         `json:"key"`
+	Value            string         `json:"value"`
+	TxHash           common.Hash    `json:"transactionHash"`
+	Index            *hexutil.Uint  `json:"logIndex"`
+}
+
+type TransactionReceipt struct {
+	types.Receipt
+	// extend
+	From              common.Address `json:"from"`
+	To                common.Address `json:"to"`
+	EffectiveGasPrice *hexutil.Big   `json:"effectiveGasPrice"`
+	L1BatchNumber     *hexutil.Big   `json:"l1BatchNumber"`
+	L1BatchTxIndex    *hexutil.Big   `json:"l1BatchTxIndex"`
+	Logs              []*Log         `json:"logs"`
+	L2ToL1Logs        []*L2ToL1Log   `json:"l2ToL1Logs"`
+}
+
+func (r TransactionReceipt) MarshalJSON() ([]byte, error) {
+	// get json of embedded types.Receipt with its custom marshaller
+	rj, err := json.Marshal(r.Receipt)
+	if err != nil {
+		return nil, err
+	}
+	// decode back to abstract struct
+	var buf map[string]interface{}
+	if err := json.Unmarshal(rj, &buf); err != nil {
+		return nil, err
+	}
+	// mixin our fields
+	buf["from"] = r.From
+	buf["to"] = r.To
+	buf["effectiveGasPrice"] = r.EffectiveGasPrice
+	buf["l1BatchNumber"] = r.L1BatchNumber
+	buf["l1BatchTxIndex"] = r.L1BatchTxIndex
+	buf["logs"] = r.Logs
+	buf["l2ToL1Logs"] = r.L2ToL1Logs
+	// encode to json again all together
+	return json.Marshal(&buf)
+}
+
+func (r *TransactionReceipt) UnmarshalJSON(input []byte) error {
+	if err := r.Receipt.UnmarshalJSON(input); err != nil {
+		return err
+	}
+	type TransactionReceipt struct {
+		From              common.Address `json:"from"`
+		To                common.Address `json:"to"`
+		EffectiveGasPrice *hexutil.Big   `json:"effectiveGasPrice"`
+		L1BatchNumber     *hexutil.Big   `json:"l1BatchNumber"`
+		L1BatchTxIndex    *hexutil.Big   `json:"l1BatchTxIndex"`
+		Logs              []*Log         `json:"logs"`
+		L2ToL1Logs        []*L2ToL1Log   `json:"l2ToL1Logs"`
+	}
+	var dec TransactionReceipt
+	if err := json.Unmarshal(input, &dec); err != nil {
+		return err
+	}
+	r.From = dec.From
+	r.To = dec.To
+	r.EffectiveGasPrice = dec.EffectiveGasPrice
+	r.L1BatchNumber = dec.L1BatchNumber
+	r.L1BatchTxIndex = dec.L1BatchTxIndex
+	r.Logs = dec.Logs
+	r.L2ToL1Logs = dec.L2ToL1Logs
+	return nil
 }
 
 func NewBigZero() *hexutil.Big {
