@@ -304,6 +304,74 @@ func (w *Wallet) IsWithdrawFinalized(withdrawalHash common.Hash, index int, ep E
 	)
 }
 
+func (w *Wallet) ClaimFailedDeposit(depositHash common.Hash, ep EthProvider) (common.Hash, error) {
+	receipt, err := w.zp.GetTransactionReceipt(depositHash)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get TransactionReceipt: %w", err)
+	}
+	var successL2ToL1Log *L2ToL1Log
+	var successL2ToL1LogIndex int
+	for i, l := range receipt.L2ToL1Logs {
+		if l.Sender == BootloaderFormalAddress && l.Key == depositHash.String() {
+			successL2ToL1LogIndex = i
+			successL2ToL1Log = l
+		}
+	}
+	if successL2ToL1Log.Value != (common.Hash{}).String() {
+		return common.Hash{}, errors.New("can't claim successful deposit")
+	}
+
+	tx, err := w.zp.GetTransaction(depositHash)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get Transaction: %w", err)
+	}
+
+	// Undo the aliasing, since the Mailbox contract set it as for contract address.
+	l1BridgeAddress := UndoL1ToL2Alias(receipt.From)
+	l2Bridge, err := abi.JSON(strings.NewReader(IL2Bridge.IL2BridgeMetaData.ABI))
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to load l2Bridge ABI: %w", err)
+	}
+	calldata, err := l2Bridge.Unpack("finalizeDeposit", tx.Data)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to Unpack finalizeDeposit data: %w", err)
+	}
+	if len(calldata) < 3 {
+		return common.Hash{}, errors.New("unpacked calldata is empty")
+	}
+	b20, ok := calldata[0].([20]byte)
+	if !ok {
+		return common.Hash{}, errors.New("failed to parse l1Sender from unpacked calldata")
+	}
+	l1Sender := common.BytesToAddress(b20[:])
+	b20, ok = calldata[2].([20]byte)
+	if !ok {
+		return common.Hash{}, errors.New("failed to parse l1Token from unpacked calldata")
+	}
+	l1Token := common.BytesToAddress(b20[:])
+
+	proof, err := w.zp.ZksGetL2ToL1LogProof(depositHash, successL2ToL1LogIndex)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
+	}
+
+	res, err := ep.ClaimFailedDeposit(
+		l1BridgeAddress,
+		l1Sender,
+		l1Token,
+		depositHash,
+		receipt.L1BatchNumber.ToInt(),
+		big.NewInt(int64(proof.Id)),
+		receipt.L1BatchTxIndex.ToInt(),
+		proof.Proof,
+		nil,
+	)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to call ClaimFailedDeposit: %w", err)
+	}
+	return res.Hash(), nil
+}
+
 func (w *Wallet) Deploy(bytecode []byte, calldata []byte, salt []byte, deps [][]byte, nonce *big.Int) (common.Hash, error) {
 	var err error
 	if nonce == nil {

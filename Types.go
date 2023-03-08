@@ -12,9 +12,11 @@ import (
 
 var (
 	EthAddress              = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	BootloaderFormalAddress = common.HexToAddress("0x0000000000000000000000000000000000008001")
 	ContractDeployerAddress = common.HexToAddress("0x0000000000000000000000000000000000008006")
 	MessengerAddress        = common.HexToAddress("0x0000000000000000000000000000000000008008")
 	L2EthTokenAddress       = common.HexToAddress("0x000000000000000000000000000000000000800a")
+	L1ToL2AliasOffset       = common.HexToAddress("0x1111000000000000000000000000000000001111")
 )
 
 const (
@@ -202,6 +204,37 @@ func (r *TransactionReceipt) UnmarshalJSON(input []byte) error {
 	r.Logs = dec.Logs
 	r.L2ToL1Logs = dec.L2ToL1Logs
 	return nil
+}
+
+type TransactionResponse struct {
+	BlockHash            common.Hash    `json:"blockHash"`
+	BlockNumber          string         `json:"blockNumber"`
+	ChainID              hexutil.Big    `json:"chainId"`
+	From                 common.Address `json:"from"`
+	Gas                  hexutil.Uint64 `json:"gas"`
+	GasPrice             hexutil.Big    `json:"gasPrice"`
+	Hash                 common.Hash    `json:"hash"`
+	Data                 hexutil.Bytes  `json:"input"`
+	L1BatchNumber        hexutil.Big    `json:"l1BatchNumber"`
+	L1BatchTxIndex       hexutil.Big    `json:"l1BatchTxIndex"`
+	MaxFeePerGas         hexutil.Big    `json:"maxFeePerGas"`
+	MaxPriorityFeePerGas hexutil.Big    `json:"maxPriorityFeePerGas"`
+	Nonce                hexutil.Uint64 `json:"nonce"`
+	To                   common.Address `json:"to"`
+	TransactionIndex     hexutil.Uint   `json:"transactionIndex"`
+	TxType               hexutil.Uint64 `json:"type"`
+	Value                hexutil.Big    `json:"value"`
+	V                    hexutil.Big    `json:"v"`
+	R                    hexutil.Big    `json:"r"`
+	S                    hexutil.Big    `json:"s"`
+}
+
+func UndoL1ToL2Alias(address common.Address) common.Address {
+	// sub L1ToL2AliasOffset from address as big.Int numbers
+	return common.BytesToAddress(big.NewInt(0).Sub(
+		big.NewInt(0).SetBytes(address.Bytes()),
+		big.NewInt(0).SetBytes(L1ToL2AliasOffset.Bytes()),
+	).Bytes())
 }
 
 func NewBigZero() *hexutil.Big {

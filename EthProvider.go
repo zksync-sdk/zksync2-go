@@ -35,6 +35,9 @@ type EthProvider interface {
 		l2TxNumberInBlock *big.Int, message []byte, proof []common.Hash, options *GasOptions) (*types.Transaction, error)
 	IsEthWithdrawalFinalized(l2BlockNumber *big.Int, l2MessageIndex *big.Int) (bool, error)
 	IsWithdrawalFinalized(l1BridgeAddress common.Address, l2BlockNumber *big.Int, l2MessageIndex *big.Int) (bool, error)
+	ClaimFailedDeposit(l1BridgeAddress common.Address, depositSender common.Address,
+		l1Token common.Address, l2TxHash common.Hash, l2BlockNumber *big.Int, l2MessageIndex *big.Int,
+		l2TxNumberInBlock *big.Int, proof []common.Hash, options *GasOptions) (*types.Transaction, error)
 	GetBaseCost(l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int, gasPrice *big.Int) (*big.Int, error)
 }
 
@@ -181,6 +184,31 @@ func (p *DefaultEthProvider) FinalizeWithdrawal(l1BridgeAddress common.Address, 
 		l2MessageIndex,
 		uint16(l2TxNumberInBlock.Uint64()),
 		message,
+		proof32,
+	)
+}
+
+func (p *DefaultEthProvider) ClaimFailedDeposit(l1BridgeAddress common.Address, depositSender common.Address,
+	l1Token common.Address, l2TxHash common.Hash, l2BlockNumber *big.Int, l2MessageIndex *big.Int,
+	l2TxNumberInBlock *big.Int, proof []common.Hash, options *GasOptions) (*types.Transaction, error) {
+	// _depositSender common.Address, _l1Token common.Address, _l2TxHash [32]byte, _l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _l2TxNumberInBlock uint16,
+	//_merkleProof [][32]byte
+	l1Bridge, err := IL1Bridge.NewIL1Bridge(l1BridgeAddress, p.ec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init l1Bridge: %w", err)
+	}
+	proof32 := make([][32]byte, len(proof))
+	for i, pr := range proof {
+		proof32[i] = pr
+	}
+	auth := p.getAuth(options)
+	return l1Bridge.ClaimFailedDeposit(auth,
+		depositSender,
+		l1Token,
+		l2TxHash,
+		l2BlockNumber,
+		l2MessageIndex,
+		uint16(l2TxNumberInBlock.Uint64()),
 		proof32,
 	)
 }

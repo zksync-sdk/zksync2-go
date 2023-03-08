@@ -15,6 +15,7 @@ type Provider interface {
 	GetBalance(address common.Address, blockNumber BlockNumber) (*big.Int, error)
 	GetTransactionCount(address common.Address, blockNumber BlockNumber) (*big.Int, error)
 	GetTransactionReceipt(txHash common.Hash) (*TransactionReceipt, error)
+	GetTransaction(txHash common.Hash) (*TransactionResponse, error)
 	EstimateGas(tx *Transaction) (*big.Int, error)
 	GetGasPrice() (*big.Int, error)
 	SendRawTransaction(tx []byte) (common.Hash, error)
@@ -84,6 +85,15 @@ func (p *DefaultProvider) GetTransactionReceipt(txHash common.Hash) (*Transactio
 	err := p.c.Call(&resp, "eth_getTransactionReceipt", txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query eth_getTransactionReceipt: %w", err)
+	}
+	return resp, nil
+}
+
+func (p *DefaultProvider) GetTransaction(txHash common.Hash) (*TransactionResponse, error) {
+	var resp *TransactionResponse
+	err := p.c.Call(&resp, "eth_getTransactionByHash", txHash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query eth_getTransactionByHash: %w", err)
 	}
 	return resp, nil
 }
