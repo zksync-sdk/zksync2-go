@@ -2,6 +2,7 @@ package zksync2
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -38,6 +39,7 @@ type EthProvider interface {
 	ClaimFailedDeposit(l1BridgeAddress common.Address, depositSender common.Address,
 		l1Token common.Address, l2TxHash common.Hash, l2BlockNumber *big.Int, l2MessageIndex *big.Int,
 		l2TxNumberInBlock *big.Int, proof []common.Hash, options *GasOptions) (*types.Transaction, error)
+	GetL2HashFromPriorityOp(l1Receipt *types.Receipt) (common.Hash, error)
 	GetBaseCost(l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int, gasPrice *big.Int) (*big.Int, error)
 }
 
@@ -230,6 +232,19 @@ func (p *DefaultEthProvider) IsWithdrawalFinalized(l1BridgeAddress common.Addres
 		l2BlockNumber,
 		l2MessageIndex,
 	)
+}
+
+func (p *DefaultEthProvider) GetL2HashFromPriorityOp(l1Receipt *types.Receipt) (common.Hash, error) {
+	for _, l := range l1Receipt.Logs {
+		if l.Address == p.mainContractAddress {
+			req, err := p.iZkSync.ParseNewPriorityRequest(*l)
+			if err != nil {
+				return common.Hash{}, fmt.Errorf("failed to ParseNewPriorityRequest: %w", err)
+			}
+			return req.TxHash, nil
+		}
+	}
+	return common.Hash{}, errors.New("wrong tx")
 }
 
 func (p *DefaultEthProvider) GetBaseCost(l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int, gasPrice *big.Int) (*big.Int, error) {
