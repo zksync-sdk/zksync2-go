@@ -25,6 +25,7 @@ import (
 type Wallet struct {
 	es EthSigner
 	zp Provider
+	ep EthProvider
 
 	bcs          *BridgeContracts
 	mainContract common.Address
@@ -67,7 +68,15 @@ func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
 	}, nil
 }
 
-func (w *Wallet) CreateEthereumProvider(rpcClient *rpc.Client) (*DefaultEthProvider, error) {
+func (w *Wallet) GetEthSigner() EthSigner {
+	return w.es
+}
+
+func (w *Wallet) GetProvider() Provider {
+	return w.zp
+}
+
+func (w *Wallet) CreateEthereumProvider(rpcClient *rpc.Client) (EthProvider, error) {
 	ethClient := ethclient.NewClient(rpcClient)
 	chainId, err := ethClient.ChainID(context.Background())
 	if err != nil {
@@ -85,7 +94,19 @@ func (w *Wallet) CreateEthereumProvider(rpcClient *rpc.Client) (*DefaultEthProvi
 	if err != nil {
 		return nil, fmt.Errorf("failed to getBridgeContracts: %w", err)
 	}
-	return NewDefaultEthProvider(rpcClient, auth, mc, bcs.L1Erc20DefaultBridge)
+	w.ep, err = NewDefaultEthProvider(rpcClient, auth, mc, bcs.L1Erc20DefaultBridge)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init NewDefaultEthProvider: %w", err)
+	}
+	return w.ep, nil
+}
+
+func (w *Wallet) SetEthereumProvider(ep EthProvider) {
+	w.ep = ep
+}
+
+func (w *Wallet) GetEthereumProvider() EthProvider {
+	return w.ep
 }
 
 func (w *Wallet) GetBalance() (*big.Int, error) {
@@ -198,7 +219,10 @@ func (w *Wallet) Withdraw(to common.Address, amount *big.Int, token *Token, nonc
 	}
 }
 
-func (w *Wallet) FinalizeWithdraw(withdrawalHash common.Hash, index int, ep EthProvider) (common.Hash, error) {
+func (w *Wallet) FinalizeWithdraw(withdrawalHash common.Hash, index int) (common.Hash, error) {
+	if w.ep == nil {
+		return common.Hash{}, errors.New("ethereum provider is not initialized")
+	}
 	log, l1BatchTxId, err := w.getWithdrawalLog(withdrawalHash, index)
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("failed to get WithdrawalLog: %w", err)
@@ -227,7 +251,7 @@ func (w *Wallet) FinalizeWithdraw(withdrawalHash common.Hash, index int, ep EthP
 
 	// ETH token
 	if sender == L2EthTokenAddress {
-		tx, err := ep.FinalizeEthWithdrawal(
+		tx, err := w.ep.FinalizeEthWithdrawal(
 			log.L1BatchNumber.ToInt(),
 			big.NewInt(int64(proof.Id)),
 			l1BatchTxId,
@@ -249,7 +273,7 @@ func (w *Wallet) FinalizeWithdraw(withdrawalHash common.Hash, index int, ep EthP
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("failed to get l1BridgeAddress: %w", err)
 	}
-	tx, err := ep.FinalizeWithdrawal(
+	tx, err := w.ep.FinalizeWithdrawal(
 		l1BridgeAddress,
 		log.L1BatchNumber.ToInt(),
 		big.NewInt(int64(proof.Id)),
@@ -264,7 +288,10 @@ func (w *Wallet) FinalizeWithdraw(withdrawalHash common.Hash, index int, ep EthP
 	return tx.Hash(), nil
 }
 
-func (w *Wallet) IsWithdrawFinalized(withdrawalHash common.Hash, index int, ep EthProvider) (bool, error) {
+func (w *Wallet) IsWithdrawFinalized(withdrawalHash common.Hash, index int) (bool, error) {
+	if w.ep == nil {
+		return false, errors.New("ethereum provider is not initialized")
+	}
 	log, _, err := w.getWithdrawalLog(withdrawalHash, index)
 	if err != nil {
 		return false, fmt.Errorf("failed to get WithdrawalLog: %w", err)
@@ -283,7 +310,7 @@ func (w *Wallet) IsWithdrawFinalized(withdrawalHash common.Hash, index int, ep E
 	}
 	// ETH token
 	if sender == L2EthTokenAddress {
-		return ep.IsEthWithdrawalFinalized(
+		return w.ep.IsEthWithdrawalFinalized(
 			log.L1BatchNumber.ToInt(),
 			big.NewInt(int64(proof.Id)),
 		)
@@ -297,7 +324,7 @@ func (w *Wallet) IsWithdrawFinalized(withdrawalHash common.Hash, index int, ep E
 	if err != nil {
 		return false, fmt.Errorf("failed to get l1BridgeAddress: %w", err)
 	}
-	return ep.IsWithdrawalFinalized(
+	return w.ep.IsWithdrawalFinalized(
 		l1BridgeAddress,
 		log.L1BatchNumber.ToInt(),
 		big.NewInt(int64(proof.Id)),

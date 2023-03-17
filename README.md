@@ -63,7 +63,27 @@ tx, err := ep.Deposit(
 if err != nil {
     panic(err)
 }
-fmt.Println("Tx hash", tx.Hash())
+fmt.Println("L1 Tx hash", tx.Hash())
+```
+Also, you can get hash of corresponding L2 transaction:
+```go
+l1Receipt, err := ep.GetClient().TransactionReceipt(context.Background(), l1Hash)
+if err != nil {
+    panic(err)
+}
+l2Hash, err := ep.GetL2HashFromPriorityOp(l1Receipt)
+if err != nil {
+    panic(err)
+}
+fmt.Println("L2 Tx hash", l2Hash)
+```
+And claim back failed deposit:
+```go
+cfdHash, err := w.ClaimFailedDeposit(l2Hash, ep)
+if err != nil {
+    panic(err)
+}
+fmt.Println("ClaimFailedDeposit hash", cfdHash)
 ```
 
 ### Transfer
@@ -82,7 +102,8 @@ fmt.Println("Tx hash", hash)
 
 ### Withdraw
 ```go
-hash, err := w.Withdraw(
+// first, you must initiate Withdraw 
+wHash, err := w.Withdraw(
     common.HexToAddress("<target_L1_address>"), 
     big.NewInt(1000000000000), 
     nil, 
@@ -91,7 +112,21 @@ hash, err := w.Withdraw(
 if err != nil {
     panic(err)
 }
-fmt.Println("Tx hash", hash)
+fmt.Println("Withdraw Tx hash", wHash)
+// then, you need to call FinalizeWithdraw 
+fwHash, err := w.FinalizeWithdraw(wHash, 0)
+if err != nil {
+    panic(err)
+}
+fmt.Println("FinalizeWithdraw Tx hash", fwHash)
+```
+Also, you can check its status with:
+```go
+iswf, err := w.IsWithdrawFinalized(wHash, 0)
+if err != nil {
+    panic(err)
+}
+fmt.Println("Is Withdraw finalized?", iswf)
 ```
 
 ### Deploy smart contract (basic case)
@@ -138,4 +173,22 @@ if err != nil {
     panic(err)
 }
 fmt.Println("Balance", bal)
+```
+
+### Get enhanced Transaction data for ZkSync Txs
+```go
+tx, err := zp.GetTransaction(txHash)
+if err != nil {
+    panic(err)
+}
+// explore zksync2.TransactionResponse struct
+```
+
+### Get enhanced Transaction Receipt data for ZkSync Txs
+```go
+receipt, err := zp.GetTransactionReceipt(txHash)
+if err != nil {
+    panic(err)
+}
+// explore zksync2.TransactionReceipt struct
 ```
