@@ -24,6 +24,7 @@ var (
 
 type EthProvider interface {
 	GetClient() *ethclient.Client
+	GetAddress() common.Address
 	ApproveDeposit(token *Token, limit *big.Int, options *GasOptions) (*types.Transaction, error)
 	IsDepositApproved(token *Token, to common.Address, threshold *big.Int) (bool, error)
 	Deposit(token *Token, amount *big.Int, address common.Address, options *GasOptions) (*types.Transaction, error)
@@ -78,6 +79,10 @@ type DefaultEthProvider struct {
 
 func (p *DefaultEthProvider) GetClient() *ethclient.Client {
 	return p.ec
+}
+
+func (p *DefaultEthProvider) GetAddress() common.Address {
+	return p.auth.From
 }
 
 type GasOptions struct {

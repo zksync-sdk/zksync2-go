@@ -72,6 +72,10 @@ func (w *Wallet) GetEthSigner() EthSigner {
 	return w.es
 }
 
+func (w *Wallet) GetAddress() common.Address {
+	return w.es.GetAddress()
+}
+
 func (w *Wallet) GetProvider() Provider {
 	return w.zp
 }
@@ -227,6 +231,9 @@ func (w *Wallet) FinalizeWithdraw(withdrawalHash common.Hash, index int) (common
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("failed to get WithdrawalLog: %w", err)
 	}
+	if l1BatchTxId == nil {
+		return common.Hash{}, errors.New("empty l1BatchTxIndex")
+	}
 	l2ToL1LogIndex, _, err := w.getWithdrawalL2ToL1Log(withdrawalHash, index)
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("failed to get WithdrawalL2ToL1Log: %w", err)
@@ -336,6 +343,9 @@ func (w *Wallet) ClaimFailedDeposit(depositHash common.Hash, ep EthProvider) (co
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("failed to get TransactionReceipt: %w", err)
 	}
+	if receipt == nil {
+		return common.Hash{}, errors.New("transaction receipt not found")
+	}
 	var successL2ToL1Log *L2ToL1Log
 	var successL2ToL1LogIndex int
 	for i, l := range receipt.L2ToL1Logs {
@@ -351,6 +361,9 @@ func (w *Wallet) ClaimFailedDeposit(depositHash common.Hash, ep EthProvider) (co
 	tx, err := w.zp.GetTransaction(depositHash)
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("failed to get Transaction: %w", err)
+	}
+	if tx == nil {
+		return common.Hash{}, errors.New("transaction not found")
 	}
 
 	// Undo the aliasing, since the Mailbox contract set it as for contract address.
@@ -552,6 +565,9 @@ func (w *Wallet) getWithdrawalLog(withdrawalHash common.Hash, index int) (*Log, 
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
 	}
+	if receipt == nil {
+		return nil, nil, errors.New("transaction receipt not found")
+	}
 	fLogs := make([]*Log, 0)
 	for _, l := range receipt.Logs {
 		if l.Address == MessengerAddress && len(l.Topics) > 0 &&
@@ -569,6 +585,9 @@ func (w *Wallet) getWithdrawalL2ToL1Log(withdrawalHash common.Hash, index int) (
 	receipt, err := w.zp.GetTransactionReceipt(withdrawalHash)
 	if err != nil {
 		return 0, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
+	}
+	if receipt == nil {
+		return 0, nil, errors.New("transaction receipt not found")
 	}
 	fLogs := make([]struct {
 		i int

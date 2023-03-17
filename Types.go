@@ -21,7 +21,7 @@ var (
 
 const (
 	ZkSyncChainIdMainnet   int64 = 280
-	ZkSyncChainIdLocalhost int64 = 42
+	ZkSyncChainIdLocalhost int64 = 270
 
 	PriorityQueueTypeDeque      uint8 = 0
 	PriorityQueueTypeHeapBuffer uint8 = 1
