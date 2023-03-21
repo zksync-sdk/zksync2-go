@@ -1,13 +1,17 @@
 package zksync2
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"math/big"
+	"time"
 )
 
 type Provider interface {
@@ -16,6 +20,8 @@ type Provider interface {
 	GetTransactionCount(address common.Address, blockNumber BlockNumber) (*big.Int, error)
 	GetTransactionReceipt(txHash common.Hash) (*TransactionReceipt, error)
 	GetTransaction(txHash common.Hash) (*TransactionResponse, error)
+	WaitMined(ctx context.Context, txHash common.Hash) (*TransactionReceipt, error)
+	WaitFinalized(ctx context.Context, txHash common.Hash) (*TransactionReceipt, error)
 	EstimateGas(tx *Transaction) (*big.Int, error)
 	GetGasPrice() (*big.Int, error)
 	SendRawTransaction(tx []byte) (common.Hash, error)
@@ -85,6 +91,8 @@ func (p *DefaultProvider) GetTransactionReceipt(txHash common.Hash) (*Transactio
 	err := p.c.Call(&resp, "eth_getTransactionReceipt", txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query eth_getTransactionReceipt: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
 	}
 	return resp, nil
 }
@@ -94,6 +102,8 @@ func (p *DefaultProvider) GetTransaction(txHash common.Hash) (*TransactionRespon
 	err := p.c.Call(&resp, "eth_getTransactionByHash", txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query eth_getTransactionByHash: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
 	}
 	return resp, nil
 }
@@ -187,21 +197,25 @@ func (p *DefaultProvider) ZksGetTokenPrice(address common.Address) (*big.Float, 
 }
 
 func (p *DefaultProvider) ZksGetL2ToL1LogProof(txHash common.Hash, logIndex int) (*L2ToL1MessageProof, error) {
-	res := L2ToL1MessageProof{}
-	err := p.c.Call(&res, "zks_getL2ToL1LogProof", txHash, logIndex)
+	var resp *L2ToL1MessageProof
+	err := p.c.Call(&resp, "zks_getL2ToL1LogProof", txHash, logIndex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getL2ToL1LogProof: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
 	}
-	return &res, nil
+	return resp, nil
 }
 
 func (p *DefaultProvider) ZksGetL2ToL1MsgProof(block uint32, sender common.Address, msg common.Hash) (*L2ToL1MessageProof, error) {
-	res := L2ToL1MessageProof{}
-	err := p.c.Call(&res, "zks_getL2ToL1MsgProof", block, sender, msg)
+	var resp *L2ToL1MessageProof
+	err := p.c.Call(&resp, "zks_getL2ToL1MsgProof", block, sender, msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getL2ToL1MsgProof: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
 	}
-	return &res, nil
+	return resp, nil
 }
 
 func (p *DefaultProvider) ZksGetAllAccountBalances(address common.Address) (map[common.Address]*big.Int, error) {
@@ -248,10 +262,60 @@ func (p *DefaultProvider) ZksGetTestnetPaymaster() (common.Address, error) {
 }
 
 func (p *DefaultProvider) ZksGetBlockDetails(block uint32) (*BlockDetails, error) {
-	var res BlockDetails
-	err := p.c.Call(&res, "zks_getBlockDetails", block)
+	var resp *BlockDetails
+	err := p.c.Call(&resp, "zks_getBlockDetails", block)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getBlockDetails: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
 	}
-	return &res, nil
+	return resp, nil
+}
+
+func (p *DefaultProvider) WaitMined(ctx context.Context, txHash common.Hash) (*TransactionReceipt, error) {
+	queryTicker := time.NewTicker(time.Second)
+	defer queryTicker.Stop()
+	for {
+		receipt, err := p.GetTransactionReceipt(txHash)
+		if err == nil && receipt.BlockNumber != nil {
+			return receipt, nil
+		}
+		// Wait for the next round.
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-queryTicker.C:
+		}
+	}
+}
+
+func (p *DefaultProvider) WaitFinalized(ctx context.Context, txHash common.Hash) (*TransactionReceipt, error) {
+	receipt, err := p.WaitMined(ctx, txHash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to wait for tx is mined: %w", err)
+	}
+	if receipt.BlockNumber == nil {
+		return nil, errors.New("empty tx block number")
+	}
+	queryTicker := time.NewTicker(time.Second)
+	defer queryTicker.Stop()
+	var blockHead *types.Header
+	for {
+		err = p.c.CallContext(ctx, &blockHead, "eth_getBlockByNumber", BlockNumberFinalized, false)
+		if err == nil && blockHead == nil {
+			err = ethereum.NotFound
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to get finalized block: %w", err)
+		}
+		if blockHead.Number.Cmp(receipt.BlockNumber) >= 0 {
+			return receipt, nil
+		}
+		// Wait for the next round.
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-queryTicker.C:
+		}
+	}
 }

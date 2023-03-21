@@ -13,6 +13,7 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/IL1Bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/IZkSync"
 	"math/big"
+	"time"
 )
 
 var (
@@ -42,6 +43,7 @@ type EthProvider interface {
 		l2TxNumberInBlock *big.Int, proof []common.Hash, options *GasOptions) (*types.Transaction, error)
 	GetL2HashFromPriorityOp(l1Receipt *types.Receipt) (common.Hash, error)
 	GetBaseCost(l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int, gasPrice *big.Int) (*big.Int, error)
+	WaitMined(ctx context.Context, txHash common.Hash) (*types.Transaction, error)
 }
 
 func NewDefaultEthProvider(rpcClient *rpc.Client, auth *bind.TransactOpts,
@@ -277,4 +279,21 @@ func (p *DefaultEthProvider) getAuth(options *GasOptions) *bind.TransactOpts {
 		newAuth.GasLimit = options.GasLimit
 	}
 	return newAuth
+}
+
+func (p *DefaultEthProvider) WaitMined(ctx context.Context, txHash common.Hash) (*types.Transaction, error) {
+	queryTicker := time.NewTicker(time.Second)
+	defer queryTicker.Stop()
+	for {
+		tx, isPending, err := p.ec.TransactionByHash(ctx, txHash)
+		if err == nil && !isPending {
+			return tx, nil
+		}
+		// Wait for the next round.
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-queryTicker.C:
+		}
+	}
 }

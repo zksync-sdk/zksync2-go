@@ -208,7 +208,7 @@ func (r *TransactionReceipt) UnmarshalJSON(input []byte) error {
 
 type TransactionResponse struct {
 	BlockHash            common.Hash    `json:"blockHash"`
-	BlockNumber          string         `json:"blockNumber"`
+	BlockNumber          *hexutil.Big   `json:"blockNumber"`
 	ChainID              hexutil.Big    `json:"chainId"`
 	From                 common.Address `json:"from"`
 	Gas                  hexutil.Uint64 `json:"gas"`
