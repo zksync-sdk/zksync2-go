@@ -113,6 +113,13 @@ if err != nil {
     panic(err)
 }
 fmt.Println("Withdraw Tx hash", wHash)
+
+// now you must wait until this Tx is being finalized
+_, err = w.GetProvider().WaitFinalized(context.Background(), wHash)
+if err != nil {
+    panic(err)
+}
+
 // then, you need to call FinalizeWithdraw 
 fwHash, err := w.FinalizeWithdraw(wHash, 0)
 if err != nil {

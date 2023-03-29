@@ -3,6 +3,7 @@ package zksync2
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -91,6 +92,12 @@ type BlockDetails struct {
 	RootHash      common.Hash `json:"rootHash"`
 	Status        string      `json:"status"`
 	Timestamp     uint        `json:"timestamp"`
+}
+
+type Block struct {
+	types.Block
+	L1BatchNumber    *hexutil.Big `json:"l1BatchNumber"`
+	L1BatchTimestamp *hexutil.Big `json:"l1BatchTimestamp"`
 }
 
 type Log struct {
@@ -243,4 +250,33 @@ func NewBigZero() *hexutil.Big {
 
 func NewBig(n int64) *hexutil.Big {
 	return (*hexutil.Big)(big.NewInt(n))
+}
+
+type FilterQuery struct {
+	BlockHash *common.Hash
+	FromBlock *BlockNumber
+	ToBlock   *BlockNumber
+	Addresses []common.Address
+	Topics    [][]common.Hash
+}
+
+func toFilterArg(q FilterQuery) (interface{}, error) {
+	arg := map[string]interface{}{
+		"address": q.Addresses,
+		"topics":  q.Topics,
+	}
+	if q.BlockHash != nil {
+		arg["blockHash"] = *q.BlockHash
+		if q.FromBlock != nil || q.ToBlock != nil {
+			return nil, fmt.Errorf("cannot specify both BlockHash and FromBlock/ToBlock")
+		}
+	} else {
+		if q.FromBlock == nil {
+			arg["fromBlock"] = "0x0"
+		} else {
+			arg["fromBlock"] = q.FromBlock
+		}
+		arg["toBlock"] = q.ToBlock
+	}
+	return arg, nil
 }

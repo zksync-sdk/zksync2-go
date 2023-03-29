@@ -17,6 +17,8 @@ import (
 type Provider interface {
 	GetClient() *ethclient.Client
 	GetBalance(address common.Address, blockNumber BlockNumber) (*big.Int, error)
+	GetBlockByNumber(blockNumber BlockNumber) (*Block, error)
+	GetBlockByHash(blockHash common.Hash) (*Block, error)
 	GetTransactionCount(address common.Address, blockNumber BlockNumber) (*big.Int, error)
 	GetTransactionReceipt(txHash common.Hash) (*TransactionReceipt, error)
 	GetTransaction(txHash common.Hash) (*TransactionResponse, error)
@@ -27,6 +29,7 @@ type Provider interface {
 	SendRawTransaction(tx []byte) (common.Hash, error)
 	ZksGetMainContract() (common.Address, error)
 	ZksL1ChainId() (*big.Int, error)
+	ZksL1BatchNumber() (*big.Int, error)
 	ZksGetConfirmedTokens(from uint32, limit uint8) ([]*Token, error)
 	ZksIsTokenLiquid(address common.Address) (bool, error)
 	ZksGetTokenPrice(address common.Address) (*big.Float, error)
@@ -37,6 +40,7 @@ type Provider interface {
 	ZksEstimateFee(tx *Transaction) (*Fee, error)
 	ZksGetTestnetPaymaster() (common.Address, error)
 	ZksGetBlockDetails(block uint32) (*BlockDetails, error)
+	GetLogs(q FilterQuery) ([]Log, error)
 }
 
 func NewDefaultProvider(rawUrl string) (*DefaultProvider, error) {
@@ -71,6 +75,53 @@ func (p *DefaultProvider) GetBalance(address common.Address, blockNumber BlockNu
 		return nil, fmt.Errorf("failed to decode response as big.Int: %w", err)
 	}
 	return resp, nil
+}
+
+func (p *DefaultProvider) GetBlockByNumber(blockNumber BlockNumber) (*Block, error) {
+	type TmpBlock struct {
+		Number           hexutil.Big  `json:"number"`
+		L1BatchNumber    *hexutil.Big `json:"l1BatchNumber"`
+		L1BatchTimestamp *hexutil.Big `json:"l1BatchTimestamp"`
+	}
+	var resp *TmpBlock
+	err := p.c.Call(&resp, "eth_getBlockByNumber", blockNumber, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query eth_getBlockByNumber: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
+	}
+	ethBlock, err := p.Client.BlockByNumber(context.Background(), resp.Number.ToInt())
+	if err != nil {
+		return nil, err
+	}
+	return &Block{
+		Block:            *ethBlock,
+		L1BatchNumber:    resp.L1BatchNumber,
+		L1BatchTimestamp: resp.L1BatchTimestamp,
+	}, nil
+}
+
+func (p *DefaultProvider) GetBlockByHash(blockHash common.Hash) (*Block, error) {
+	type TmpBlock struct {
+		L1BatchNumber    *hexutil.Big `json:"l1BatchNumber"`
+		L1BatchTimestamp *hexutil.Big `json:"l1BatchTimestamp"`
+	}
+	var resp *TmpBlock
+	err := p.c.Call(&resp, "eth_getBlockByHash", blockHash, false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query eth_getBlockByHash: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
+	}
+	ethBlock, err := p.Client.BlockByHash(context.Background(), blockHash)
+	if err != nil {
+		return nil, err
+	}
+	return &Block{
+		Block:            *ethBlock,
+		L1BatchNumber:    resp.L1BatchNumber,
+		L1BatchTimestamp: resp.L1BatchTimestamp,
+	}, nil
 }
 
 func (p *DefaultProvider) GetTransactionCount(address common.Address, blockNumber BlockNumber) (*big.Int, error) {
@@ -157,6 +208,19 @@ func (p *DefaultProvider) ZksL1ChainId() (*big.Int, error) {
 	err := p.c.Call(&res, "zks_L1ChainId")
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_L1ChainId: %w", err)
+	}
+	resp, err := hexutil.DecodeBig(res)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode response as big.Int: %w", err)
+	}
+	return resp, nil
+}
+
+func (p *DefaultProvider) ZksL1BatchNumber() (*big.Int, error) {
+	var res string
+	err := p.c.Call(&res, "zks_L1BatchNumber")
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_L1BatchNumber: %w", err)
 	}
 	resp, err := hexutil.DecodeBig(res)
 	if err != nil {
@@ -318,4 +382,14 @@ func (p *DefaultProvider) WaitFinalized(ctx context.Context, txHash common.Hash)
 		case <-queryTicker.C:
 		}
 	}
+}
+
+func (p *DefaultProvider) GetLogs(q FilterQuery) ([]Log, error) {
+	var result []Log
+	arg, err := toFilterArg(q)
+	if err != nil {
+		return nil, err
+	}
+	err = p.c.Call(&result, "eth_getLogs", arg)
+	return result, err
 }
