@@ -14,7 +14,7 @@ type Transaction struct {
 	Value    *hexutil.Big   `json:"value"`
 	Data     hexutil.Bytes  `json:"data"`
 	//
-	Eip712Meta *Eip712Meta
+	Eip712Meta *Eip712Meta `json:"eip712Meta"`
 }
 
 func CreateFunctionCallTransaction(from, to common.Address, gasPrice, gasLimit, value *big.Int, data hexutil.Bytes,
