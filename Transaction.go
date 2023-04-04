@@ -14,20 +14,20 @@ type Transaction struct {
 	Value    *hexutil.Big   `json:"value"`
 	Data     hexutil.Bytes  `json:"data"`
 	//
-	Eip712Meta *Eip712Meta
+	Eip712Meta *Eip712Meta `json:"eip712Meta"`
 }
 
-func CreateFunctionCallTransaction(from, to common.Address, ergsPrice, ergsLimit, value *big.Int, data hexutil.Bytes,
+func CreateFunctionCallTransaction(from, to common.Address, gasPrice, gasLimit, value *big.Int, data hexutil.Bytes,
 	customSignature hexutil.Bytes, paymasterParams *PaymasterParams) *Transaction {
 	return &Transaction{
 		From:     from,
 		To:       to,
-		Gas:      (*hexutil.Big)(ergsLimit),
-		GasPrice: (*hexutil.Big)(ergsPrice),
+		Gas:      (*hexutil.Big)(gasLimit),
+		GasPrice: (*hexutil.Big)(gasPrice),
 		Value:    (*hexutil.Big)(value),
 		Data:     data,
 		Eip712Meta: &Eip712Meta{
-			ErgsPerPubdata:  NewBig(160000),
+			GasPerPubdata:   NewBig(160000),
 			CustomSignature: customSignature,
 			FactoryDeps:     nil,
 			PaymasterParams: paymasterParams,
@@ -35,7 +35,7 @@ func CreateFunctionCallTransaction(from, to common.Address, ergsPrice, ergsLimit
 	}
 }
 
-func Create2ContractTransaction(from common.Address, ergsPrice, ergsLimit *big.Int,
+func Create2ContractTransaction(from common.Address, gasPrice, gasLimit *big.Int,
 	bytecode, calldata hexutil.Bytes, deps []hexutil.Bytes,
 	customSignature hexutil.Bytes, paymasterParams *PaymasterParams) *Transaction {
 	if len(deps) > 0 {
@@ -46,12 +46,12 @@ func Create2ContractTransaction(from common.Address, ergsPrice, ergsLimit *big.I
 	return &Transaction{
 		From:     from,
 		To:       ContractDeployerAddress,
-		Gas:      (*hexutil.Big)(ergsLimit),
-		GasPrice: (*hexutil.Big)(ergsPrice),
+		Gas:      (*hexutil.Big)(gasLimit),
+		GasPrice: (*hexutil.Big)(gasPrice),
 		Value:    nil,
 		Data:     calldata,
 		Eip712Meta: &Eip712Meta{
-			ErgsPerPubdata:  NewBig(160000),
+			GasPerPubdata:   NewBig(160000),
 			CustomSignature: customSignature,
 			FactoryDeps:     deps,
 			PaymasterParams: paymasterParams,

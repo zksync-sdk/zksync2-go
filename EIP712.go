@@ -1,6 +1,7 @@
 package zksync2
 
 import (
+	"encoding/json"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -15,10 +16,28 @@ type EIP712TypedData interface {
 }
 
 type Eip712Meta struct {
-	ErgsPerPubdata  *hexutil.Big     `json:"ergsPerPubdata,omitempty"`
-	CustomSignature hexutil.Bytes    `json:"customSignature"`
+	GasPerPubdata   *hexutil.Big     `json:"gasPerPubdata,omitempty"`
+	CustomSignature hexutil.Bytes    `json:"customSignature,omitempty"`
 	FactoryDeps     []hexutil.Bytes  `json:"factoryDeps"`
-	PaymasterParams *PaymasterParams `json:"paymasterParams"`
+	PaymasterParams *PaymasterParams `json:"paymasterParams,omitempty"`
+}
+
+func (m *Eip712Meta) MarshalJSON() ([]byte, error) {
+	type Alias Eip712Meta
+	fdb := make([][]uint, len(m.FactoryDeps))
+	for i, v := range m.FactoryDeps {
+		fdb[i] = make([]uint, len(v))
+		for j, b := range v {
+			fdb[i][j] = uint(b)
+		}
+	}
+	return json.Marshal(&struct {
+		FactoryDeps [][]uint `json:"factoryDeps"`
+		*Alias
+	}{
+		FactoryDeps: fdb,
+		Alias:       (*Alias)(m),
+	})
 }
 
 type PaymasterParams struct {

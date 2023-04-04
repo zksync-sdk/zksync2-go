@@ -64,7 +64,7 @@ func (tx *Transaction712) RLPValues(sig []byte) ([]byte, error) {
 		ChainID2 *big.Int
 		From     *common.Address
 		// Meta fields   *Eip712Meta
-		ErgsPerPubdata  *big.Int
+		GasPerPubdata   *big.Int
 		FactoryDeps     []hexutil.Bytes
 		CustomSignature hexutil.Bytes
 		PaymasterParams *PaymasterParams
@@ -79,7 +79,7 @@ func (tx *Transaction712) RLPValues(sig []byte) ([]byte, error) {
 		ChainID1:             tx.ChainID,
 		ChainID2:             tx.ChainID,
 		From:                 tx.From,
-		ErgsPerPubdata:       tx.Meta.ErgsPerPubdata.ToInt(),
+		GasPerPubdata:        tx.Meta.GasPerPubdata.ToInt(),
 		FactoryDeps:          tx.Meta.FactoryDeps,
 		CustomSignature:      tx.Meta.CustomSignature,
 		PaymasterParams:      tx.Meta.PaymasterParams,
@@ -108,10 +108,10 @@ func (tx *Transaction712) GetEIP712Types() []apitypes.Type {
 		{Name: "txType", Type: "uint256"},
 		{Name: "from", Type: "uint256"},
 		{Name: "to", Type: "uint256"},
-		{Name: "ergsLimit", Type: "uint256"},
-		{Name: "ergsPerPubdataByteLimit", Type: "uint256"},
-		{Name: "maxFeePerErg", Type: "uint256"},
-		{Name: "maxPriorityFeePerErg", Type: "uint256"},
+		{Name: "gasLimit", Type: "uint256"},
+		{Name: "gasPerPubdataByteLimit", Type: "uint256"},
+		{Name: "maxFeePerGas", Type: "uint256"},
+		{Name: "maxPriorityFeePerGas", Type: "uint256"},
 		{Name: "paymaster", Type: "uint256"},
 		{Name: "nonce", Type: "uint256"},
 		{Name: "value", Type: "uint256"},
@@ -133,19 +133,19 @@ func (tx *Transaction712) GetEIP712Message() apitypes.TypedDataMessage {
 		value = tx.Value.String()
 	}
 	return apitypes.TypedDataMessage{
-		"txType":                  EIP712TxType,
-		"from":                    big.NewInt(0).SetBytes(tx.From.Bytes()).String(),
-		"to":                      big.NewInt(0).SetBytes(tx.To.Bytes()).String(),
-		"ergsLimit":               tx.Gas.String(),
-		"ergsPerPubdataByteLimit": tx.Meta.ErgsPerPubdata.String(),
-		"maxFeePerErg":            tx.GasFeeCap.String(),
-		"maxPriorityFeePerErg":    tx.GasTipCap.String(),
-		"paymaster":               paymaster.String(),
-		"nonce":                   tx.Nonce.String(),
-		"value":                   value,
-		"data":                    tx.Data,
-		"factoryDeps":             tx.getFactoryDepsHashes(),
-		"paymasterInput":          paymasterInput,
+		"txType":                 EIP712TxType,
+		"from":                   big.NewInt(0).SetBytes(tx.From.Bytes()).String(),
+		"to":                     big.NewInt(0).SetBytes(tx.To.Bytes()).String(),
+		"gasLimit":               tx.Gas.String(),
+		"gasPerPubdataByteLimit": tx.Meta.GasPerPubdata.String(),
+		"maxFeePerGas":           tx.GasFeeCap.String(),
+		"maxPriorityFeePerGas":   tx.GasTipCap.String(),
+		"paymaster":              paymaster.String(),
+		"nonce":                  tx.Nonce.String(),
+		"value":                  value,
+		"data":                   tx.Data,
+		"factoryDeps":            tx.getFactoryDepsHashes(),
+		"paymasterInput":         paymasterInput,
 	}
 }
 

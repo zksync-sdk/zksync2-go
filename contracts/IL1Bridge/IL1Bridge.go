@@ -30,7 +30,7 @@ var (
 
 // IL1BridgeMetaData contains all meta data concerning the IL1Bridge contract.
 var IL1BridgeMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"ClaimedFailedDeposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"DepositInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"WithdrawalFinalized\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_depositSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claimFailedDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l2Receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"txHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"finalizeWithdrawal\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"}],\"name\":\"isWithdrawalFinalized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"}],\"name\":\"l2TokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"ClaimedFailedDeposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"DepositInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"WithdrawalFinalized\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_depositSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBlock\",\"type\":\"uint16\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claimFailedDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l2Receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasPerPubdataByte\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"txHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBlock\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"finalizeWithdrawal\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"}],\"name\":\"isWithdrawalFinalized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"}],\"name\":\"l2TokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // IL1BridgeABI is the input ABI used to generate the binding from.
@@ -241,67 +241,67 @@ func (_IL1Bridge *IL1BridgeCallerSession) L2TokenAddress(_l1Token common.Address
 	return _IL1Bridge.Contract.L2TokenAddress(&_IL1Bridge.CallOpts, _l1Token)
 }
 
-// ClaimFailedDeposit is a paid mutator transaction binding the contract method 0x93d2227e.
+// ClaimFailedDeposit is a paid mutator transaction binding the contract method 0x19fa7f62.
 //
-// Solidity: function claimFailedDeposit(address _depositSender, address _l1Token, bytes32 _l2TxHash, uint256 _l2BlockNumber, uint256 _l2MessageIndex, bytes32[] _merkleProof) returns()
-func (_IL1Bridge *IL1BridgeTransactor) ClaimFailedDeposit(opts *bind.TransactOpts, _depositSender common.Address, _l1Token common.Address, _l2TxHash [32]byte, _l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _merkleProof [][32]byte) (*types.Transaction, error) {
-	return _IL1Bridge.contract.Transact(opts, "claimFailedDeposit", _depositSender, _l1Token, _l2TxHash, _l2BlockNumber, _l2MessageIndex, _merkleProof)
+// Solidity: function claimFailedDeposit(address _depositSender, address _l1Token, bytes32 _l2TxHash, uint256 _l2BlockNumber, uint256 _l2MessageIndex, uint16 _l2TxNumberInBlock, bytes32[] _merkleProof) returns()
+func (_IL1Bridge *IL1BridgeTransactor) ClaimFailedDeposit(opts *bind.TransactOpts, _depositSender common.Address, _l1Token common.Address, _l2TxHash [32]byte, _l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _l2TxNumberInBlock uint16, _merkleProof [][32]byte) (*types.Transaction, error) {
+	return _IL1Bridge.contract.Transact(opts, "claimFailedDeposit", _depositSender, _l1Token, _l2TxHash, _l2BlockNumber, _l2MessageIndex, _l2TxNumberInBlock, _merkleProof)
 }
 
-// ClaimFailedDeposit is a paid mutator transaction binding the contract method 0x93d2227e.
+// ClaimFailedDeposit is a paid mutator transaction binding the contract method 0x19fa7f62.
 //
-// Solidity: function claimFailedDeposit(address _depositSender, address _l1Token, bytes32 _l2TxHash, uint256 _l2BlockNumber, uint256 _l2MessageIndex, bytes32[] _merkleProof) returns()
-func (_IL1Bridge *IL1BridgeSession) ClaimFailedDeposit(_depositSender common.Address, _l1Token common.Address, _l2TxHash [32]byte, _l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _merkleProof [][32]byte) (*types.Transaction, error) {
-	return _IL1Bridge.Contract.ClaimFailedDeposit(&_IL1Bridge.TransactOpts, _depositSender, _l1Token, _l2TxHash, _l2BlockNumber, _l2MessageIndex, _merkleProof)
+// Solidity: function claimFailedDeposit(address _depositSender, address _l1Token, bytes32 _l2TxHash, uint256 _l2BlockNumber, uint256 _l2MessageIndex, uint16 _l2TxNumberInBlock, bytes32[] _merkleProof) returns()
+func (_IL1Bridge *IL1BridgeSession) ClaimFailedDeposit(_depositSender common.Address, _l1Token common.Address, _l2TxHash [32]byte, _l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _l2TxNumberInBlock uint16, _merkleProof [][32]byte) (*types.Transaction, error) {
+	return _IL1Bridge.Contract.ClaimFailedDeposit(&_IL1Bridge.TransactOpts, _depositSender, _l1Token, _l2TxHash, _l2BlockNumber, _l2MessageIndex, _l2TxNumberInBlock, _merkleProof)
 }
 
-// ClaimFailedDeposit is a paid mutator transaction binding the contract method 0x93d2227e.
+// ClaimFailedDeposit is a paid mutator transaction binding the contract method 0x19fa7f62.
 //
-// Solidity: function claimFailedDeposit(address _depositSender, address _l1Token, bytes32 _l2TxHash, uint256 _l2BlockNumber, uint256 _l2MessageIndex, bytes32[] _merkleProof) returns()
-func (_IL1Bridge *IL1BridgeTransactorSession) ClaimFailedDeposit(_depositSender common.Address, _l1Token common.Address, _l2TxHash [32]byte, _l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _merkleProof [][32]byte) (*types.Transaction, error) {
-	return _IL1Bridge.Contract.ClaimFailedDeposit(&_IL1Bridge.TransactOpts, _depositSender, _l1Token, _l2TxHash, _l2BlockNumber, _l2MessageIndex, _merkleProof)
+// Solidity: function claimFailedDeposit(address _depositSender, address _l1Token, bytes32 _l2TxHash, uint256 _l2BlockNumber, uint256 _l2MessageIndex, uint16 _l2TxNumberInBlock, bytes32[] _merkleProof) returns()
+func (_IL1Bridge *IL1BridgeTransactorSession) ClaimFailedDeposit(_depositSender common.Address, _l1Token common.Address, _l2TxHash [32]byte, _l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _l2TxNumberInBlock uint16, _merkleProof [][32]byte) (*types.Transaction, error) {
+	return _IL1Bridge.Contract.ClaimFailedDeposit(&_IL1Bridge.TransactOpts, _depositSender, _l1Token, _l2TxHash, _l2BlockNumber, _l2MessageIndex, _l2TxNumberInBlock, _merkleProof)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x8340f549.
+// Deposit is a paid mutator transaction binding the contract method 0x933999fb.
 //
-// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount) payable returns(bytes32 txHash)
-func (_IL1Bridge *IL1BridgeTransactor) Deposit(opts *bind.TransactOpts, _l2Receiver common.Address, _l1Token common.Address, _amount *big.Int) (*types.Transaction, error) {
-	return _IL1Bridge.contract.Transact(opts, "deposit", _l2Receiver, _l1Token, _amount)
+// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount, uint256 _l2TxGasLimit, uint256 _l2TxGasPerPubdataByte) payable returns(bytes32 txHash)
+func (_IL1Bridge *IL1BridgeTransactor) Deposit(opts *bind.TransactOpts, _l2Receiver common.Address, _l1Token common.Address, _amount *big.Int, _l2TxGasLimit *big.Int, _l2TxGasPerPubdataByte *big.Int) (*types.Transaction, error) {
+	return _IL1Bridge.contract.Transact(opts, "deposit", _l2Receiver, _l1Token, _amount, _l2TxGasLimit, _l2TxGasPerPubdataByte)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x8340f549.
+// Deposit is a paid mutator transaction binding the contract method 0x933999fb.
 //
-// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount) payable returns(bytes32 txHash)
-func (_IL1Bridge *IL1BridgeSession) Deposit(_l2Receiver common.Address, _l1Token common.Address, _amount *big.Int) (*types.Transaction, error) {
-	return _IL1Bridge.Contract.Deposit(&_IL1Bridge.TransactOpts, _l2Receiver, _l1Token, _amount)
+// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount, uint256 _l2TxGasLimit, uint256 _l2TxGasPerPubdataByte) payable returns(bytes32 txHash)
+func (_IL1Bridge *IL1BridgeSession) Deposit(_l2Receiver common.Address, _l1Token common.Address, _amount *big.Int, _l2TxGasLimit *big.Int, _l2TxGasPerPubdataByte *big.Int) (*types.Transaction, error) {
+	return _IL1Bridge.Contract.Deposit(&_IL1Bridge.TransactOpts, _l2Receiver, _l1Token, _amount, _l2TxGasLimit, _l2TxGasPerPubdataByte)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x8340f549.
+// Deposit is a paid mutator transaction binding the contract method 0x933999fb.
 //
-// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount) payable returns(bytes32 txHash)
-func (_IL1Bridge *IL1BridgeTransactorSession) Deposit(_l2Receiver common.Address, _l1Token common.Address, _amount *big.Int) (*types.Transaction, error) {
-	return _IL1Bridge.Contract.Deposit(&_IL1Bridge.TransactOpts, _l2Receiver, _l1Token, _amount)
+// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount, uint256 _l2TxGasLimit, uint256 _l2TxGasPerPubdataByte) payable returns(bytes32 txHash)
+func (_IL1Bridge *IL1BridgeTransactorSession) Deposit(_l2Receiver common.Address, _l1Token common.Address, _amount *big.Int, _l2TxGasLimit *big.Int, _l2TxGasPerPubdataByte *big.Int) (*types.Transaction, error) {
+	return _IL1Bridge.Contract.Deposit(&_IL1Bridge.TransactOpts, _l2Receiver, _l1Token, _amount, _l2TxGasLimit, _l2TxGasPerPubdataByte)
 }
 
-// FinalizeWithdrawal is a paid mutator transaction binding the contract method 0x9181e55d.
+// FinalizeWithdrawal is a paid mutator transaction binding the contract method 0x11a2ccc1.
 //
-// Solidity: function finalizeWithdrawal(uint256 _l2BlockNumber, uint256 _l2MessageIndex, bytes _message, bytes32[] _merkleProof) returns()
-func (_IL1Bridge *IL1BridgeTransactor) FinalizeWithdrawal(opts *bind.TransactOpts, _l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _message []byte, _merkleProof [][32]byte) (*types.Transaction, error) {
-	return _IL1Bridge.contract.Transact(opts, "finalizeWithdrawal", _l2BlockNumber, _l2MessageIndex, _message, _merkleProof)
+// Solidity: function finalizeWithdrawal(uint256 _l2BlockNumber, uint256 _l2MessageIndex, uint16 _l2TxNumberInBlock, bytes _message, bytes32[] _merkleProof) returns()
+func (_IL1Bridge *IL1BridgeTransactor) FinalizeWithdrawal(opts *bind.TransactOpts, _l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _l2TxNumberInBlock uint16, _message []byte, _merkleProof [][32]byte) (*types.Transaction, error) {
+	return _IL1Bridge.contract.Transact(opts, "finalizeWithdrawal", _l2BlockNumber, _l2MessageIndex, _l2TxNumberInBlock, _message, _merkleProof)
 }
 
-// FinalizeWithdrawal is a paid mutator transaction binding the contract method 0x9181e55d.
+// FinalizeWithdrawal is a paid mutator transaction binding the contract method 0x11a2ccc1.
 //
-// Solidity: function finalizeWithdrawal(uint256 _l2BlockNumber, uint256 _l2MessageIndex, bytes _message, bytes32[] _merkleProof) returns()
-func (_IL1Bridge *IL1BridgeSession) FinalizeWithdrawal(_l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _message []byte, _merkleProof [][32]byte) (*types.Transaction, error) {
-	return _IL1Bridge.Contract.FinalizeWithdrawal(&_IL1Bridge.TransactOpts, _l2BlockNumber, _l2MessageIndex, _message, _merkleProof)
+// Solidity: function finalizeWithdrawal(uint256 _l2BlockNumber, uint256 _l2MessageIndex, uint16 _l2TxNumberInBlock, bytes _message, bytes32[] _merkleProof) returns()
+func (_IL1Bridge *IL1BridgeSession) FinalizeWithdrawal(_l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _l2TxNumberInBlock uint16, _message []byte, _merkleProof [][32]byte) (*types.Transaction, error) {
+	return _IL1Bridge.Contract.FinalizeWithdrawal(&_IL1Bridge.TransactOpts, _l2BlockNumber, _l2MessageIndex, _l2TxNumberInBlock, _message, _merkleProof)
 }
 
-// FinalizeWithdrawal is a paid mutator transaction binding the contract method 0x9181e55d.
+// FinalizeWithdrawal is a paid mutator transaction binding the contract method 0x11a2ccc1.
 //
-// Solidity: function finalizeWithdrawal(uint256 _l2BlockNumber, uint256 _l2MessageIndex, bytes _message, bytes32[] _merkleProof) returns()
-func (_IL1Bridge *IL1BridgeTransactorSession) FinalizeWithdrawal(_l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _message []byte, _merkleProof [][32]byte) (*types.Transaction, error) {
-	return _IL1Bridge.Contract.FinalizeWithdrawal(&_IL1Bridge.TransactOpts, _l2BlockNumber, _l2MessageIndex, _message, _merkleProof)
+// Solidity: function finalizeWithdrawal(uint256 _l2BlockNumber, uint256 _l2MessageIndex, uint16 _l2TxNumberInBlock, bytes _message, bytes32[] _merkleProof) returns()
+func (_IL1Bridge *IL1BridgeTransactorSession) FinalizeWithdrawal(_l2BlockNumber *big.Int, _l2MessageIndex *big.Int, _l2TxNumberInBlock uint16, _message []byte, _merkleProof [][32]byte) (*types.Transaction, error) {
+	return _IL1Bridge.Contract.FinalizeWithdrawal(&_IL1Bridge.TransactOpts, _l2BlockNumber, _l2MessageIndex, _l2TxNumberInBlock, _message, _merkleProof)
 }
 
 // IL1BridgeClaimedFailedDepositIterator is returned from FilterClaimedFailedDeposit and is used to iterate over the raw logs and unpacked data for ClaimedFailedDeposit events raised by the IL1Bridge contract.
