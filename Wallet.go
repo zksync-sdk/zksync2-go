@@ -443,8 +443,11 @@ func (w *Wallet) Deploy(bytecode []byte, calldata []byte, salt []byte, deps [][]
 	return w.EstimateAndSend(tx, nonce)
 }
 
-func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.Int) (common.Hash, error) {
+func (w *Wallet) Execute(contract common.Address, calldata []byte, value *big.Int, nonce *big.Int) (common.Hash, error) {
 	var err error
+	if value == nil {
+		value = big.NewInt(0)
+	}
 	if nonce == nil {
 		nonce, err = w.GetNonce()
 		if err != nil {
@@ -456,7 +459,7 @@ func (w *Wallet) Execute(contract common.Address, calldata []byte, nonce *big.In
 		contract,
 		big.NewInt(0),
 		big.NewInt(0),
-		big.NewInt(0),
+		value,
 		calldata,
 		nil, nil,
 	)

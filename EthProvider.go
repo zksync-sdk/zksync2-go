@@ -278,6 +278,9 @@ func (p *DefaultEthProvider) getAuth(options *GasOptions) *bind.TransactOpts {
 		newAuth.GasPrice = options.GasPrice
 		newAuth.GasLimit = options.GasLimit
 	}
+	if newAuth.GasPrice == nil {
+		newAuth.GasPrice, _ = p.ec.SuggestGasPrice(context.Background())
+	}
 	return newAuth
 }
 
