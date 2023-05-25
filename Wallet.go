@@ -13,11 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/zksync-sdk/zksync2-go/contracts/ERC20"
+	"github.com/zksync-sdk/zksync2-go/contracts/IERC20"
 	"github.com/zksync-sdk/zksync2-go/contracts/IEthToken"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL1Messenger"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL2Bridge"
-	"github.com/zksync-sdk/zksync2-go/contracts/IL2Messenger"
+	"github.com/zksync-sdk/zksync2-go/contracts/IPaymasterFlow"
 	"math/big"
 	"strings"
 )
@@ -27,17 +27,17 @@ type Wallet struct {
 	zp Provider
 	ep EthProvider
 
-	bcs          *BridgeContracts
-	mainContract common.Address
-	erc20abi     abi.ABI
-	ethTokenAbi  abi.ABI
-	l2BridgeAbi  abi.ABI
-	l1Messenger  abi.ABI
-	l2Messenger  abi.ABI
+	bcs              *BridgeContracts
+	mainContract     common.Address
+	erc20abi         abi.ABI
+	ethTokenAbi      abi.ABI
+	l2BridgeAbi      abi.ABI
+	l1MessengerAbi   abi.ABI
+	paymasterFlowAbi abi.ABI
 }
 
 func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
-	erc20abi, err := abi.JSON(strings.NewReader(ERC20.ERC20MetaData.ABI))
+	erc20abi, err := abi.JSON(strings.NewReader(IERC20.IERC20MetaData.ABI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load erc20abi: %w", err)
 	}
@@ -49,22 +49,22 @@ func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load l2BridgeAbi: %w", err)
 	}
-	l1Messenger, err := abi.JSON(strings.NewReader(IL1Messenger.IL1MessengerMetaData.ABI))
+	l1MessengerAbi, err := abi.JSON(strings.NewReader(IL1Messenger.IL1MessengerMetaData.ABI))
 	if err != nil {
-		return nil, fmt.Errorf("failed to load l1Messenger: %w", err)
+		return nil, fmt.Errorf("failed to load l1MessengerAbi: %w", err)
 	}
-	l2Messenger, err := abi.JSON(strings.NewReader(IL2Messenger.IL2MessengerMetaData.ABI))
+	paymasterFlowAbi, err := abi.JSON(strings.NewReader(IPaymasterFlow.IPaymasterFlowMetaData.ABI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load l2Messenger: %w", err)
 	}
 	return &Wallet{
-		es:          es,
-		zp:          zp,
-		erc20abi:    erc20abi,
-		ethTokenAbi: ethTokenAbi,
-		l2BridgeAbi: l2BridgeAbi,
-		l1Messenger: l1Messenger,
-		l2Messenger: l2Messenger,
+		es:               es,
+		zp:               zp,
+		erc20abi:         erc20abi,
+		ethTokenAbi:      ethTokenAbi,
+		l2BridgeAbi:      l2BridgeAbi,
+		l1MessengerAbi:   l1MessengerAbi,
+		paymasterFlowAbi: paymasterFlowAbi,
 	}, nil
 }
 
@@ -121,9 +121,9 @@ func (w *Wallet) GetBalanceOf(address common.Address, token *Token, at BlockNumb
 	if token.IsETH() {
 		return w.zp.GetBalance(address, at)
 	}
-	erc20, err := ERC20.NewERC20(token.L2Address, w.zp.GetClient())
+	erc20, err := IERC20.NewIERC20(token.L2Address, w.zp.GetClient())
 	if err != nil {
-		return nil, fmt.Errorf("failed to load ERC20: %w", err)
+		return nil, fmt.Errorf("failed to load IERC20: %w", err)
 	}
 	opts := &bind.CallOpts{}
 	if at == BlockNumberPending {
@@ -246,11 +246,11 @@ func (w *Wallet) FinalizeWithdraw(withdrawalHash common.Hash, index int) (common
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
 	}
-	ev, err := w.l1Messenger.EventByID(log.Topics[0])
+	ev, err := w.l1MessengerAbi.EventByID(log.Topics[0])
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("failed to get EventByID: %w", err)
 	}
-	dl, err := w.l1Messenger.Unpack(ev.Name, log.Data)
+	dl, err := w.l1MessengerAbi.Unpack(ev.Name, log.Data)
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("failed to Unpack log data: %w", err)
 	}
@@ -461,31 +461,6 @@ func (w *Wallet) Execute(contract common.Address, calldata []byte, value *big.In
 		big.NewInt(0),
 		value,
 		calldata,
-		nil, nil,
-	)
-	return w.EstimateAndSend(tx, nonce)
-}
-
-func (w *Wallet) SendMessageToL1(message []byte, nonce *big.Int) (common.Hash, error) {
-	var err error
-	if nonce == nil {
-		nonce, err = w.GetNonce()
-		if err != nil {
-			return common.Hash{}, fmt.Errorf("failed to get nonce: %w", err)
-		}
-	}
-	var data hexutil.Bytes
-	data, err = w.l2Messenger.Pack("sendToL1", message)
-	if err != nil {
-		return common.Hash{}, fmt.Errorf("failed to pack sendToL1 function: %w", err)
-	}
-	tx := CreateFunctionCallTransaction(
-		w.es.GetAddress(),
-		MessengerAddress,
-		big.NewInt(0),
-		big.NewInt(0),
-		big.NewInt(0),
-		data,
 		nil, nil,
 	)
 	return w.EstimateAndSend(tx, nonce)

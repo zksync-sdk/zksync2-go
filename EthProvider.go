@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/zksync-sdk/zksync2-go/contracts/ERC20"
+	"github.com/zksync-sdk/zksync2-go/contracts/IERC20"
 	"github.com/zksync-sdk/zksync2-go/contracts/IL1Bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/IZkSync"
 	"math/big"
@@ -97,9 +97,9 @@ func (p *DefaultEthProvider) ApproveDeposit(token *Token, limit *big.Int, option
 		token = CreateETH()
 	}
 	auth := p.getAuth(options)
-	erc20, err := ERC20.NewERC20(token.L1Address, p.ec)
+	erc20, err := IERC20.NewIERC20(token.L1Address, p.ec)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load ERC20: %w", err)
+		return nil, fmt.Errorf("failed to load IERC20: %w", err)
 	}
 	if limit == nil || len(limit.Bits()) == 0 {
 		limit = MaxApproveAmount
@@ -111,9 +111,9 @@ func (p *DefaultEthProvider) IsDepositApproved(token *Token, to common.Address, 
 	if token == nil {
 		token = CreateETH()
 	}
-	erc20, err := ERC20.NewERC20(token.L1Address, p.ec)
+	erc20, err := IERC20.NewIERC20(token.L1Address, p.ec)
 	if err != nil {
-		return false, fmt.Errorf("failed to load ERC20: %w", err)
+		return false, fmt.Errorf("failed to load IERC20: %w", err)
 	}
 	if threshold == nil || len(threshold.Bits()) == 0 {
 		threshold = DefaultThreshold
@@ -136,14 +136,27 @@ func (p *DefaultEthProvider) Deposit(token *Token, amount *big.Int, address comm
 	}
 	if token.IsETH() {
 		auth.Value = big.NewInt(0).Add(baseCost, amount)
-		return p.RequestExecute(address, amount, nil,
-			RecommendedDepositL2GasLimit, DepositGasPerPubdataLimit,
-			nil, address, auth)
+		return p.RequestExecute(
+			address,
+			amount,
+			nil,
+			RecommendedDepositL2GasLimit,
+			DepositGasPerPubdataLimit,
+			nil,
+			address,
+			auth,
+		)
 	} else {
 		auth.Value = baseCost
-		return p.l1ERC20Bridge.Deposit(auth,
-			address, token.L1Address, amount,
-			RecommendedDepositL2GasLimit, DepositGasPerPubdataLimit)
+		return p.l1ERC20Bridge.Deposit(
+			auth,
+			address,
+			token.L1Address,
+			amount,
+			RecommendedDepositL2GasLimit,
+			DepositGasPerPubdataLimit,
+			address,
+		)
 	}
 }
 
