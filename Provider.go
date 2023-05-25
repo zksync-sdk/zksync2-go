@@ -2,19 +2,22 @@ package zksync2
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/zksync-sdk/zksync2-go/contracts/IL2Bridge"
 	"math/big"
 	"time"
 )
 
-type Provider interface {
+type ethereumClient interface {
 	GetClient() *ethclient.Client
 	GetBalance(address common.Address, blockNumber BlockNumber) (*big.Int, error)
 	GetBlockByNumber(blockNumber BlockNumber) (*Block, error)
@@ -27,12 +30,18 @@ type Provider interface {
 	EstimateGas(tx *Transaction) (*big.Int, error)
 	GetGasPrice() (*big.Int, error)
 	SendRawTransaction(tx []byte) (common.Hash, error)
+	GetLogs(q FilterQuery) ([]Log, error)
+}
+
+type zksyncClient interface {
 	ZksGetMainContract() (common.Address, error)
 	ZksL1ChainId() (*big.Int, error)
 	ZksL1BatchNumber() (*big.Int, error)
 	ZksGetConfirmedTokens(from uint32, limit uint8) ([]*Token, error)
 	ZksIsTokenLiquid(address common.Address) (bool, error)
 	ZksGetTokenPrice(address common.Address) (*big.Float, error)
+	L2TokenAddress(token common.Address) (common.Address, error)
+	L1TokenAddress(token common.Address) (common.Address, error)
 	ZksGetL2ToL1LogProof(txHash common.Hash, logIndex int) (*L2ToL1MessageProof, error)
 	ZksGetL2ToL1MsgProof(block uint32, sender common.Address, msg common.Hash) (*L2ToL1MessageProof, error)
 	ZksGetAllAccountBalances(address common.Address) (map[common.Address]*big.Int, error)
@@ -40,7 +49,16 @@ type Provider interface {
 	ZksEstimateFee(tx *Transaction) (*Fee, error)
 	ZksGetTestnetPaymaster() (common.Address, error)
 	ZksGetBlockDetails(block uint32) (*BlockDetails, error)
-	GetLogs(q FilterQuery) ([]Log, error)
+	EstimateGasL1(tx *Transaction) (*big.Int, error)
+	EstimateL1ToL2Execute(tx *Transaction) (*big.Int, error)
+	GetL1BatchBlockRange(l1BatchNumber *big.Int) (*BlockRange, error)
+	GetL1BatchDetails(l1BatchNumber *big.Int) (*BatchDetails, error)
+	GetTransactionDetails(txHash common.Hash) (*TransactionDetails, error)
+}
+
+type Provider interface {
+	ethereumClient
+	zksyncClient
 }
 
 func NewDefaultProvider(rawUrl string) (*DefaultProvider, error) {
@@ -271,6 +289,7 @@ func (p *DefaultProvider) ZksGetL2ToL1LogProof(txHash common.Hash, logIndex int)
 	return resp, nil
 }
 
+// Deprecated: Endpoint will be deprecated in favor of ZksGetL2ToL1LogProof
 func (p *DefaultProvider) ZksGetL2ToL1MsgProof(block uint32, sender common.Address, msg common.Hash) (*L2ToL1MessageProof, error) {
 	var resp *L2ToL1MessageProof
 	err := p.c.Call(&resp, "zks_getL2ToL1MsgProof", block, sender, msg)
@@ -392,4 +411,119 @@ func (p *DefaultProvider) GetLogs(q FilterQuery) ([]Log, error) {
 	}
 	err = p.c.Call(&result, "eth_getLogs", arg)
 	return result, err
+}
+
+func (p *DefaultProvider) L2TokenAddress(token common.Address) (common.Address, error) {
+	if token == EthAddress {
+		return EthAddress, nil
+	} else {
+		contracts, err := p.ZksGetBridgeContracts()
+		if err != nil {
+			return common.Address{}, err
+		}
+		bridge, err := IL2Bridge.NewIL2Bridge(contracts.L2Erc20DefaultBridge, p.Client)
+		if err != nil {
+			return common.Address{}, err
+		}
+		tokenAddress, err := bridge.L2TokenAddress(nil, token)
+		if err != nil {
+			return common.Address{}, err
+		}
+		return tokenAddress, nil
+	}
+}
+
+func (p *DefaultProvider) L1TokenAddress(token common.Address) (common.Address, error) {
+	if token == EthAddress {
+		return EthAddress, nil
+	} else {
+		contracts, err := p.ZksGetBridgeContracts()
+		if err != nil {
+			return common.Address{}, err
+		}
+		bridge, err := IL2Bridge.NewIL2Bridge(contracts.L2Erc20DefaultBridge, p.Client)
+		if err != nil {
+			return common.Address{}, err
+		}
+		tokenAddress, err := bridge.L1TokenAddress(nil, token)
+		if err != nil {
+			return common.Address{}, err
+		}
+		return tokenAddress, nil
+	}
+}
+
+func (p *DefaultProvider) EstimateGasL1(tx *Transaction) (*big.Int, error) {
+	var res string
+	err := p.c.Call(&res, "zks_estimateGasL1ToL2", tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query eth_estimateGas: %w", err)
+	}
+	resp, err := hexutil.DecodeBig(res)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode response as big.Int: %w", err)
+	}
+	return resp, nil
+}
+
+func (p *DefaultProvider) EstimateL1ToL2Execute(tx *Transaction) (*big.Int, error) {
+	if tx.Eip712Meta.GasPerPubdata == nil {
+		tx.Eip712Meta.GasPerPubdata = NewBig(RequiredL1ToL2GasPerPubdataLimit.Int64())
+	}
+
+	// If the `from` address is not provided, we use a random address, because
+	// due to storage slot aggregation, the gas estimation will depend on the address
+	// and so estimation for the zero address may be smaller than for the sender.
+	if tx.From == (common.Address{}) {
+		privateKey, err := crypto.GenerateKey()
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate radnom private key: %w", err)
+		}
+		publicKey := privateKey.Public()
+		publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+		if !ok {
+			return nil, fmt.Errorf("failed to convert public key to ECDSA")
+		}
+		tx.From = crypto.PubkeyToAddress(*publicKeyECDSA)
+	}
+
+	gas, err := p.EstimateGasL1(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	return gas, nil
+}
+
+func (p *DefaultProvider) GetL1BatchBlockRange(l1BatchNumber *big.Int) (*BlockRange, error) {
+	var resp *BlockRange
+	err := p.c.Call(&resp, "zks_getL1BatchBlockRange", l1BatchNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getL1BatchBlockRange: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
+	}
+	return resp, nil
+}
+
+func (p *DefaultProvider) GetL1BatchDetails(l1BatchNumber *big.Int) (*BatchDetails, error) {
+	var resp *BatchDetails
+	err := p.c.Call(&resp, "zks_getL1BatchDetails", l1BatchNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getL1BatchDetails: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
+	}
+	return resp, nil
+}
+
+func (p *DefaultProvider) GetTransactionDetails(txHash common.Hash) (*TransactionDetails, error) {
+	var resp *TransactionDetails
+	err := p.c.Call(&resp, "zks_getTransactionDetails", txHash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getTransactionDetails: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
+	}
+	return resp, nil
 }

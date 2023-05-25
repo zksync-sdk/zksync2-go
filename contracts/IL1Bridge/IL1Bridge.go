@@ -26,11 +26,12 @@ var (
 	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
+	_ = abi.ConvertType
 )
 
 // IL1BridgeMetaData contains all meta data concerning the IL1Bridge contract.
 var IL1BridgeMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"ClaimedFailedDeposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"DepositInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"WithdrawalFinalized\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_depositSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBlock\",\"type\":\"uint16\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claimFailedDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l2Receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasPerPubdataByte\",\"type\":\"uint256\"}],\"name\":\"deposit\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"txHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBlock\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"finalizeWithdrawal\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"}],\"name\":\"isWithdrawalFinalized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"}],\"name\":\"l2TokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"ClaimedFailedDeposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"l2DepositTxHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"DepositInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"WithdrawalFinalized\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_depositSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBlock\",\"type\":\"uint16\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claimFailedDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l2Receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasPerPubdataByte\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_refundRecipient\",\"type\":\"address\"}],\"name\":\"deposit\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"txHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBlock\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"finalizeWithdrawal\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BlockNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"}],\"name\":\"isWithdrawalFinalized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"l2Bridge\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"}],\"name\":\"l2TokenAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // IL1BridgeABI is the input ABI used to generate the binding from.
@@ -134,11 +135,11 @@ func NewIL1BridgeFilterer(address common.Address, filterer bind.ContractFilterer
 
 // bindIL1Bridge binds a generic wrapper to an already deployed contract.
 func bindIL1Bridge(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(IL1BridgeABI))
+	parsed, err := IL1BridgeMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and
@@ -210,6 +211,37 @@ func (_IL1Bridge *IL1BridgeCallerSession) IsWithdrawalFinalized(_l2BlockNumber *
 	return _IL1Bridge.Contract.IsWithdrawalFinalized(&_IL1Bridge.CallOpts, _l2BlockNumber, _l2MessageIndex)
 }
 
+// L2Bridge is a free data retrieval call binding the contract method 0xae1f6aaf.
+//
+// Solidity: function l2Bridge() view returns(address)
+func (_IL1Bridge *IL1BridgeCaller) L2Bridge(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _IL1Bridge.contract.Call(opts, &out, "l2Bridge")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// L2Bridge is a free data retrieval call binding the contract method 0xae1f6aaf.
+//
+// Solidity: function l2Bridge() view returns(address)
+func (_IL1Bridge *IL1BridgeSession) L2Bridge() (common.Address, error) {
+	return _IL1Bridge.Contract.L2Bridge(&_IL1Bridge.CallOpts)
+}
+
+// L2Bridge is a free data retrieval call binding the contract method 0xae1f6aaf.
+//
+// Solidity: function l2Bridge() view returns(address)
+func (_IL1Bridge *IL1BridgeCallerSession) L2Bridge() (common.Address, error) {
+	return _IL1Bridge.Contract.L2Bridge(&_IL1Bridge.CallOpts)
+}
+
 // L2TokenAddress is a free data retrieval call binding the contract method 0xf5f15168.
 //
 // Solidity: function l2TokenAddress(address _l1Token) view returns(address)
@@ -262,25 +294,25 @@ func (_IL1Bridge *IL1BridgeTransactorSession) ClaimFailedDeposit(_depositSender 
 	return _IL1Bridge.Contract.ClaimFailedDeposit(&_IL1Bridge.TransactOpts, _depositSender, _l1Token, _l2TxHash, _l2BlockNumber, _l2MessageIndex, _l2TxNumberInBlock, _merkleProof)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x933999fb.
+// Deposit is a paid mutator transaction binding the contract method 0xe8b99b1b.
 //
-// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount, uint256 _l2TxGasLimit, uint256 _l2TxGasPerPubdataByte) payable returns(bytes32 txHash)
-func (_IL1Bridge *IL1BridgeTransactor) Deposit(opts *bind.TransactOpts, _l2Receiver common.Address, _l1Token common.Address, _amount *big.Int, _l2TxGasLimit *big.Int, _l2TxGasPerPubdataByte *big.Int) (*types.Transaction, error) {
-	return _IL1Bridge.contract.Transact(opts, "deposit", _l2Receiver, _l1Token, _amount, _l2TxGasLimit, _l2TxGasPerPubdataByte)
+// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount, uint256 _l2TxGasLimit, uint256 _l2TxGasPerPubdataByte, address _refundRecipient) payable returns(bytes32 txHash)
+func (_IL1Bridge *IL1BridgeTransactor) Deposit(opts *bind.TransactOpts, _l2Receiver common.Address, _l1Token common.Address, _amount *big.Int, _l2TxGasLimit *big.Int, _l2TxGasPerPubdataByte *big.Int, _refundRecipient common.Address) (*types.Transaction, error) {
+	return _IL1Bridge.contract.Transact(opts, "deposit", _l2Receiver, _l1Token, _amount, _l2TxGasLimit, _l2TxGasPerPubdataByte, _refundRecipient)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x933999fb.
+// Deposit is a paid mutator transaction binding the contract method 0xe8b99b1b.
 //
-// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount, uint256 _l2TxGasLimit, uint256 _l2TxGasPerPubdataByte) payable returns(bytes32 txHash)
-func (_IL1Bridge *IL1BridgeSession) Deposit(_l2Receiver common.Address, _l1Token common.Address, _amount *big.Int, _l2TxGasLimit *big.Int, _l2TxGasPerPubdataByte *big.Int) (*types.Transaction, error) {
-	return _IL1Bridge.Contract.Deposit(&_IL1Bridge.TransactOpts, _l2Receiver, _l1Token, _amount, _l2TxGasLimit, _l2TxGasPerPubdataByte)
+// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount, uint256 _l2TxGasLimit, uint256 _l2TxGasPerPubdataByte, address _refundRecipient) payable returns(bytes32 txHash)
+func (_IL1Bridge *IL1BridgeSession) Deposit(_l2Receiver common.Address, _l1Token common.Address, _amount *big.Int, _l2TxGasLimit *big.Int, _l2TxGasPerPubdataByte *big.Int, _refundRecipient common.Address) (*types.Transaction, error) {
+	return _IL1Bridge.Contract.Deposit(&_IL1Bridge.TransactOpts, _l2Receiver, _l1Token, _amount, _l2TxGasLimit, _l2TxGasPerPubdataByte, _refundRecipient)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0x933999fb.
+// Deposit is a paid mutator transaction binding the contract method 0xe8b99b1b.
 //
-// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount, uint256 _l2TxGasLimit, uint256 _l2TxGasPerPubdataByte) payable returns(bytes32 txHash)
-func (_IL1Bridge *IL1BridgeTransactorSession) Deposit(_l2Receiver common.Address, _l1Token common.Address, _amount *big.Int, _l2TxGasLimit *big.Int, _l2TxGasPerPubdataByte *big.Int) (*types.Transaction, error) {
-	return _IL1Bridge.Contract.Deposit(&_IL1Bridge.TransactOpts, _l2Receiver, _l1Token, _amount, _l2TxGasLimit, _l2TxGasPerPubdataByte)
+// Solidity: function deposit(address _l2Receiver, address _l1Token, uint256 _amount, uint256 _l2TxGasLimit, uint256 _l2TxGasPerPubdataByte, address _refundRecipient) payable returns(bytes32 txHash)
+func (_IL1Bridge *IL1BridgeTransactorSession) Deposit(_l2Receiver common.Address, _l1Token common.Address, _amount *big.Int, _l2TxGasLimit *big.Int, _l2TxGasPerPubdataByte *big.Int, _refundRecipient common.Address) (*types.Transaction, error) {
+	return _IL1Bridge.Contract.Deposit(&_IL1Bridge.TransactOpts, _l2Receiver, _l1Token, _amount, _l2TxGasLimit, _l2TxGasPerPubdataByte, _refundRecipient)
 }
 
 // FinalizeWithdrawal is a paid mutator transaction binding the contract method 0x11a2ccc1.
@@ -527,18 +559,23 @@ func (it *IL1BridgeDepositInitiatedIterator) Close() error {
 
 // IL1BridgeDepositInitiated represents a DepositInitiated event raised by the IL1Bridge contract.
 type IL1BridgeDepositInitiated struct {
-	From    common.Address
-	To      common.Address
-	L1Token common.Address
-	Amount  *big.Int
-	Raw     types.Log // Blockchain specific contextual infos
+	L2DepositTxHash [32]byte
+	From            common.Address
+	To              common.Address
+	L1Token         common.Address
+	Amount          *big.Int
+	Raw             types.Log // Blockchain specific contextual infos
 }
 
-// FilterDepositInitiated is a free log retrieval operation binding the contract event 0x7abe8fd2d210cf1e5d2cb3e277afd776d77269c8869b02c39f0bb542de0fdba1.
+// FilterDepositInitiated is a free log retrieval operation binding the contract event 0xdd341179f4edc78148d894d0213a96d212af2cbaf223d19ef6d483bdd47ab81d.
 //
-// Solidity: event DepositInitiated(address indexed from, address indexed to, address indexed l1Token, uint256 amount)
-func (_IL1Bridge *IL1BridgeFilterer) FilterDepositInitiated(opts *bind.FilterOpts, from []common.Address, to []common.Address, l1Token []common.Address) (*IL1BridgeDepositInitiatedIterator, error) {
+// Solidity: event DepositInitiated(bytes32 indexed l2DepositTxHash, address indexed from, address indexed to, address l1Token, uint256 amount)
+func (_IL1Bridge *IL1BridgeFilterer) FilterDepositInitiated(opts *bind.FilterOpts, l2DepositTxHash [][32]byte, from []common.Address, to []common.Address) (*IL1BridgeDepositInitiatedIterator, error) {
 
+	var l2DepositTxHashRule []interface{}
+	for _, l2DepositTxHashItem := range l2DepositTxHash {
+		l2DepositTxHashRule = append(l2DepositTxHashRule, l2DepositTxHashItem)
+	}
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -547,23 +584,23 @@ func (_IL1Bridge *IL1BridgeFilterer) FilterDepositInitiated(opts *bind.FilterOpt
 	for _, toItem := range to {
 		toRule = append(toRule, toItem)
 	}
-	var l1TokenRule []interface{}
-	for _, l1TokenItem := range l1Token {
-		l1TokenRule = append(l1TokenRule, l1TokenItem)
-	}
 
-	logs, sub, err := _IL1Bridge.contract.FilterLogs(opts, "DepositInitiated", fromRule, toRule, l1TokenRule)
+	logs, sub, err := _IL1Bridge.contract.FilterLogs(opts, "DepositInitiated", l2DepositTxHashRule, fromRule, toRule)
 	if err != nil {
 		return nil, err
 	}
 	return &IL1BridgeDepositInitiatedIterator{contract: _IL1Bridge.contract, event: "DepositInitiated", logs: logs, sub: sub}, nil
 }
 
-// WatchDepositInitiated is a free log subscription operation binding the contract event 0x7abe8fd2d210cf1e5d2cb3e277afd776d77269c8869b02c39f0bb542de0fdba1.
+// WatchDepositInitiated is a free log subscription operation binding the contract event 0xdd341179f4edc78148d894d0213a96d212af2cbaf223d19ef6d483bdd47ab81d.
 //
-// Solidity: event DepositInitiated(address indexed from, address indexed to, address indexed l1Token, uint256 amount)
-func (_IL1Bridge *IL1BridgeFilterer) WatchDepositInitiated(opts *bind.WatchOpts, sink chan<- *IL1BridgeDepositInitiated, from []common.Address, to []common.Address, l1Token []common.Address) (event.Subscription, error) {
+// Solidity: event DepositInitiated(bytes32 indexed l2DepositTxHash, address indexed from, address indexed to, address l1Token, uint256 amount)
+func (_IL1Bridge *IL1BridgeFilterer) WatchDepositInitiated(opts *bind.WatchOpts, sink chan<- *IL1BridgeDepositInitiated, l2DepositTxHash [][32]byte, from []common.Address, to []common.Address) (event.Subscription, error) {
 
+	var l2DepositTxHashRule []interface{}
+	for _, l2DepositTxHashItem := range l2DepositTxHash {
+		l2DepositTxHashRule = append(l2DepositTxHashRule, l2DepositTxHashItem)
+	}
 	var fromRule []interface{}
 	for _, fromItem := range from {
 		fromRule = append(fromRule, fromItem)
@@ -572,12 +609,8 @@ func (_IL1Bridge *IL1BridgeFilterer) WatchDepositInitiated(opts *bind.WatchOpts,
 	for _, toItem := range to {
 		toRule = append(toRule, toItem)
 	}
-	var l1TokenRule []interface{}
-	for _, l1TokenItem := range l1Token {
-		l1TokenRule = append(l1TokenRule, l1TokenItem)
-	}
 
-	logs, sub, err := _IL1Bridge.contract.WatchLogs(opts, "DepositInitiated", fromRule, toRule, l1TokenRule)
+	logs, sub, err := _IL1Bridge.contract.WatchLogs(opts, "DepositInitiated", l2DepositTxHashRule, fromRule, toRule)
 	if err != nil {
 		return nil, err
 	}
@@ -609,9 +642,9 @@ func (_IL1Bridge *IL1BridgeFilterer) WatchDepositInitiated(opts *bind.WatchOpts,
 	}), nil
 }
 
-// ParseDepositInitiated is a log parse operation binding the contract event 0x7abe8fd2d210cf1e5d2cb3e277afd776d77269c8869b02c39f0bb542de0fdba1.
+// ParseDepositInitiated is a log parse operation binding the contract event 0xdd341179f4edc78148d894d0213a96d212af2cbaf223d19ef6d483bdd47ab81d.
 //
-// Solidity: event DepositInitiated(address indexed from, address indexed to, address indexed l1Token, uint256 amount)
+// Solidity: event DepositInitiated(bytes32 indexed l2DepositTxHash, address indexed from, address indexed to, address l1Token, uint256 amount)
 func (_IL1Bridge *IL1BridgeFilterer) ParseDepositInitiated(log types.Log) (*IL1BridgeDepositInitiated, error) {
 	event := new(IL1BridgeDepositInitiated)
 	if err := _IL1Bridge.contract.UnpackLog(event, "DepositInitiated", log); err != nil {

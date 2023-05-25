@@ -18,6 +18,8 @@ var (
 	MessengerAddress        = common.HexToAddress("0x0000000000000000000000000000000000008008")
 	L2EthTokenAddress       = common.HexToAddress("0x000000000000000000000000000000000000800a")
 	L1ToL2AliasOffset       = common.HexToAddress("0x1111000000000000000000000000000000001111")
+
+	RequiredL1ToL2GasPerPubdataLimit = big.NewInt(800)
 )
 
 const (
@@ -94,6 +96,27 @@ type BlockDetails struct {
 	Timestamp     uint        `json:"timestamp"`
 }
 
+type BatchDetails struct {
+	BaseSystemContractsHashes struct {
+		Bootloader common.Hash `json:"bootloader"`
+		DefaultAa  common.Hash `json:"default_aa"`
+	} `json:"baseSystemContractsHashes"`
+	CommitTxHash   common.Hash `json:"commitTxHash"`
+	CommittedAt    time.Time   `json:"committedAt"`
+	ExecuteTxHash  common.Hash `json:"executeTxHash"`
+	ExecutedAt     time.Time   `json:"executedAt"`
+	L1GasPrice     uint64      `json:"l1GasPrice"`
+	L1TxCount      uint        `json:"l1TxCount"`
+	L2FairGasPrice uint        `json:"l2FairGasPrice"`
+	L2TxCount      uint        `json:"l2TxCount"`
+	Number         uint        `json:"number"`
+	ProveTxHash    common.Hash `json:"proveTxHash"`
+	ProvenAt       time.Time   `json:"provenAt"`
+	RootHash       common.Hash `json:"rootHash"`
+	Status         string      `json:"status"`
+	Timestamp      uint        `json:"timestamp"`
+}
+
 type Block struct {
 	types.Block
 	L1BatchNumber    *hexutil.Big `json:"l1BatchNumber"`
@@ -105,7 +128,7 @@ type Log struct {
 	L1BatchNumber *hexutil.Big `json:"l1BatchNumber"`
 }
 
-func (l Log) MarshalJSON() ([]byte, error) {
+func (l *Log) MarshalJSON() ([]byte, error) {
 	// get json of embedded types.Log with its custom marshaller
 	lj, err := json.Marshal(l.Log)
 	if err != nil {
@@ -163,7 +186,7 @@ type TransactionReceipt struct {
 	L2ToL1Logs        []*L2ToL1Log   `json:"l2ToL1Logs"`
 }
 
-func (r TransactionReceipt) MarshalJSON() ([]byte, error) {
+func (r *TransactionReceipt) MarshalJSON() ([]byte, error) {
 	// get json of embedded types.Receipt with its custom marshaller
 	rj, err := json.Marshal(r.Receipt)
 	if err != nil {
@@ -236,6 +259,17 @@ type TransactionResponse struct {
 	S                    hexutil.Big    `json:"s"`
 }
 
+type TransactionDetails struct {
+	EthCommitTxHash  common.Hash    `json:"ethCommitTxHash"`
+	EthExecuteTxHash common.Hash    `json:"ethExecuteTxHash"`
+	EthProveTxHash   common.Hash    `json:"ethProveTxHash"`
+	Fee              hexutil.Big    `json:"fee"`
+	InitiatorAddress common.Address `json:"initiatorAddress"`
+	IsL1Originated   bool           `json:"isL1Originated"`
+	ReceivedAt       time.Time      `json:"receivedAt"`
+	Status           string         `json:"status"`
+}
+
 func UndoL1ToL2Alias(address common.Address) common.Address {
 	// sub L1ToL2AliasOffset from address as big.Int numbers
 	return common.BytesToAddress(big.NewInt(0).Sub(
@@ -279,4 +313,21 @@ func toFilterArg(q FilterQuery) (interface{}, error) {
 		arg["toBlock"] = q.ToBlock
 	}
 	return arg, nil
+}
+
+type BlockRange struct {
+	Beginning *big.Int `json:"beginning"`
+	End       *big.Int `json:"end"`
+}
+
+func (r *BlockRange) UnmarshalJSON(input []byte) error {
+	var data [2]*hexutil.Big
+	err := json.Unmarshal(input, &data)
+	if err != nil {
+		return err
+	}
+	r.Beginning = data[0].ToInt()
+	r.End = data[1].ToInt()
+
+	return nil
 }
