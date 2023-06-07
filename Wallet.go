@@ -55,7 +55,7 @@ func NewWallet(es EthSigner, zp Provider) (*Wallet, error) {
 	}
 	paymasterFlowAbi, err := abi.JSON(strings.NewReader(IPaymasterFlow.IPaymasterFlowMetaData.ABI))
 	if err != nil {
-		return nil, fmt.Errorf("failed to load l2Messenger: %w", err)
+		return nil, fmt.Errorf("failed to load paymasterFlowAbi: %w", err)
 	}
 	return &Wallet{
 		es:               es,
@@ -443,6 +443,89 @@ func (w *Wallet) Deploy(bytecode []byte, calldata []byte, salt []byte, deps [][]
 	return w.EstimateAndSend(tx, nonce)
 }
 
+func (w *Wallet) DeployWithCreate(bytecode []byte, calldata []byte, deps [][]byte, nonce *big.Int) (common.Hash, error) {
+	var err error
+	if nonce == nil {
+		nonce, err = w.GetNonce()
+		if err != nil {
+			return common.Hash{}, fmt.Errorf("failed to get nonce: %w", err)
+		}
+	}
+	data, err := EncodeCreate(bytecode, calldata)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to encode create2 call: %w", err)
+	}
+	var factoryDeps []hexutil.Bytes
+	if len(deps) > 0 {
+		factoryDeps = make([]hexutil.Bytes, len(deps))
+		for i, d := range deps {
+			factoryDeps[i] = d
+		}
+	}
+	tx := Create2ContractTransaction(
+		w.es.GetAddress(),
+		big.NewInt(0),
+		big.NewInt(0),
+		bytecode,
+		data,
+		factoryDeps,
+		nil, nil,
+	)
+	return w.EstimateAndSend(tx, nonce)
+}
+
+func (w *Wallet) DeployAccount(bytecode []byte, calldata []byte, salt []byte, nonce *big.Int) (common.Hash, error) {
+	var err error
+	if nonce == nil {
+		nonce, err = w.GetNonce()
+		if err != nil {
+			return common.Hash{}, fmt.Errorf("failed to get nonce: %w", err)
+		}
+	}
+	data, err := EncodeCreate2Account(bytecode, calldata, salt, Version1)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to encode create2Account call: %w", err)
+	}
+
+	factoryDeps := []hexutil.Bytes{bytecode}
+	tx := Create2ContractTransaction(
+		w.es.GetAddress(),
+		big.NewInt(0),
+		big.NewInt(0),
+		bytecode,
+		data,
+		factoryDeps,
+		nil, nil,
+	)
+	return w.EstimateAndSend(tx, nonce)
+}
+
+func (w *Wallet) DeployAccountWithCreate(bytecode []byte, calldata []byte, nonce *big.Int) (common.Hash, error) {
+	var err error
+	if nonce == nil {
+		nonce, err = w.GetNonce()
+		if err != nil {
+			return common.Hash{}, fmt.Errorf("failed to get nonce: %w", err)
+		}
+	}
+	data, err := EncodeCreateAccount(bytecode, calldata, Version1)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to encode create2Account call: %w", err)
+	}
+
+	factoryDeps := []hexutil.Bytes{bytecode}
+	tx := Create2ContractTransaction(
+		w.es.GetAddress(),
+		big.NewInt(0),
+		big.NewInt(0),
+		bytecode,
+		data,
+		factoryDeps,
+		nil, nil,
+	)
+	return w.EstimateAndSend(tx, nonce)
+}
+
 func (w *Wallet) Execute(contract common.Address, calldata []byte, value *big.Int, nonce *big.Int) (common.Hash, error) {
 	var err error
 	if value == nil {
@@ -483,7 +566,7 @@ func (w *Wallet) EstimateAndSend(tx *Transaction, nonce *big.Int) (common.Hash, 
 		tx.To,
 		tx.Value.ToInt(),
 		tx.Data,
-		big.NewInt(100000000), // TODO: Estimate correct one
+		big.NewInt(100_000_000), // TODO: Estimate correct one
 		gasPrice,
 		tx.From,
 		tx.Eip712Meta,

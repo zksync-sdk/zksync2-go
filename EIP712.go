@@ -42,7 +42,24 @@ func (m *Eip712Meta) MarshalJSON() ([]byte, error) {
 
 type PaymasterParams struct {
 	Paymaster      common.Address `json:"paymaster"`
-	PaymasterInput hexutil.Bytes  `json:"paymasterInput"`
+	PaymasterInput []byte         `json:"paymasterInput"`
+}
+
+func (p *PaymasterParams) MarshalJSON() ([]byte, error) {
+	type PaymasterParams struct {
+		Paymaster      common.Address `json:"paymaster"`
+		PaymasterInput []int          `json:"paymasterInput"`
+	}
+	var input []int
+	for _, b := range p.PaymasterInput {
+		input = append(input, int(b))
+	}
+	params := PaymasterParams{
+		Paymaster:      p.Paymaster,
+		PaymasterInput: input,
+	}
+
+	return json.Marshal(params)
 }
 
 type Eip712Domain struct {

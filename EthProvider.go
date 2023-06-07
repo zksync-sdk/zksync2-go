@@ -155,7 +155,7 @@ func (p *DefaultEthProvider) Deposit(token *Token, amount *big.Int, address comm
 			amount,
 			RecommendedDepositL2GasLimit,
 			DepositGasPerPubdataLimit,
-			address,
+			common.Address{},
 		)
 	}
 }
