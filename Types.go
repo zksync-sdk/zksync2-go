@@ -31,6 +31,13 @@ const (
 	PriorityQueueTypeHeap       uint8 = 2
 )
 
+type AccountAbstractionVersion uint8
+
+const (
+	None AccountAbstractionVersion = iota
+	Version1
+)
+
 type BridgeContracts struct {
 	L1Erc20DefaultBridge common.Address `json:"l1Erc20DefaultBridge"`
 	L2Erc20DefaultBridge common.Address `json:"l2Erc20DefaultBridge"`
@@ -331,3 +338,11 @@ func (r *BlockRange) UnmarshalJSON(input []byte) error {
 
 	return nil
 }
+
+type ApprovalBasedPaymasterInput struct {
+	Token            common.Address
+	MinimalAllowance *big.Int
+	InnerInput       []byte
+}
+
+type GeneralPaymasterInput []byte
