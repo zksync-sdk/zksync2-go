@@ -40,7 +40,7 @@ zp, err := zksync2.NewDefaultProvider("https://zksync2-testnet.zksync.dev")
 // then init Wallet, passing just created Ethereum Signer and ZkSync Provider   
 w, err := zksync2.NewWallet(es, zp)
 
-// init default RPC client to Ethereum node (Goerli network in case of ZkSync2 testnet)
+// init default RPC clients to Ethereum node (Goerli network in case of ZkSync2 testnet)
 ethRpc, err := rpc.Dial("https://goerli.infura.io/v3/<your_infura_node_id>")
 
 // and use it to create Ethereum Provider by Wallet 
