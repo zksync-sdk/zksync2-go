@@ -27,7 +27,7 @@ func CreateFunctionCallTransaction(from, to common.Address, gasPrice, gasLimit, 
 		Value:    (*hexutil.Big)(value),
 		Data:     data,
 		Eip712Meta: &Eip712Meta{
-			GasPerPubdata:   NewBig(160000),
+			GasPerPubdata:   NewBig(160_000),
 			CustomSignature: customSignature,
 			FactoryDeps:     nil,
 			PaymasterParams: paymasterParams,
@@ -51,7 +51,7 @@ func Create2ContractTransaction(from common.Address, gasPrice, gasLimit *big.Int
 		Value:    nil,
 		Data:     calldata,
 		Eip712Meta: &Eip712Meta{
-			GasPerPubdata:   NewBig(160000),
+			GasPerPubdata:   NewBig(160_000),
 			CustomSignature: customSignature,
 			FactoryDeps:     deps,
 			PaymasterParams: paymasterParams,
