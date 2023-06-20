@@ -572,7 +572,13 @@ func (w *Wallet) EstimateAndSend(tx *Transaction, nonce *big.Int) (common.Hash, 
 		tx.Eip712Meta,
 	)
 	signature, err := w.es.SignTypedData(w.es.GetDomain(), prepared)
+	if err != nil {
+		return common.Hash{}, err
+	}
 	rawTx, err := prepared.RLPValues(signature)
+	if err != nil {
+		return common.Hash{}, err
+	}
 	return w.zp.SendRawTransaction(rawTx)
 }
 
