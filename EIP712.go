@@ -12,7 +12,7 @@ import (
 type EIP712TypedData interface {
 	GetEIP712Type() string
 	GetEIP712Types() []apitypes.Type
-	GetEIP712Message() apitypes.TypedDataMessage
+	GetEIP712Message() (apitypes.TypedDataMessage, error)
 }
 
 type Eip712Meta struct {
