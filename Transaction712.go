@@ -121,7 +121,7 @@ func (tx *Transaction712) GetEIP712Types() []apitypes.Type {
 	}
 }
 
-func (tx *Transaction712) GetEIP712Message() apitypes.TypedDataMessage {
+func (tx *Transaction712) GetEIP712Message() (apitypes.TypedDataMessage, error) {
 	paymaster := big.NewInt(0)
 	paymasterInput := hexutil.Bytes{}
 	if tx.Meta != nil && tx.Meta.PaymasterParams != nil {
@@ -131,6 +131,10 @@ func (tx *Transaction712) GetEIP712Message() apitypes.TypedDataMessage {
 	value := `0x0`
 	if tx.Value != nil {
 		value = tx.Value.String()
+	}
+	factoryDepsHashes, err := tx.getFactoryDepsHashes()
+	if err != nil {
+		return nil, err
 	}
 	return apitypes.TypedDataMessage{
 		"txType":                 EIP712TxType,
@@ -144,22 +148,22 @@ func (tx *Transaction712) GetEIP712Message() apitypes.TypedDataMessage {
 		"nonce":                  tx.Nonce.String(),
 		"value":                  value,
 		"data":                   tx.Data,
-		"factoryDeps":            tx.getFactoryDepsHashes(),
+		"factoryDeps":            factoryDepsHashes,
 		"paymasterInput":         paymasterInput,
-	}
+	}, nil
 }
 
-func (tx *Transaction712) getFactoryDepsHashes() []interface{} {
+func (tx *Transaction712) getFactoryDepsHashes() ([]interface{}, error) {
 	if tx.Meta == nil || len(tx.Meta.FactoryDeps) == 0 {
-		return []interface{}{}
+		return []interface{}{}, nil
 	}
 	res := make([]interface{}, len(tx.Meta.FactoryDeps))
 	for i, d := range tx.Meta.FactoryDeps {
 		h, err := HashBytecode(d)
 		if err != nil {
-			panic(fmt.Sprintf("failed to get hash of some bytecode in FactoryDeps"))
+			return nil, fmt.Errorf("failed to get hash of some bytecode in FactoryDeps, err :%w", err)
 		}
 		res[i] = h
 	}
-	return res
+	return res, nil
 }

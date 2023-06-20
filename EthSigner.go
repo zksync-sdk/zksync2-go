@@ -76,6 +76,11 @@ func (s *DefaultEthSigner) GetDomain() *Eip712Domain {
 
 func (s *DefaultEthSigner) SignTypedData(domain *Eip712Domain, data EIP712TypedData) ([]byte, error) {
 	// compile TypedData structure
+	eip712Msg, err := data.GetEIP712Message()
+	if err != nil {
+		return nil, err
+	}
+
 	typedData := apitypes.TypedData{
 		Types: apitypes.Types{
 			data.GetEIP712Type():   data.GetEIP712Types(),
@@ -83,7 +88,7 @@ func (s *DefaultEthSigner) SignTypedData(domain *Eip712Domain, data EIP712TypedD
 		},
 		PrimaryType: data.GetEIP712Type(),
 		Domain:      domain.GetEIP712Domain(),
-		Message:     data.GetEIP712Message(),
+		Message:     eip712Msg,
 	}
 	hash, err := s.HashTypedData(typedData)
 	if err != nil {
