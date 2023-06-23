@@ -1,4 +1,4 @@
-ZkSync 2 Golang SDK
+zkSync 2 Golang SDK
 ===
 
 
@@ -17,6 +17,8 @@ $ go get github.com/zksync-sdk/zksync2-go
 ```
 
 ## Using examples
+
+The complete examples with various use cases are available [here](https://github.com/zksync-sdk/zksync2-examples/tree/main/go).
 
 ### How to init main components
 
@@ -56,7 +58,7 @@ Few examples below:
 ```go
 tx, err := ep.Deposit(
     zksync2.CreateETH(),
-    big.NewInt(1000000000000000), 
+    big.NewInt(1_000_000_000_000_000), 
     common.HexToAddress("<target_L2_address>"), 
     nil,
 )
@@ -171,6 +173,38 @@ if err != nil {
     panic(err)
 }
 fmt.Println("Tx hash", hash)
+```
+
+### Deploy smart account 
+```go
+hash, err := w.DeployAccount(bytecode, constructor, nil, nil)
+if err != nil {
+	log.Panic(err)
+}
+
+if err != nil {
+    log.Panic(err)
+}
+fmt.Println("Transaction: ", hash)
+
+// Wait unit transaction is finalized
+_, err = zp.WaitMined(context.Background(), hash)
+if err != nil {
+    log.Panic(err)
+}
+
+// Get address of deployed smart contract
+contractAddress, err := utils.ComputeL2Create2Address(
+    w.GetAddress(),
+    bytecode,
+    constructor,
+    nil,
+)
+if err != nil {
+    panic(err)
+}
+fmt.Println("Account address: ", contractAddress.String())
+
 ```
 
 ### Get balance of ZkSync account
