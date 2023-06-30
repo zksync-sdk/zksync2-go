@@ -1,7 +1,7 @@
 package types
 
 // StandardConfiguration presents the standard-json
-// configuration generated as output of zksolc compiler
+// configuration generated as output of zksolc compiler.
 type StandardConfiguration struct {
 	Format       string `json:"_format"`
 	ContractName string `json:"contractName"`

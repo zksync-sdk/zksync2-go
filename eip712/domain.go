@@ -7,24 +7,29 @@ import (
 	"math/big"
 )
 
+// TypedData represents typed data as defined by EIP-712.
 type TypedData interface {
-	GetEIP712Type() string
-	GetEIP712Types() []apitypes.Type
-	GetEIP712Message() (apitypes.TypedDataMessage, error)
+	// EIP712Type returns the EIP-712 type.
+	EIP712Type() string
+	// EIP712Types return the supported types.
+	EIP712Types() []apitypes.Type
+	// EIP712Message returns the EIP-712 message.
+	EIP712Message() (apitypes.TypedDataMessage, error)
 }
 
+// Domain represents the domain parameters used for EIP-712 signing.
 type Domain struct {
-	Name              string          `json:"name"`
-	Version           string          `json:"version"`
-	ChainId           *big.Int        `json:"chainId"`
-	VerifyingContract *common.Address `json:"verifyingContract"`
+	Name              string          `json:"name"`              // Name of the domain.
+	Version           string          `json:"version"`           // Version of the domain.
+	ChainId           *big.Int        `json:"chainId"`           // Chain ID associated with the domain.
+	VerifyingContract *common.Address `json:"verifyingContract"` // Address of the verifying contract for the domain.
 }
 
-func (d *Domain) GetEIP712Type() string {
+func (d *Domain) EIP712Type() string {
 	return "EIP712Domain"
 }
 
-func (d *Domain) GetEIP712Types() []apitypes.Type {
+func (d *Domain) EIP712Types() []apitypes.Type {
 	types := []apitypes.Type{
 		{Name: "name", Type: "string"},
 		{Name: "version", Type: "string"},
@@ -36,7 +41,7 @@ func (d *Domain) GetEIP712Types() []apitypes.Type {
 	return types
 }
 
-func (d *Domain) GetEIP712Domain() apitypes.TypedDataDomain {
+func (d *Domain) EIP712Domain() apitypes.TypedDataDomain {
 	domain := apitypes.TypedDataDomain{
 		Name:    d.Name,
 		Version: d.Version,
@@ -53,7 +58,7 @@ const (
 	DomainDefaultVersion = `2`
 )
 
-func DefaultEip712Domain(chainId int64) *Domain {
+func ZkSyncEraEIP712Domain(chainId int64) *Domain {
 	return &Domain{
 		Name:              DomainDefaultName,
 		Version:           DomainDefaultVersion,

@@ -1,14 +1,13 @@
 package types
 
 import (
-	"encoding/json"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"time"
 )
 
+// Deprecated: Will be removed in the future releases.
 type BlockNumber string // Enums or hex value
 
 var (
@@ -19,12 +18,23 @@ var (
 	BlockNumberFinalized BlockNumber = "finalized"
 )
 
+// Block represents a block.
 type Block struct {
-	types.Block
-	L1BatchNumber    *hexutil.Big `json:"l1BatchNumber"`
-	L1BatchTimestamp *hexutil.Big `json:"l1BatchTimestamp"`
+	Header           *types.Header
+	Uncles           []*types.Header
+	Transactions     []*TransactionResponse
+	Withdrawals      types.Withdrawals
+	Hash             common.Hash
+	Size             *big.Int
+	TotalDifficulty  *big.Int
+	SealFields       []interface{}
+	ReceivedAt       time.Time
+	ReceivedFrom     interface{}
+	L1BatchNumber    *big.Int
+	L1BatchTimestamp *big.Int
 }
 
+// BatchDetails contains batch information.
 type BatchDetails struct {
 	BaseSystemContractsHashes struct {
 		Bootloader common.Hash `json:"bootloader"`
@@ -46,6 +56,7 @@ type BatchDetails struct {
 	Timestamp      uint        `json:"timestamp"`
 }
 
+// BlockDetails contains block details.
 type BlockDetails struct {
 	CommitTxHash  common.Hash `json:"commitTxHash"`
 	CommittedAt   time.Time   `json:"committedAt"`
@@ -59,20 +70,4 @@ type BlockDetails struct {
 	RootHash      common.Hash `json:"rootHash"`
 	Status        string      `json:"status"`
 	Timestamp     uint        `json:"timestamp"`
-}
-
-type BlockRange struct {
-	Beginning *big.Int `json:"beginning"`
-	End       *big.Int `json:"end"`
-}
-
-func (r *BlockRange) UnmarshalJSON(input []byte) error {
-	var data [2]*hexutil.Big
-	err := json.Unmarshal(input, &data)
-	if err != nil {
-		return err
-	}
-	r.Beginning = data[0].ToInt()
-	r.End = data[1].ToInt()
-	return nil
 }

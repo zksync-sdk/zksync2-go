@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/zksync-sdk/zksync2-go/types"
 	"math/big"
@@ -15,6 +16,16 @@ func NewBig(n int64) *hexutil.Big {
 	return (*hexutil.Big)(big.NewInt(n))
 }
 
+func NewCallMsg(call ethereum.CallMsg) *types.CallMsg {
+	return &types.CallMsg{
+		CallMsg: call,
+		Meta: &types.Eip712Meta{
+			GasPerPubdata: NewBig(DefaultGasPerPubdataLimit.Int64()),
+		},
+	}
+}
+
+// Deprecated: Will be removed in the future releases.
 func ToFilterArg(q types.FilterQuery) (interface{}, error) {
 	arg := map[string]interface{}{
 		"address": q.Addresses,
@@ -35,25 +46,3 @@ func ToFilterArg(q types.FilterQuery) (interface{}, error) {
 	}
 	return arg, nil
 }
-
-func CheckBaseCost(baseCost, value *big.Int) error {
-	if baseCost.Cmp(value) > 0 {
-		return fmt.Errorf(
-			"the base cost of performing the priority operation is higher than the provided value parameter for the transaction: baseCost: %d, provided value: %d", baseCost, value)
-	}
-	return nil
-}
-
-/*
-export async function checkBaseCost(
-    baseCost: ethers.BigNumber,
-    value: ethers.BigNumberish | Promise<ethers.BigNumberish>
-) {
-    if (baseCost.gt(await value)) {
-        throw new Error(
-            `The base cost of performing the priority operation is higher than the provided value parameter ` +
-                `for the transaction: baseCost: ${baseCost}, provided value: ${value}`
-        );
-    }
-}
-*/

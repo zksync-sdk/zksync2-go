@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
+// Log represents a log entry.
 type Log struct {
 	types.Log
 	L1BatchNumber *hexutil.Big `json:"l1BatchNumber"`
@@ -44,6 +45,7 @@ func (l *Log) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+// L2ToL1Log represents a layer 2 to layer 1 transaction log.
 type L2ToL1Log struct {
 	BlockNumber      *hexutil.Big   `json:"blockNumber"`
 	BlockHash        common.Hash    `json:"blockHash"`

@@ -24,212 +24,337 @@ The complete examples with various use cases are available [here](https://github
 
 ```go
 import (
-    "github.com/ethereum/go-ethereum/rpc"
-    "github.com/zksync-sdk/zksync2-go"
+    "context"
+    "fmt"
+    "github.com/ethereum/go-ethereum/accounts/abi/bind"
+    "github.com/ethereum/go-ethereum/common"
+    "github.com/ethereum/go-ethereum/ethclient"
+    "github.com/zksync-sdk/zksync2-go/accounts"
+    "github.com/zksync-sdk/zksync2-go/clients"
+    "github.com/zksync-sdk/zksync2-go/utils"
+    "log"
+    "math/big"
+    "os"
 )
 
-...
-
-// first, init Ethereum Signer, from your mnemonic
-es, err := zksync2.NewEthSignerFromMnemonic("<mnemonic words>", zksync2.ZkSyncChainIdMainnet)
-
-// or from raw PrivateKey bytes
-es, err = zksync2.NewEthSignerFromRawPrivateKey(pkBytes, zksync2.ZkSyncChainIdMainnet)
-
-// also, init ZkSync Provider, specify ZkSync2 RPC URL (e.g. testnet)
-zp, err := zksync2.NewDefaultProvider("https://zksync2-testnet.zksync.dev")
-
-// then init Wallet, passing just created Ethereum Signer and ZkSync Provider   
-w, err := zksync2.NewWallet(es, zp)
-
-// init default RPC clients to Ethereum node (Goerli network in case of ZkSync2 testnet)
-ethRpc, err := rpc.Dial("https://goerli.infura.io/v3/<your_infura_node_id>")
-
-// and use it to create Ethereum Provider by Wallet 
-ep, err := w.CreateEthereumProvider(ethRpc)
-```
-
-Now, using this three instances - ZkSync Provider, Ethereum Provider and Wallet, 
-you can perform all basic actions with ZkSync network, just explore their public methods and package helpers.
-
-Few examples below:
-
-### Deposit
-```go
-tx, err := ep.Deposit(
-    zksync2.CreateETH(),
-    big.NewInt(1_000_000_000_000_000), 
-    common.HexToAddress("<target_L2_address>"), 
-    nil,
+var (
+    PrivateKey       = os.Getenv("PRIVATE_KEY")
+    ZkSyncProvider   = "https://testnet.era.zksync.dev"
+    EthereumProvider = "https://rpc.ankr.com/eth_goerli"
 )
+// Connect to zkSync network
+client, err := clients.Dial(ZkSyncProvider)
 if err != nil {
-    panic(err)
+    log.Panic(err)
 }
-fmt.Println("L1 Tx hash", tx.Hash())
-```
-Also, you can get hash of corresponding L2 transaction:
-```go
-l1Receipt, err := ep.GetClient().TransactionReceipt(context.Background(), l1Hash)
+defer client.Close()
+
+// Connect to Ethereum network
+ethClient, err := ethclient.Dial(EthereumProvider)
 if err != nil {
-    panic(err)
+    log.Panic(err)
 }
-l2Hash, err := ep.GetL2HashFromPriorityOp(l1Receipt)
+defer ethClient.Close()
+
+// Create wallet
+w, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
 if err != nil {
-    panic(err)
+    log.Panic(err)
 }
-fmt.Println("L2 Tx hash", l2Hash)
-```
-And claim back failed deposit:
-```go
-cfdHash, err := w.ClaimFailedDeposit(l2Hash, ep)
-if err != nil {
-    panic(err)
-}
-fmt.Println("ClaimFailedDeposit hash", cfdHash)
 ```
 
-### Transfer
+Now, using this three instances - zkSync client, ethereum client and wallet, 
+you can perform all basic actions with ZkSync network.
+
+### Get balance of ZkSync account
 ```go
-hash, err := w.Transfer(
-    common.HexToAddress("<target_L2_address>"), 
-    big.NewInt(1000000000000),
-    nil, 
-    nil,
-)
-if err != nil {
-    panic(err)
-}
-fmt.Println("Tx hash", hash)
-```
-
-### Withdraw
-```go
-// first, you must initiate Withdraw 
-wHash, err := w.Withdraw(
-    common.HexToAddress("<target_L1_address>"), 
-    big.NewInt(1000000000000), 
-    nil, 
-    nil,
-)
-if err != nil {
-    panic(err)
-}
-fmt.Println("Withdraw Tx hash", wHash)
-
-// now you must wait until this Tx is being finalized
-_, err = w.GetProvider().WaitFinalized(context.Background(), wHash)
-if err != nil {
-    panic(err)
-}
-
-// then, you need to call FinalizeWithdraw 
-fwHash, err := w.FinalizeWithdraw(wHash, 0)
-if err != nil {
-    panic(err)
-}
-fmt.Println("FinalizeWithdraw Tx hash", fwHash)
-```
-Also, you can check its status with:
-```go
-iswf, err := w.IsWithdrawFinalized(wHash, 0)
-if err != nil {
-    panic(err)
-}
-fmt.Println("Is Withdraw finalized?", iswf)
-```
-
-### Deploy smart contract (basic case)
-```go
-hash, err := w.Deploy(bytecode, nil, nil, nil, nil)
-if err != nil {
-    panic(err)
-}
-fmt.Println("Tx hash", hash)
-
-// use helper to get (compute) address of deployed SC
-addr, err := zksync2.ComputeL2Create2Address(
-	common.HexToAddress("<deployer_L2_address>"), 
-	bytecode, 
-	nil, 
-	nil,
-)
-if err != nil {
-    panic(err)
-}
-fmt.Println("Deployed address", addr.String())
-```
-
-### Execute smart contract (basic case)
-```go
-// you need to encode calldata of executing function and its parameters
-// or use ABI.Pack() method for loaded ABI of your contract ("github.com/ethereum/go-ethereum/accounts/abi")
-calldata := crypto.Keccak256([]byte("get()"))[:4]
-hash, err := w.Execute(
-    common.HexToAddress("<contract_address>"),
-    calldata,
-    nil,
-)
-if err != nil {
-    panic(err)
-}
-fmt.Println("Tx hash", hash)
-```
-
-### Deploy smart account 
-```go
-hash, err := w.DeployAccount(bytecode, constructor, nil, nil)
+balance, err := w.Balance(context.Background(), utils.EthAddress, nil)
 if err != nil {
 	log.Panic(err)
 }
+fmt.Println("Balance: ", balance)
+```
 
+### Deposit
+
+#### Deposit ETH token
+```go
+tx, err := w.Deposit(accounts.DepositTransaction{
+    Token:  utils.EthAddress,
+    Amount: big.NewInt(2_000_000_000_000_000_000),
+    To:     w.Address(),
+    })
+if err != nil {
+    log.Panic(err)
+}
+fmt.Println("L1 transaction: ", tx.Hash())
+```
+
+#### Deposit ERC20 token
+```go
+TokenL1Address   := common.HexToAddress("0xf10A110E59a22b444c669C83b02f0E6d945b2b69")
+
+tx, err := w.Deposit(accounts.DepositTransaction{
+    Token:           TokenL1Address,
+    Amount:          big.NewInt(5),
+    To:              w.Address(),
+    ApproveERC20:    true,
+    RefundRecipient: w.Address(),
+})
+if err != nil {
+    log.Panic(err)
+}
+fmt.Println("L1 deposit transaction: ", tx.Hash())
+```
+
+Also, you can get hash of corresponding L2 transaction:
+```go
+// Wait for deposit transaction to be finalized on L1 network
+_, err = bind.WaitMined(context.Background(), ethClient, tx)
+if err != nil {
+    log.Panic(err)
+}
+
+// Get transaction receipt for deposit transaction on L1 network
+l1Receipt, err := ethClient.TransactionReceipt(context.Background(), tx.Hash())
+if err != nil {
+    log.Panic(err)
+}
+
+l2Tx, err := client.L2TransactionFromPriorityOp(context.Background(), l1Receipt)
+if err != nil {
+    log.Panic(err)
+}
+fmt.Println("L2 transaction", l2Tx.Hash)
+```
+And claim back failed deposit:
+```go
+cfdTx, err := w.ClaimFailedDeposit(nil, l2Tx.Hash)
+if err != nil {
+    fmt.Println(err) // this should trigger if deposit succeed
+}
+fmt.Println("ClaimFailedDeposit hash: ", cfdTx.Hash)
+```
+
+### Transfer
+
+#### Transfer ETH token
+```go
+tx, err := w.Transfer(accounts.TransferTransaction{
+    To:     common.HexToAddress(PublicKey2),
+    Amount: big.NewInt(7_000_000_000_000_000_000),
+    Token:  utils.EthAddress,
+})
+if err != nil {
+    log.Panic(err)
+}
+fmt.Println("Transaction: ", tx.Hash())
+```
+
+#### Transfer ERC20 token
+```go
+TokenL2Address := common.HexToAddress("0x16D1b10bC0BEa66B47bEe0f4c72543fE79192f0f")
+Receiver := common.HexToAddress("0xa61464658AfeAf65CccaaFD3a512b69A83B77618") 
+
+tx, err := w.Transfer(accounts.TransferTransaction{
+    To:     common.HexToAddress(Receiver),
+    Amount: big.NewInt(1),
+    Token:  TokenL2Address,
+})
+if err != nil {
+    log.Panic(err)
+}
+fmt.Println("Transaction: ", tx.Hash())
+```
+
+### Withdraw
+
+#### Withdraw ETH token
+```go
+tx, err := w.Withdraw(accounts.WithdrawalTransaction{
+    To:     w.Address(),
+    Amount: big.NewInt(1_000_000_000_000_000_000),
+    Token:  utils.EthAddress,
+})
+if err != nil {
+    log.Panic(err)
+}
+fmt.Println("Withdraw transaction: ", tx.Hash())
+```
+
+#### Withdraw ERC20 token
+```go
+TokenL2Address   = common.HexToAddress("0x16D1b10bC0BEa66B47bEe0f4c72543fE79192f0f")
+
+tx, err := w.Withdraw(accounts.WithdrawalTransaction{
+		To:     w.Address(),
+		Amount: big.NewInt(1),
+		Token:  TokenL2Address,
+})
+if err != nil {
+	log.Panic(err)
+}
+fmt.Println("Withdraw transaction: ", tx.Hash())
+```
+
+After the withdrawal is finished on L2 network, `FinalizeWithdraw` is required to
+be executed on L1 network.
+```go
+// Wait until transaction is finalized
+_, err = client.WaitFinalized(context.Background(), tx.Hash())
+if err != nil {
+    log.Panic(err)
+}
+
+// Perform finalize withdrawal
+finalizeWithdrawTx, err := w.FinalizeWithdraw(nil, tx.Hash(), 0)
+if err != nil {
+    log.Panic(err)
+}
+
+fmt.Println("Finalize withdraw transaction: ", finalizeWithdrawTx.Hash())
+```
+Also, you can check its status with:
+```go
+isFinalized, err := w.IsWithdrawFinalized(nil, tx.Hash(), 0)
+if err != nil {
+    log.Panic(err)
+}
+fmt.Println("Is Withdraw finalized?", isFinalized)
+```
+
+### Deploy smart contract
+```go
+// Read smart contract bytecode
+bytecode, err := os.ReadFile("Incrementer.zbin")
+if err != nil {
+    log.Panic(err)
+}
+
+// Get ABI
+abi, err := incrementer.IncrementerMetaData.GetAbi()
+if err != nil {
+    log.Panic(err)
+}
+
+// Encode constructor arguments
+constructor, err := abi.Pack("", big.NewInt(2))
+if err != nil {
+    log.Panicf("error while encoding constructor arguments: %s", err)
+}
+
+// Deploy paymaster contract
+hash, err := w.DeployAccountWithCreate(accounts.CreateTransaction{
+    Bytecode: bytecode,
+    Calldata: constructor,
+})
 if err != nil {
     log.Panic(err)
 }
 fmt.Println("Transaction: ", hash)
 
 // Wait unit transaction is finalized
-_, err = zp.WaitMined(context.Background(), hash)
+_, err = client.WaitMined(context.Background(), hash)
+if err != nil {
+    log.Panic(err)
+}
+
+receipt, err := client.TransactionReceipt(context.Background(), hash)
+if err != nil {
+    log.Panic(err)
+}
+contractAddress := receipt.ContractAddress
+fmt.Println("Paymaster address", contractAddress.String())
+```
+
+### Execute smart contract
+
+#### Static execution using bindings
+```go
+incrementerContract, err := incrementer.NewIncrementer(contractAddress, client)
+if err != nil {
+	log.Panic(err)
+}
+
+// Execute Get method 
+value, err := incrementerContract.Get(nil)
+if err != nil {
+	log.Panic(err)
+}
+fmt.Println("Value before Increment method execution: ", value)
+
+// Start configuring transaction parameters
+opts, err := bind.NewKeyedTransactorWithChainID(w.Signer().PrivateKey(), w.Signer().Domain().ChainId)
+if err != nil {
+	log.Panic(err)
+}
+
+// Execute Set method from storage smart contract with configured transaction parameters
+tx, err := incrementerContract.Increment(opts)
+if err != nil {
+	log.Panic(err)
+}
+// Wait for transaction to be finalized
+_, err = client.WaitMined(context.Background(), tx.Hash())
+if err != nil {
+	log.Panic(err)
+}
+```
+#### Dynamic execution using EIP-712 transaction
+```go
+abiIncrementer, err := abi.JSON(strings.NewReader("<path to abi>")); 
+if err != nil {
+    log.Panic(err)
+}
+// Encode mint function from token contract
+calldata, err := abiIncrementer.Pack("increment")
+if err != nil {
+	log.Panic(err)
+}
+
+hash, err := w.SendTransaction(context.Background(), &accounts.Transaction{
+	To:   &TokenAddress,
+	Data: calldata,
+})
+fmt.Println("Transaction: ", hash)
+```
+**In order to utilize Account Abstraction and Paymaster features, EIP-712 transactions must be used!**
+
+### Deploy smart account 
+```go
+// Read paymaster contract from standard json
+_, paymasterAbi, bytecode, err := utils.ReadStandardJson("Paymaster.json")
+if err != nil {
+    log.Panic(err)
+}
+
+// Encode paymaster constructor
+constructor, err := paymasterAbi.Pack("", common.HexToAddress(TokenAddress))
+if err != nil {
+    log.Panic(err)
+}
+
+// Deploy paymaster contract
+hash, err := w.DeployAccount(accounts.Create2Transaction{Bytecode: bytecode, Calldata: constructor})
+if err != nil {
+    log.Panic(err)
+}
+if err != nil {
+    log.Panic(err)
+}
+fmt.Println("Transaction: ", hash)
+
+// Wait unit transaction is finalized
+_, err = client.WaitMined(context.Background(), hash)
 if err != nil {
     log.Panic(err)
 }
 
 // Get address of deployed smart contract
-contractAddress, err := utils.ComputeL2Create2Address(
-    w.GetAddress(),
-    bytecode,
-    constructor,
-    nil,
-)
+contractAddress, err := utils.ComputeL2Create2Address(w.Address(), bytecode, constructor, nil)
 if err != nil {
-    panic(err)
+    log.Panic(err)
 }
-fmt.Println("Account address: ", contractAddress.String())
+fmt.Println("Paymaster address: ", contractAddress.String())
 
-```
-
-### Get balance of ZkSync account
-```go
-bal, err := w.GetBalance()
-if err != nil {
-    panic(err)
-}
-fmt.Println("Balance", bal)
-```
-
-### Get enhanced Transaction data for ZkSync Txs
-```go
-tx, err := zp.GetTransaction(txHash)
-if err != nil {
-    panic(err)
-}
-// explore zksync2.TransactionResponse struct
-```
-
-### Get enhanced Transaction Receipt data for ZkSync Txs
-```go
-receipt, err := zp.GetTransactionReceipt(txHash)
-if err != nil {
-    panic(err)
-}
-// explore zksync2.TransactionReceipt struct
 ```

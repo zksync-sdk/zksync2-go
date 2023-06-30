@@ -13,24 +13,26 @@ import (
 	"math/big"
 )
 
-const (
-	EIP712TxType = `0x71`
-)
+// EIP712TxType represents an EIP-712 transaction type.
+const EIP712TxType = `0x71`
 
+// Transaction712 represents an EIP-712 compliant transaction.
+// It shares similarities with regular transactions but also includes zkSync-specific features such as account
+// abstraction and paymasters.
+// Smart contracts must be deployed with support for the EIP-712 transaction type.
 type Transaction712 struct {
-	// most like to DynamicFeeTx
-	Nonce      *big.Int
-	GasTipCap  *big.Int // a.k.a. maxPriorityFeePerGas
-	GasFeeCap  *big.Int // a.k.a. maxFeePerGas
-	Gas        *big.Int
-	To         *common.Address
-	Value      *big.Int
-	Data       hexutil.Bytes
-	AccessList types.AccessList
-	// zkSync part
-	ChainID *big.Int
-	From    *common.Address
-	Meta    *Eip712Meta
+	Nonce      *big.Int         // Nonce to use for the transaction execution.
+	GasTipCap  *big.Int         // EIP-1559 tip per gas.
+	GasFeeCap  *big.Int         // EIP-1559 fee cap per gas.
+	Gas        *big.Int         // Gas limit to set for the transaction execution.
+	To         *common.Address  // The address of the recipient.
+	Value      *big.Int         // Funds to transfer along the transaction (nil = 0 = no funds).
+	Data       hexutil.Bytes    // Input data, usually an ABI-encoded contract method invocation.
+	AccessList types.AccessList // EIP-2930 access list.
+
+	ChainID *big.Int        // Chain ID of the network.
+	From    *common.Address // The address of the sender.
+	Meta    *Eip712Meta     // EIP-712 metadata.
 }
 
 func (tx *Transaction712) RLPValues(sig []byte) ([]byte, error) {
@@ -49,7 +51,7 @@ func (tx *Transaction712) RLPValues(sig []byte) ([]byte, error) {
 		Empty2   string   // legacy
 		ChainID2 *big.Int
 		From     *common.Address
-		// Meta fields   *Eip712Meta
+		// Meta fields   *Meta
 		GasPerPubdata   *big.Int
 		FactoryDeps     []hexutil.Bytes
 		CustomSignature hexutil.Bytes
@@ -85,11 +87,11 @@ func (tx *Transaction712) RLPValues(sig []byte) ([]byte, error) {
 	return append([]byte{0x71}, res...), nil
 }
 
-func (tx *Transaction712) GetEIP712Type() string {
+func (tx *Transaction712) EIP712Type() string {
 	return "Transaction"
 }
 
-func (tx *Transaction712) GetEIP712Types() []apitypes.Type {
+func (tx *Transaction712) EIP712Types() []apitypes.Type {
 	return []apitypes.Type{
 		{Name: "txType", Type: "uint256"},
 		{Name: "from", Type: "uint256"},
@@ -107,7 +109,7 @@ func (tx *Transaction712) GetEIP712Types() []apitypes.Type {
 	}
 }
 
-func (tx *Transaction712) GetEIP712Message() (apitypes.TypedDataMessage, error) {
+func (tx *Transaction712) EIP712Message() (apitypes.TypedDataMessage, error) {
 	paymaster := big.NewInt(0)
 	paymasterInput := hexutil.Bytes{}
 	if tx.Meta != nil && tx.Meta.PaymasterParams != nil {
@@ -154,10 +156,21 @@ func (tx *Transaction712) getFactoryDepsHashes() ([]interface{}, error) {
 	return res, nil
 }
 
+// Eip712Meta L2-specific transaction metadata.
 type Eip712Meta struct {
-	GasPerPubdata   *hexutil.Big     `json:"gasPerPubdata,omitempty"`
-	CustomSignature hexutil.Bytes    `json:"customSignature,omitempty"`
-	FactoryDeps     []hexutil.Bytes  `json:"factoryDeps"`
+	// GasPerPubdata denotes the maximum amount of gas the user is willing
+	// to pay for a single byte of pubdata.
+	GasPerPubdata *hexutil.Big `json:"gasPerPubdata,omitempty"`
+	// CustomSignature is used for the cases in which the signer's account
+	// is not an EOA.
+	CustomSignature hexutil.Bytes `json:"customSignature,omitempty"`
+	// FactoryDeps is a non-empty array of bytes. For deployment transactions,
+	// it should contain the bytecode of the contract being deployed.
+	// If the contract is a factory contract, i.e. it can deploy other contracts,
+	// the array should also contain the bytecodes of the contracts which it can deploy.
+	FactoryDeps []hexutil.Bytes `json:"factoryDeps"`
+	// PaymasterParams contains parameters for configuring the custom paymaster
+	// for the transaction.
 	PaymasterParams *PaymasterParams `json:"paymasterParams,omitempty"`
 }
 
@@ -179,9 +192,10 @@ func (m *Eip712Meta) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// PaymasterParams contains parameters for configuring the custom paymaster for the transaction.
 type PaymasterParams struct {
-	Paymaster      common.Address `json:"paymaster"`
-	PaymasterInput []byte         `json:"paymasterInput"`
+	Paymaster      common.Address `json:"paymaster"`      // address of the paymaster
+	PaymasterInput []byte         `json:"paymasterInput"` // encoded input
 }
 
 func (p *PaymasterParams) MarshalJSON() ([]byte, error) {

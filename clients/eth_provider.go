@@ -25,6 +25,7 @@ var (
 	DepositGasPerPubdataLimit    = big.NewInt(800)
 )
 
+// Deprecated: Deprecated in favor of accounts.AdapterL1.
 type EthProvider interface {
 	GetClient() *ethclient.Client
 	GetAddress() common.Address
@@ -48,6 +49,7 @@ type EthProvider interface {
 	WaitMined(ctx context.Context, txHash common.Hash) (*types.Transaction, error)
 }
 
+// Deprecated: Will be removed in the future releases.
 func NewDefaultEthProvider(rpcClient *rpc.Client, auth *bind.TransactOpts,
 	mainContractAddress, l1ERC20BridgeAddress common.Address) (*DefaultEthProvider, error) {
 	ec := ethclient.NewClient(rpcClient)
@@ -70,6 +72,7 @@ func NewDefaultEthProvider(rpcClient *rpc.Client, auth *bind.TransactOpts,
 	}, nil
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.
 type DefaultEthProvider struct {
 	rc   *rpc.Client
 	ec   *ethclient.Client
@@ -81,19 +84,23 @@ type DefaultEthProvider struct {
 	iZkSync              *zksync.IZkSync
 }
 
+// Deprecated: Will be removed in the future releases.
 func (p *DefaultEthProvider) GetClient() *ethclient.Client {
 	return p.ec
 }
 
+// Deprecated: Will be removed in the future releases.
 func (p *DefaultEthProvider) GetAddress() common.Address {
 	return p.auth.From
 }
 
+// Deprecated: Will be removed in the future releases.
 type GasOptions struct {
 	GasPrice *big.Int // Gas price to use for the transaction execution (nil = gas price oracle)
 	GasLimit uint64   // Gas limit to set for the transaction execution (0 = estimate)
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.ApproveDeposit.
 func (p *DefaultEthProvider) ApproveDeposit(token *zkTypes.Token, limit *big.Int, options *GasOptions) (*types.Transaction, error) {
 	if token == nil {
 		token = utils.CreateETH()
@@ -109,6 +116,7 @@ func (p *DefaultEthProvider) ApproveDeposit(token *zkTypes.Token, limit *big.Int
 	return erc20Contract.Approve(auth, p.l1ERC20BridgeAddress, limit)
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.IsDepositApproved.
 func (p *DefaultEthProvider) IsDepositApproved(token *zkTypes.Token, to common.Address, threshold *big.Int) (bool, error) {
 	if token == nil {
 		token = utils.CreateETH()
@@ -127,6 +135,7 @@ func (p *DefaultEthProvider) IsDepositApproved(token *zkTypes.Token, to common.A
 	return res.Cmp(threshold) >= 0, nil
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.Deposit.
 func (p *DefaultEthProvider) Deposit(token *zkTypes.Token, amount *big.Int, address common.Address, options *GasOptions) (*types.Transaction, error) {
 	if token == nil {
 		token = utils.CreateETH()
@@ -162,6 +171,7 @@ func (p *DefaultEthProvider) Deposit(token *zkTypes.Token, amount *big.Int, addr
 	}
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.RequestExecute.
 func (p *DefaultEthProvider) RequestExecute(contractL2 common.Address, l2Value *big.Int, calldata []byte,
 	l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int,
 	factoryDeps [][]byte, refundRecipient common.Address, auth *bind.TransactOpts) (*types.Transaction, error) {
@@ -176,6 +186,7 @@ func (p *DefaultEthProvider) RequestExecute(contractL2 common.Address, l2Value *
 	)
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.FinalizeEthWithdrawal.
 func (p *DefaultEthProvider) FinalizeEthWithdrawal(l2BlockNumber *big.Int, l2MessageIndex *big.Int,
 	l2TxNumberInBlock *big.Int, message []byte, proof []common.Hash, options *GasOptions) (*types.Transaction, error) {
 	proof32 := make([][32]byte, len(proof))
@@ -192,6 +203,7 @@ func (p *DefaultEthProvider) FinalizeEthWithdrawal(l2BlockNumber *big.Int, l2Mes
 	)
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.FinalizeWithdrawal.
 func (p *DefaultEthProvider) FinalizeWithdrawal(l1BridgeAddress common.Address, l2BlockNumber *big.Int, l2MessageIndex *big.Int,
 	l2TxNumberInBlock *big.Int, message []byte, proof []common.Hash, options *GasOptions) (*types.Transaction, error) {
 	l1Bridge, err := l1bridge.NewIL1Bridge(l1BridgeAddress, p.ec)
@@ -212,6 +224,7 @@ func (p *DefaultEthProvider) FinalizeWithdrawal(l1BridgeAddress common.Address, 
 	)
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.ClaimFailedDeposit.
 func (p *DefaultEthProvider) ClaimFailedDeposit(l1BridgeAddress common.Address, depositSender common.Address,
 	l1Token common.Address, l2TxHash common.Hash, l2BlockNumber *big.Int, l2MessageIndex *big.Int,
 	l2TxNumberInBlock *big.Int, proof []common.Hash, options *GasOptions) (*types.Transaction, error) {
@@ -237,6 +250,7 @@ func (p *DefaultEthProvider) ClaimFailedDeposit(l1BridgeAddress common.Address, 
 	)
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.IsEthWithdrawalFinalized.
 func (p *DefaultEthProvider) IsEthWithdrawalFinalized(l2BlockNumber *big.Int, l2MessageIndex *big.Int) (bool, error) {
 	return p.iZkSync.IsEthWithdrawalFinalized(&bind.CallOpts{},
 		l2BlockNumber,
@@ -244,6 +258,7 @@ func (p *DefaultEthProvider) IsEthWithdrawalFinalized(l2BlockNumber *big.Int, l2
 	)
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.IsWithdrawalFinalized.
 func (p *DefaultEthProvider) IsWithdrawalFinalized(l1BridgeAddress common.Address, l2BlockNumber *big.Int,
 	l2MessageIndex *big.Int) (bool, error) {
 	l1Bridge, err := l1bridge.NewIL1Bridge(l1BridgeAddress, p.ec)
@@ -256,6 +271,7 @@ func (p *DefaultEthProvider) IsWithdrawalFinalized(l1BridgeAddress common.Addres
 	)
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.GetL2HashFromPriorityOp.
 func (p *DefaultEthProvider) GetL2HashFromPriorityOp(l1Receipt *types.Receipt) (common.Hash, error) {
 	for _, l := range l1Receipt.Logs {
 		if l.Address == p.mainContractAddress {
@@ -269,6 +285,7 @@ func (p *DefaultEthProvider) GetL2HashFromPriorityOp(l1Receipt *types.Receipt) (
 	return common.Hash{}, errors.New("wrong tx")
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.GetBaseCost.
 func (p *DefaultEthProvider) GetBaseCost(l2GasLimit *big.Int, l2GasPerPubdataByteLimit *big.Int, gasPrice *big.Int) (*big.Int, error) {
 	if gasPrice == nil {
 		var err error
@@ -299,6 +316,7 @@ func (p *DefaultEthProvider) getAuth(options *GasOptions) *bind.TransactOpts {
 	return newAuth
 }
 
+// Deprecated: Deprecated in favor of accounts.Wallet.WaitMined.
 func (p *DefaultEthProvider) WaitMined(ctx context.Context, txHash common.Hash) (*types.Transaction, error) {
 	queryTicker := time.NewTicker(time.Second)
 	defer queryTicker.Stop()
