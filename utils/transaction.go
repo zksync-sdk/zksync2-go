@@ -7,6 +7,7 @@ import (
 	"math/big"
 )
 
+// Deprecated: Will be removed in the future releases.
 func CreateFunctionCallTransaction(from, to common.Address, gasPrice, gasLimit, value *big.Int, data hexutil.Bytes,
 	customSignature hexutil.Bytes, paymasterParams *types.PaymasterParams) *types.Transaction {
 	return &types.Transaction{
@@ -17,13 +18,14 @@ func CreateFunctionCallTransaction(from, to common.Address, gasPrice, gasLimit, 
 		Value:    (*hexutil.Big)(value),
 		Data:     data,
 		Eip712Meta: &types.Eip712Meta{
-			GasPerPubdata:   NewBig(160_000),
+			GasPerPubdata:   NewBig(DefaultGasPerPubdataLimit.Int64()),
 			CustomSignature: customSignature,
 			PaymasterParams: paymasterParams,
 		},
 	}
 }
 
+// Deprecated: Will be removed in the future releases.
 func Create2ContractTransaction(from common.Address, gasPrice, gasLimit *big.Int,
 	bytecode, calldata hexutil.Bytes, deps []hexutil.Bytes,
 	customSignature hexutil.Bytes, paymasterParams *types.PaymasterParams) *types.Transaction {
@@ -40,7 +42,7 @@ func Create2ContractTransaction(from common.Address, gasPrice, gasLimit *big.Int
 		Value:    nil,
 		Data:     calldata,
 		Eip712Meta: &types.Eip712Meta{
-			GasPerPubdata:   NewBig(160_000),
+			GasPerPubdata:   NewBig(DefaultGasPerPubdataLimit.Int64()),
 			CustomSignature: customSignature,
 			FactoryDeps:     deps,
 			PaymasterParams: paymasterParams,

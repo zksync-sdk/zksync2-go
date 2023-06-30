@@ -21,6 +21,7 @@ func init() {
 	}
 }
 
+// GetApprovalBasedPaymasterInput returns encoded input for an approval-based paymaster.
 func GetApprovalBasedPaymasterInput(paymasterInput types.ApprovalBasedPaymasterInput) ([]byte, error) {
 	return paymasterFlowAbi.Pack("approvalBased",
 		paymasterInput.Token,
@@ -28,10 +29,12 @@ func GetApprovalBasedPaymasterInput(paymasterInput types.ApprovalBasedPaymasterI
 		paymasterInput.InnerInput)
 }
 
+// GetGeneralPaymasterInput returns encoded input for a general-based paymaster.
 func GetGeneralPaymasterInput(paymasterInput types.GeneralPaymasterInput) ([]byte, error) {
 	return paymasterFlowAbi.Pack("general", paymasterInput)
 }
 
+// GetPaymasterParams returns a correctly-formed paymaster parameters for common paymaster flows.
 func GetPaymasterParams(paymasterAddress common.Address, paymasterInput types.PaymasterInput) (*types.PaymasterParams, error) {
 	if paymasterInput.GetType() == "General" {
 		generalPaymasterInput, ok := paymasterInput.(*types.GeneralPaymasterInput)

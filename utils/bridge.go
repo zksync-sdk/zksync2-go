@@ -9,39 +9,9 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
 	"github.com/zksync-sdk/zksync2-go/types"
 	"math/big"
-	"strings"
 )
 
-const bridgeDataAbiDefinition = `[
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"name": "symbol",
-				"type": "string"
-			},
-			{
-				"name": "decimals",
-				"type": "uint256"
-			}
-		],
-		"name": "token",
-		"outputs": [
-				{
-					"name": "",
-					"type": "bool"
-				}
-			],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	}
-]`
-
+// CreateETH creates ETH token with appropriate Name, Symbol and Decimals values.
 func CreateETH() *types.Token {
 	return &types.Token{
 		L1Address: common.Address{},
@@ -52,7 +22,8 @@ func CreateETH() *types.Token {
 	}
 }
 
-func GetERC20DefaultBridgeData(l1TokenAddress common.Address, backend bind.ContractBackend) ([]byte, error) {
+// Erc20DefaultBridgeData Returns the data needed for correct initialization of an L1 token counterpart on L2.
+func Erc20DefaultBridgeData(l1TokenAddress common.Address, backend bind.ContractBackend) ([]byte, error) {
 	token, err := erc20.NewIERC20(l1TokenAddress, backend)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IERC20: %w", err)
@@ -70,18 +41,42 @@ func GetERC20DefaultBridgeData(l1TokenAddress common.Address, backend bind.Contr
 		return nil, err
 	}
 
-	bridgeDataAbi, err := abi.JSON(strings.NewReader(bridgeDataAbiDefinition))
+	stringAbiType, err := abi.NewType("string", "", nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load bridge data ABI: %w", err)
+		return nil, err
 	}
-	// encoding constructor function returns encoded arguments which is required to be result of function
-	// encoding different functions appends at beginning 4 bytes which is  hash of function signature
-	return bridgeDataAbi.Pack("", name, symbol, decimals)
+	uint256AbiType, err := abi.NewType("uint256", "", nil)
+	if err != nil {
+		return nil, err
+	}
+	bytesAbiType, err := abi.NewType("bytes", "", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	nameEncoded, err := abi.Arguments{{Type: stringAbiType}}.Pack(name)
+	if err != nil {
+		return nil, err
+	}
+	symbolEncoded, err := abi.Arguments{{Type: stringAbiType}}.Pack(symbol)
+	if err != nil {
+		return nil, err
+	}
+	decimalsEncoded, err := abi.Arguments{{Type: uint256AbiType}}.Pack(big.NewInt(int64(decimals)))
+	if err != nil {
+		return nil, err
+	}
+
+	return abi.Arguments{
+		{Type: bytesAbiType},
+		{Type: bytesAbiType},
+		{Type: bytesAbiType},
+	}.Pack(nameEncoded, symbolEncoded, decimalsEncoded)
 }
 
-// GetERC20BridgeCalldata returns the calldata that will be sent by an L1 ERC20 bridge to its L2 counterpart
+// Erc20BridgeCalldata returns the calldata that will be sent by an L1 ERC20 bridge to its L2 counterpart
 // during bridging of a token.
-func GetERC20BridgeCalldata(l1TokenAddress, l1Sender, l2Receiver common.Address, amount *big.Int, bridgeData []byte) ([]byte, error) {
+func Erc20BridgeCalldata(l1TokenAddress, l1Sender, l2Receiver common.Address, amount *big.Int, bridgeData []byte) ([]byte, error) {
 	l2BridgeAbi, err := l2bridge.IL2BridgeMetaData.GetAbi()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load L2 bridge ABI: %w", err)
