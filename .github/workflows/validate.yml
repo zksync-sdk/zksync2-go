@@ -1,0 +1,35 @@
+name: Validate
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18.x
+      - name: List Pull Request Commits
+        id: commits
+        run: |
+          echo "PR_COMMITS_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+          git rev-list --reverse $PR_COMMITS_SHA > commits.txt
+
+      - name: Run Commitlint for Each Commit
+        run: |
+          while IFS= read -r commit_sha; do
+            echo "Checking commit $commit_sha"
+            git checkout $commit_sha
+            npx commitlint
+          done < commits.txt
