@@ -1,3 +1,10 @@
+## [0.4.2](https://github.com/danijelTxFusion/zksync2-go/compare/v0.4.1...v0.4.2) (2023-08-16)
+
+
+### Bug Fixes
+
+* add tmp file ([5509018](https://github.com/danijelTxFusion/zksync2-go/commit/55090182b5eed18732e7667ebbd47d4a2c985d84))
+
 ## [0.4.1](https://github.com/danijelTxFusion/zksync2-go/compare/v0.4.0...v0.4.1) (2023-08-16)
 
 
