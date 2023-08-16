@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/danijelTxFusion/zksync2-go/compare/v0.4.0...v0.4.1) (2023-08-16)
+
+
+### Bug Fixes
+
+* update ci ([7e43754](https://github.com/danijelTxFusion/zksync2-go/commit/7e43754af5318550a3da0da11553b33be33c0307))
+
 # [0.4.0](https://github.com/danijelTxFusion/zksync2-go/compare/v0.3.1...v0.4.0) (2023-08-16)
 
 
