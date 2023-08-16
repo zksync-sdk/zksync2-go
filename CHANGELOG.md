@@ -1,3 +1,19 @@
+# [2.0.0](https://github.com/danijelTxFusion/zksync2-go/compare/v1.0.1...v2.0.0) (2023-08-16)
+
+
+### Features
+
+* refactor the wallet ([3110c9d](https://github.com/danijelTxFusion/zksync2-go/commit/3110c9d914b483fd2af95ce91d49a415920d3a3e)), closes [#2](https://github.com/danijelTxFusion/zksync2-go/issues/2)
+
+
+### BREAKING CHANGES
+
+* `Wallet` interface refactor
+
+The `Wallet` has existing method refactored to suppot context.
+Read method suppot `etherum.CallMsg` which suppotr parameters for
+`eth_call` and `eth_estimateGas` RPC methods.
+
 ## [1.0.1](https://github.com/danijelTxFusion/zksync2-go/compare/v1.0.0...v1.0.1) (2023-08-16)
 
 
