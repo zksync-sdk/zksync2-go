@@ -1,7 +1,6 @@
 {
   "branches": "main",
   "debug": true,
-  "tagFormat": "v${version}",
   "addReleases": "top",
   "npmPublish": false,
   "plugins": [
