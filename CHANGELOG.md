@@ -1,3 +1,19 @@
+# [3.0.0](https://github.com/danijelTxFusion/zksync2-go/compare/v2.0.0...v3.0.0) (2023-08-16)
+
+
+### Features
+
+* add some breakable changes ([b23e87f](https://github.com/danijelTxFusion/zksync2-go/commit/b23e87fb585e0af7dea2b738d3da3747fbc88af6))
+* introduce new breakable changes ([83fd538](https://github.com/danijelTxFusion/zksync2-go/commit/83fd53810a27d94203f2af547d2f6f30aeda5e8d))
+
+
+### BREAKING CHANGES
+
+* this is new breakable changes that needs to be
+taken care of when trying to using this version.
+* Some breakable change that needs to be taken in
+conern when writing the code using this version.
+
 # [2.0.0](https://github.com/danijelTxFusion/zksync2-go/compare/v1.0.1...v2.0.0) (2023-08-16)
 
 
