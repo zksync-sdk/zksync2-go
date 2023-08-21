@@ -106,7 +106,7 @@ func (a *WalletL1) L1BridgeContracts(_ context.Context) (*zkTypes.L1BridgeContra
 func (a *WalletL1) BalanceL1(opts *CallOpts, token common.Address) (*big.Int, error) {
 	callOpts := ensureCallOpts(opts).ToCallOpts(a.auth.From)
 	if token == utils.EthAddress {
-		return a.clientL1.BalanceAt(opts.Context, a.auth.From, opts.BlockNumber)
+		return a.clientL1.BalanceAt(callOpts.Context, a.auth.From, callOpts.BlockNumber)
 	} else {
 		erc20Contract, err := erc20.NewIERC20(token, a.clientL1)
 		if err != nil {
