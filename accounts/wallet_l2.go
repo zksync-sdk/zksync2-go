@@ -81,7 +81,7 @@ func (a *WalletL2) Signer() Signer {
 
 func (a *WalletL2) Balance(ctx context.Context, token common.Address, at *big.Int) (*big.Int, error) {
 	if token == utils.EthAddress {
-		return (*a.client).BalanceAt(ctx, a.Address(), at)
+		return (*a.client).BalanceAt(ensureContext(ctx), a.Address(), at)
 	}
 	erc20Token, err := erc20.NewIERC20(token, *a.client)
 	if err != nil {
