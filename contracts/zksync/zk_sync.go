@@ -4796,8 +4796,8 @@ func (it *IZkSyncProposeTransparentUpgradeIterator) Close() error {
 
 // IZkSyncProposeTransparentUpgrade represents a ProposeTransparentUpgrade event raised by the IZkSync contract.
 type IZkSyncProposeTransparentUpgrade struct {
-	DiamondCut DiamondDiamondCutData
-	ProposalId *big.Int
+	DiamondCut   DiamondDiamondCutData
+	ProposalId   *big.Int
 	ProposalSalt [32]byte
 	Raw          types.Log // Blockchain specific contextual infos
 }
