@@ -633,7 +633,7 @@ func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *T
 	} else {
 		data, err = utils.EncodeCreateAccount(t.Bytecode, t.Calldata, zkTypes.Version1)
 		if err != nil {
-			return nil, fmt.Errorf("failed to encode create2Account call: %w", err)
+			return nil, fmt.Errorf("failed to encode createAccount call: %w", err)
 		}
 
 	}

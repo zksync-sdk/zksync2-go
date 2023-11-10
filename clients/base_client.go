@@ -357,7 +357,7 @@ func (c *BaseClient) TestnetPaymaster(ctx context.Context) (common.Address, erro
 	var res string
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getTestnetPaymaster")
 	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to query zks_estimateFee: %w", err)
+		return common.Address{}, fmt.Errorf("failed to query zks_getTestnetPaymaster: %w", err)
 	}
 	return common.HexToAddress(res), nil
 }

@@ -296,7 +296,7 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 	l1GasLimit, err := a.EstimateGasDeposit(ensureContext(ctx), DepositCallMsg{
 		To:                msg.To,
 		Token:             msg.Token,
-		Amount:            msg.Amount,
+		Amount:            amountForEstimation,
 		OperatorTip:       msg.OperatorTip,
 		BridgeAddress:     msg.BridgeAddress,
 		L2GasLimit:        msg.L2GasLimit,
