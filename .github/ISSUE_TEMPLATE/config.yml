@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+    - name: zksync-developers Discussion
+      url: https://github.com/zkSync-Community-Hub/zkync-developers/discussions
+      about: Please provide feedback, and ask questions here.
+    - name: zksync-web3 SDK documentation page
+      url: https://era.zksync.io/docs/api/js/
+      about: Please refer to the documentation for immediate answers.
+    - name: zksync2-js SDK documentation page
+      url: https://era.zksync.io/docs/api/js/zksync2-js
+      about: Please refer to the documentation for immediate answers.
