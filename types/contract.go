@@ -10,6 +10,8 @@ import (
 type BridgeContracts struct {
 	L1Erc20DefaultBridge common.Address `json:"l1Erc20DefaultBridge"` // Default L1Bridge contract address.
 	L2Erc20DefaultBridge common.Address `json:"l2Erc20DefaultBridge"` // Default L2Bridge contract address.
+	L1WethBridge         common.Address `json:"l1WethBridge"`         //  WETH L1Bridge contract address
+	L2WethBridge         common.Address `json:"l2WethBridge"`         //  WETH L2Bridge contract address
 }
 
 // L1BridgeContracts represents the L1 bridge contracts.
