@@ -161,10 +161,11 @@ type TransactionResponse struct {
 
 // TransactionDetails contains transaction details.
 type TransactionDetails struct {
-	EthCommitTxHash  common.Hash    `json:"ethCommitTxHash"`
-	EthExecuteTxHash common.Hash    `json:"ethExecuteTxHash"`
-	EthProveTxHash   common.Hash    `json:"ethProveTxHash"`
+	EthCommitTxHash  *common.Hash   `json:"ethCommitTxHash"`
+	EthExecuteTxHash *common.Hash   `json:"ethExecuteTxHash"`
+	EthProveTxHash   *common.Hash   `json:"ethProveTxHash"`
 	Fee              hexutil.Big    `json:"fee"`
+	GasPerPubdata    hexutil.Big    `json:"gasPerPubdata"`
 	InitiatorAddress common.Address `json:"initiatorAddress"`
 	IsL1Originated   bool           `json:"isL1Originated"`
 	ReceivedAt       time.Time      `json:"receivedAt"`
