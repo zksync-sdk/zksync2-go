@@ -512,6 +512,7 @@ func (c *BaseClient) ConfirmedTokens(ctx context.Context, from uint32, limit uin
 	return res, nil
 }
 
+// Deprecated: Method is deprecated and will be removed in the near future.
 func (c *BaseClient) TokenPrice(ctx context.Context, address common.Address) (*big.Float, error) {
 	var res string
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getTokenPrice", address)
