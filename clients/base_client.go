@@ -128,9 +128,9 @@ func (c *BaseClient) TransactionInBlock(ctx context.Context, blockHash common.Ha
 	}
 	if tx == nil {
 		return nil, ethereum.NotFound
-	} else if tx.R == nil {
-		return nil, errors.New("server returned transaction without signature")
-	}
+	} // else if tx.R == nil {
+	//	return nil, errors.New("server returned transaction without signature")
+	//}
 	return tx, err
 }
 
