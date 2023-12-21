@@ -194,8 +194,7 @@ type ZkSyncEraClient interface {
 	// receipt on L1 network.
 	L2TransactionFromPriorityOp(ctx context.Context, l1TxReceipt *types.Receipt) (*zkTypes.TransactionResponse, error)
 
-	// ConfirmedTokens returns [address, symbol, name, and decimal] information of
-	// all tokens within a range of ids given by parameters from and limit.
+	// Deprecated: Method is deprecated and will be removed in the near future.
 	ConfirmedTokens(ctx context.Context, from uint32, limit uint8) ([]*zkTypes.Token, error)
 	// Deprecated: Method is deprecated and will be removed in the near future.
 	TokenPrice(ctx context.Context, address common.Address) (*big.Float, error)

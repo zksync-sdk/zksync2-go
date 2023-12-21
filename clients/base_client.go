@@ -503,6 +503,7 @@ func (c *BaseClient) L2TransactionFromPriorityOp(ctx context.Context, l1TxReceip
 	return nil, errors.New("wrong tx")
 }
 
+// Deprecated: Method is deprecated and will be removed in the near future.
 func (c *BaseClient) ConfirmedTokens(ctx context.Context, from uint32, limit uint8) ([]*zkTypes.Token, error) {
 	res := make([]*zkTypes.Token, 0)
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getConfirmedTokens", from, limit)
