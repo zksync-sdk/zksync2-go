@@ -1,35 +1,81 @@
 name: Validate
 on:
-  push:
-    branches:
-      - master
-      - develop
   pull_request:
-    types: [opened, synchronize, reopened]
+    branch: main
+    types: [ opened, reopened, synchronize ]
+
+permissions:
+  contents: read # for checkout
 
 jobs:
-  release:
-    name: Release
+  lint:
+    name: Check code format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          persist-credentials: false
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
+          fetch-depth: 0
+      - name: Install Go
+        uses: actions/setup-go@v5.0.0
         with:
-          node-version: 18.x
+          go-version: 1.20
+      - name: Run gofmt
+        run: |
+          echo "Checking code formatting..."
+          gofmt -d -e .
+      - name: Run golangci-lint
+        run: |
+          echo "Running linter..."
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          golangci-lint run ./...
+      - name: Fail if issues found
+        run: exit 1
+        if: ${{ failure() || success() }}
+  commits:
+    name: Check commits
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
       - name: Install dependencies
         run: npm install -g @commitlint/cli @commitlint/config-conventional
       - name: Configure
         run: |
           echo 'module.exports = {"extends": ["@commitlint/config-conventional"]}' > commitlint.config.js
       - name: Validate
-        if: github.event_name == 'pull_request'
         run: |
           git fetch 
           npx commitlint \
             --from ${{ github.event.pull_request.head.sha }}~${{ github.event.pull_request.commits }} \
             --to ${{ github.event.pull_request.head.sha }} \
+            --verbose
+  commits-fork:
+    name: Check commits from forks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+      - name: Install dependencies
+        run: npm install -g @commitlint/cli @commitlint/config-conventional
+      - name: Configure
+        run: |
+          echo 'module.exports = {"extends": ["@commitlint/config-conventional"]}' > commitlint.config.js
+      - name: Validate
+        run: |
+          git fetch origin "+refs/pull/${{ github.event.pull_request.number }}/head:refs/pull/${{ github.event.pull_request.number }}/head"
+          git checkout "refs/pull/${{ github.event.pull_request.number }}/head"
+          npx commitlint \
+            --from HEAD~${{ github.event.pull_request.commits }} \
+            --to HEAD \
             --verbose
