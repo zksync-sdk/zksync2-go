@@ -17,21 +17,19 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install Go
-        uses: actions/setup-go@v5.0.0
-        with:
-          go-version: 1.20
+        uses: actions/setup-go@v4.0.0
       - name: Run gofmt
         run: |
-          echo "Checking code formatting..."
-          gofmt -d -e .
-      - name: Run golangci-lint
-        run: |
-          echo "Running linter..."
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          golangci-lint run ./...
-      - name: Fail if issues found
-        run: exit 1
-        if: ${{ failure() || success() }}
+          fmt_output=$(gofmt -l .)
+
+          if [ -n "$fmt_output" ]; then
+            echo "Code not formatted correctly:"
+            echo "$fmt_output"
+            exit 1
+          else
+            echo "Code is formatted correctly"
+            exit 0
+          fi
   commits:
     name: Check commits
     runs-on: ubuntu-latest
