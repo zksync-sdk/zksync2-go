@@ -49,8 +49,8 @@ import (
 )
 
 var (
-    ZkSyncProvider   = "https://testnet.era.zksync.dev" // zkSync Era testnet  
-    EthereumProvider = "https://rpc.ankr.com/eth_goerli" // goerli testnet
+    ZkSyncProvider   = "https://sepolia.era.zksync.dev" // zkSync Era testnet  
+    EthereumProvider = "https://rpc.ankr.com/eth_sepolia" // Sepolia testnet
 )
 // Connect to zkSync network
 client, err := clients.Dial(ZkSyncProvider)
@@ -170,6 +170,16 @@ if err != nil {
 }
 fmt.Println("Withdraw transaction: ", tx.Hash())
 ```
+
+## 🤖 Running tests
+
+In order to run test you need to run [local-setup](https://github.com/matter-labs/local-setup) on your machine.
+For running tests, use:
+
+```shell
+go test ./test/...
+```
+
 
 ## 🤝 Contributing
 
