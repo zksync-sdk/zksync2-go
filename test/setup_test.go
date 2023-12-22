@@ -15,6 +15,7 @@ import (
 	"math/big"
 	"os"
 	"testing"
+	"time"
 )
 
 const TokenPath = "./token.json"
@@ -191,7 +192,32 @@ func createTokenL2(wallet *accounts.Wallet, client clients.Client, ethClient *et
 	return tokenL2Address, tx.Hash(), l2Tx.Hash
 }
 
+func wait() {
+	const maxAttempts = 30
+
+	nodeURL := "http://localhost:3050"
+	client, err := clients.Dial(nodeURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Close()
+
+	for i := 0; i < maxAttempts; i++ {
+		_, err := client.NetworkID(context.Background())
+		if err == nil {
+			log.Println("Node is ready to receive traffic.")
+			return
+		}
+
+		log.Println("Node not ready yet. Retrying...")
+		time.Sleep(20 * time.Second)
+	}
+
+	log.Fatal("Maximum retries exceeded.")
+}
+
 func TestMain(m *testing.M) {
+	wait()
 
 	client, err := clients.Dial(ZkSyncEraProvider)
 	if err != nil {
