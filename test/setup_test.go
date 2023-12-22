@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-const TokenPath = "./testfiles/token.json"
+const TokenPath = "./token.json"
 
 type token struct {
 	L1Address string `json:"l1Address"`
