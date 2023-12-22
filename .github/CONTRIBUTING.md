@@ -28,8 +28,8 @@ git checkout -b feature/description-of-your-feature
 - **Compile and test.** Before submitting a pull request, ensure your code compiles, passes lint checks, and all tests are successful. You should also write unit tests for your contributions. Use the following command for these checks:
 
 ```bash
-go fmt ./...
-got test ./...
+gofmt -w .
+go test ./test/...
 ```
 
 - **Commit your changes.** Adhere to the [Conventional Commits](https://www.conventionalcommits.org/) standard when writing commit messages.
