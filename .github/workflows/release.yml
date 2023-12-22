@@ -1,8 +1,6 @@
 name: Release
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read # for checkout
@@ -27,9 +25,11 @@ jobs:
       - name: Install dependencies
         run: |
           npm install "semantic-release@21.0.7" \
+            "@semantic-release/commit-analyzer@11.1.0" \
             "@semantic-release/changelog@6.0.3" \
             "@semantic-release/git@10.0.1" \
-            "@semantic-release/github@9.0.4"
+            "@semantic-release/github@9.0.4" \
+            "@semantic-release/npm@11.0.2"
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
