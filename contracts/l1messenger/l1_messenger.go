@@ -29,9 +29,19 @@ var (
 	_ = abi.ConvertType
 )
 
+// L2ToL1Log is an auto generated low-level Go binding around an user-defined struct.
+type L2ToL1Log struct {
+	L2ShardId       uint8
+	IsService       bool
+	TxNumberInBlock uint16
+	Sender          common.Address
+	Key             [32]byte
+	Value           [32]byte
+}
+
 // IL1MessengerMetaData contains all meta data concerning the IL1Messenger contract.
 var IL1MessengerMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"_hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"}],\"name\":\"L1MessageSent\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"}],\"name\":\"sendToL1\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"}],\"name\":\"BytecodeL1PublicationRequested\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"_hash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"}],\"name\":\"L1MessageSent\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"l2ShardId\",\"type\":\"uint8\"},{\"internalType\":\"bool\",\"name\":\"isService\",\"type\":\"bool\"},{\"internalType\":\"uint16\",\"name\":\"txNumberInBlock\",\"type\":\"uint16\"},{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"key\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"value\",\"type\":\"bytes32\"}],\"indexed\":false,\"internalType\":\"structL2ToL1Log\",\"name\":\"_l2log\",\"type\":\"tuple\"}],\"name\":\"L2ToL1LogSent\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"}],\"name\":\"requestBytecodeL1Publication\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"_isService\",\"type\":\"bool\"},{\"internalType\":\"bytes32\",\"name\":\"_key\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_value\",\"type\":\"bytes32\"}],\"name\":\"sendL2ToL1Log\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"logIdInMerkleTree\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"}],\"name\":\"sendToL1\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IL1MessengerABI is the input ABI used to generate the binding from.
@@ -180,6 +190,48 @@ func (_IL1Messenger *IL1MessengerTransactorRaw) Transact(opts *bind.TransactOpts
 	return _IL1Messenger.Contract.contract.Transact(opts, method, params...)
 }
 
+// RequestBytecodeL1Publication is a paid mutator transaction binding the contract method 0x39b34c6e.
+//
+// Solidity: function requestBytecodeL1Publication(bytes32 _bytecodeHash) returns()
+func (_IL1Messenger *IL1MessengerTransactor) RequestBytecodeL1Publication(opts *bind.TransactOpts, _bytecodeHash [32]byte) (*types.Transaction, error) {
+	return _IL1Messenger.contract.Transact(opts, "requestBytecodeL1Publication", _bytecodeHash)
+}
+
+// RequestBytecodeL1Publication is a paid mutator transaction binding the contract method 0x39b34c6e.
+//
+// Solidity: function requestBytecodeL1Publication(bytes32 _bytecodeHash) returns()
+func (_IL1Messenger *IL1MessengerSession) RequestBytecodeL1Publication(_bytecodeHash [32]byte) (*types.Transaction, error) {
+	return _IL1Messenger.Contract.RequestBytecodeL1Publication(&_IL1Messenger.TransactOpts, _bytecodeHash)
+}
+
+// RequestBytecodeL1Publication is a paid mutator transaction binding the contract method 0x39b34c6e.
+//
+// Solidity: function requestBytecodeL1Publication(bytes32 _bytecodeHash) returns()
+func (_IL1Messenger *IL1MessengerTransactorSession) RequestBytecodeL1Publication(_bytecodeHash [32]byte) (*types.Transaction, error) {
+	return _IL1Messenger.Contract.RequestBytecodeL1Publication(&_IL1Messenger.TransactOpts, _bytecodeHash)
+}
+
+// SendL2ToL1Log is a paid mutator transaction binding the contract method 0x56079ac8.
+//
+// Solidity: function sendL2ToL1Log(bool _isService, bytes32 _key, bytes32 _value) returns(uint256 logIdInMerkleTree)
+func (_IL1Messenger *IL1MessengerTransactor) SendL2ToL1Log(opts *bind.TransactOpts, _isService bool, _key [32]byte, _value [32]byte) (*types.Transaction, error) {
+	return _IL1Messenger.contract.Transact(opts, "sendL2ToL1Log", _isService, _key, _value)
+}
+
+// SendL2ToL1Log is a paid mutator transaction binding the contract method 0x56079ac8.
+//
+// Solidity: function sendL2ToL1Log(bool _isService, bytes32 _key, bytes32 _value) returns(uint256 logIdInMerkleTree)
+func (_IL1Messenger *IL1MessengerSession) SendL2ToL1Log(_isService bool, _key [32]byte, _value [32]byte) (*types.Transaction, error) {
+	return _IL1Messenger.Contract.SendL2ToL1Log(&_IL1Messenger.TransactOpts, _isService, _key, _value)
+}
+
+// SendL2ToL1Log is a paid mutator transaction binding the contract method 0x56079ac8.
+//
+// Solidity: function sendL2ToL1Log(bool _isService, bytes32 _key, bytes32 _value) returns(uint256 logIdInMerkleTree)
+func (_IL1Messenger *IL1MessengerTransactorSession) SendL2ToL1Log(_isService bool, _key [32]byte, _value [32]byte) (*types.Transaction, error) {
+	return _IL1Messenger.Contract.SendL2ToL1Log(&_IL1Messenger.TransactOpts, _isService, _key, _value)
+}
+
 // SendToL1 is a paid mutator transaction binding the contract method 0x62f84b24.
 //
 // Solidity: function sendToL1(bytes _message) returns(bytes32)
@@ -199,6 +251,140 @@ func (_IL1Messenger *IL1MessengerSession) SendToL1(_message []byte) (*types.Tran
 // Solidity: function sendToL1(bytes _message) returns(bytes32)
 func (_IL1Messenger *IL1MessengerTransactorSession) SendToL1(_message []byte) (*types.Transaction, error) {
 	return _IL1Messenger.Contract.SendToL1(&_IL1Messenger.TransactOpts, _message)
+}
+
+// IL1MessengerBytecodeL1PublicationRequestedIterator is returned from FilterBytecodeL1PublicationRequested and is used to iterate over the raw logs and unpacked data for BytecodeL1PublicationRequested events raised by the IL1Messenger contract.
+type IL1MessengerBytecodeL1PublicationRequestedIterator struct {
+	Event *IL1MessengerBytecodeL1PublicationRequested // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IL1MessengerBytecodeL1PublicationRequestedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IL1MessengerBytecodeL1PublicationRequested)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IL1MessengerBytecodeL1PublicationRequested)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IL1MessengerBytecodeL1PublicationRequestedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IL1MessengerBytecodeL1PublicationRequestedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IL1MessengerBytecodeL1PublicationRequested represents a BytecodeL1PublicationRequested event raised by the IL1Messenger contract.
+type IL1MessengerBytecodeL1PublicationRequested struct {
+	BytecodeHash [32]byte
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterBytecodeL1PublicationRequested is a free log retrieval operation binding the contract event 0x480d3c9f727b5e5c1203d4c61fb185d37f08e6b2dc5e9bbf98591b1a7addf57c.
+//
+// Solidity: event BytecodeL1PublicationRequested(bytes32 _bytecodeHash)
+func (_IL1Messenger *IL1MessengerFilterer) FilterBytecodeL1PublicationRequested(opts *bind.FilterOpts) (*IL1MessengerBytecodeL1PublicationRequestedIterator, error) {
+
+	logs, sub, err := _IL1Messenger.contract.FilterLogs(opts, "BytecodeL1PublicationRequested")
+	if err != nil {
+		return nil, err
+	}
+	return &IL1MessengerBytecodeL1PublicationRequestedIterator{contract: _IL1Messenger.contract, event: "BytecodeL1PublicationRequested", logs: logs, sub: sub}, nil
+}
+
+// WatchBytecodeL1PublicationRequested is a free log subscription operation binding the contract event 0x480d3c9f727b5e5c1203d4c61fb185d37f08e6b2dc5e9bbf98591b1a7addf57c.
+//
+// Solidity: event BytecodeL1PublicationRequested(bytes32 _bytecodeHash)
+func (_IL1Messenger *IL1MessengerFilterer) WatchBytecodeL1PublicationRequested(opts *bind.WatchOpts, sink chan<- *IL1MessengerBytecodeL1PublicationRequested) (event.Subscription, error) {
+
+	logs, sub, err := _IL1Messenger.contract.WatchLogs(opts, "BytecodeL1PublicationRequested")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IL1MessengerBytecodeL1PublicationRequested)
+				if err := _IL1Messenger.contract.UnpackLog(event, "BytecodeL1PublicationRequested", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseBytecodeL1PublicationRequested is a log parse operation binding the contract event 0x480d3c9f727b5e5c1203d4c61fb185d37f08e6b2dc5e9bbf98591b1a7addf57c.
+//
+// Solidity: event BytecodeL1PublicationRequested(bytes32 _bytecodeHash)
+func (_IL1Messenger *IL1MessengerFilterer) ParseBytecodeL1PublicationRequested(log types.Log) (*IL1MessengerBytecodeL1PublicationRequested, error) {
+	event := new(IL1MessengerBytecodeL1PublicationRequested)
+	if err := _IL1Messenger.contract.UnpackLog(event, "BytecodeL1PublicationRequested", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
 
 // IL1MessengerL1MessageSentIterator is returned from FilterL1MessageSent and is used to iterate over the raw logs and unpacked data for L1MessageSent events raised by the IL1Messenger contract.
@@ -349,6 +535,140 @@ func (_IL1Messenger *IL1MessengerFilterer) WatchL1MessageSent(opts *bind.WatchOp
 func (_IL1Messenger *IL1MessengerFilterer) ParseL1MessageSent(log types.Log) (*IL1MessengerL1MessageSent, error) {
 	event := new(IL1MessengerL1MessageSent)
 	if err := _IL1Messenger.contract.UnpackLog(event, "L1MessageSent", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IL1MessengerL2ToL1LogSentIterator is returned from FilterL2ToL1LogSent and is used to iterate over the raw logs and unpacked data for L2ToL1LogSent events raised by the IL1Messenger contract.
+type IL1MessengerL2ToL1LogSentIterator struct {
+	Event *IL1MessengerL2ToL1LogSent // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IL1MessengerL2ToL1LogSentIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IL1MessengerL2ToL1LogSent)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IL1MessengerL2ToL1LogSent)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IL1MessengerL2ToL1LogSentIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IL1MessengerL2ToL1LogSentIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IL1MessengerL2ToL1LogSent represents a L2ToL1LogSent event raised by the IL1Messenger contract.
+type IL1MessengerL2ToL1LogSent struct {
+	L2log L2ToL1Log
+	Raw   types.Log // Blockchain specific contextual infos
+}
+
+// FilterL2ToL1LogSent is a free log retrieval operation binding the contract event 0x27fe8c0b49f49507b9d4fe5968c9f49edfe5c9df277d433a07a0717ede97638d.
+//
+// Solidity: event L2ToL1LogSent((uint8,bool,uint16,address,bytes32,bytes32) _l2log)
+func (_IL1Messenger *IL1MessengerFilterer) FilterL2ToL1LogSent(opts *bind.FilterOpts) (*IL1MessengerL2ToL1LogSentIterator, error) {
+
+	logs, sub, err := _IL1Messenger.contract.FilterLogs(opts, "L2ToL1LogSent")
+	if err != nil {
+		return nil, err
+	}
+	return &IL1MessengerL2ToL1LogSentIterator{contract: _IL1Messenger.contract, event: "L2ToL1LogSent", logs: logs, sub: sub}, nil
+}
+
+// WatchL2ToL1LogSent is a free log subscription operation binding the contract event 0x27fe8c0b49f49507b9d4fe5968c9f49edfe5c9df277d433a07a0717ede97638d.
+//
+// Solidity: event L2ToL1LogSent((uint8,bool,uint16,address,bytes32,bytes32) _l2log)
+func (_IL1Messenger *IL1MessengerFilterer) WatchL2ToL1LogSent(opts *bind.WatchOpts, sink chan<- *IL1MessengerL2ToL1LogSent) (event.Subscription, error) {
+
+	logs, sub, err := _IL1Messenger.contract.WatchLogs(opts, "L2ToL1LogSent")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IL1MessengerL2ToL1LogSent)
+				if err := _IL1Messenger.contract.UnpackLog(event, "L2ToL1LogSent", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseL2ToL1LogSent is a log parse operation binding the contract event 0x27fe8c0b49f49507b9d4fe5968c9f49edfe5c9df277d433a07a0717ede97638d.
+//
+// Solidity: event L2ToL1LogSent((uint8,bool,uint16,address,bytes32,bytes32) _l2log)
+func (_IL1Messenger *IL1MessengerFilterer) ParseL2ToL1LogSent(log types.Log) (*IL1MessengerL2ToL1LogSent, error) {
+	event := new(IL1MessengerL2ToL1LogSent)
+	if err := _IL1Messenger.contract.UnpackLog(event, "L2ToL1LogSent", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
