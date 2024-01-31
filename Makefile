@@ -3,3 +3,6 @@ fetch-contracts:
 
 generate-contracts:
 	cd scripts/generate-contracts && ./execute.sh && cd ../..
+
+test:
+	go test ./test/...
