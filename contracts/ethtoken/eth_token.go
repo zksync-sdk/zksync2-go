@@ -31,7 +31,7 @@ var (
 
 // IEthTokenMetaData contains all meta data concerning the IEthToken contract.
 var IEthTokenMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Mint\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_l2Sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_l1Receiver\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"Withdrawal\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"transferFromTo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l1Receiver\",\"type\":\"address\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Mint\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_l2Sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_l1Receiver\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"Withdrawal\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_l2Sender\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"_l1Receiver\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bytes\",\"name\":\"_additionalData\",\"type\":\"bytes\"}],\"name\":\"WithdrawalWithMessage\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_from\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"transferFromTo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l1Receiver\",\"type\":\"address\"}],\"name\":\"withdraw\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_l1Receiver\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_additionalData\",\"type\":\"bytes\"}],\"name\":\"withdrawWithMessage\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // IEthTokenABI is the input ABI used to generate the binding from.
@@ -396,6 +396,27 @@ func (_IEthToken *IEthTokenSession) Withdraw(_l1Receiver common.Address) (*types
 // Solidity: function withdraw(address _l1Receiver) payable returns()
 func (_IEthToken *IEthTokenTransactorSession) Withdraw(_l1Receiver common.Address) (*types.Transaction, error) {
 	return _IEthToken.Contract.Withdraw(&_IEthToken.TransactOpts, _l1Receiver)
+}
+
+// WithdrawWithMessage is a paid mutator transaction binding the contract method 0x84bc3eb0.
+//
+// Solidity: function withdrawWithMessage(address _l1Receiver, bytes _additionalData) payable returns()
+func (_IEthToken *IEthTokenTransactor) WithdrawWithMessage(opts *bind.TransactOpts, _l1Receiver common.Address, _additionalData []byte) (*types.Transaction, error) {
+	return _IEthToken.contract.Transact(opts, "withdrawWithMessage", _l1Receiver, _additionalData)
+}
+
+// WithdrawWithMessage is a paid mutator transaction binding the contract method 0x84bc3eb0.
+//
+// Solidity: function withdrawWithMessage(address _l1Receiver, bytes _additionalData) payable returns()
+func (_IEthToken *IEthTokenSession) WithdrawWithMessage(_l1Receiver common.Address, _additionalData []byte) (*types.Transaction, error) {
+	return _IEthToken.Contract.WithdrawWithMessage(&_IEthToken.TransactOpts, _l1Receiver, _additionalData)
+}
+
+// WithdrawWithMessage is a paid mutator transaction binding the contract method 0x84bc3eb0.
+//
+// Solidity: function withdrawWithMessage(address _l1Receiver, bytes _additionalData) payable returns()
+func (_IEthToken *IEthTokenTransactorSession) WithdrawWithMessage(_l1Receiver common.Address, _additionalData []byte) (*types.Transaction, error) {
+	return _IEthToken.Contract.WithdrawWithMessage(&_IEthToken.TransactOpts, _l1Receiver, _additionalData)
 }
 
 // IEthTokenMintIterator is returned from FilterMint and is used to iterate over the raw logs and unpacked data for Mint events raised by the IEthToken contract.
@@ -845,6 +866,161 @@ func (_IEthToken *IEthTokenFilterer) WatchWithdrawal(opts *bind.WatchOpts, sink 
 func (_IEthToken *IEthTokenFilterer) ParseWithdrawal(log types.Log) (*IEthTokenWithdrawal, error) {
 	event := new(IEthTokenWithdrawal)
 	if err := _IEthToken.contract.UnpackLog(event, "Withdrawal", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// IEthTokenWithdrawalWithMessageIterator is returned from FilterWithdrawalWithMessage and is used to iterate over the raw logs and unpacked data for WithdrawalWithMessage events raised by the IEthToken contract.
+type IEthTokenWithdrawalWithMessageIterator struct {
+	Event *IEthTokenWithdrawalWithMessage // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *IEthTokenWithdrawalWithMessageIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(IEthTokenWithdrawalWithMessage)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(IEthTokenWithdrawalWithMessage)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *IEthTokenWithdrawalWithMessageIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *IEthTokenWithdrawalWithMessageIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// IEthTokenWithdrawalWithMessage represents a WithdrawalWithMessage event raised by the IEthToken contract.
+type IEthTokenWithdrawalWithMessage struct {
+	L2Sender       common.Address
+	L1Receiver     common.Address
+	Amount         *big.Int
+	AdditionalData []byte
+	Raw            types.Log // Blockchain specific contextual infos
+}
+
+// FilterWithdrawalWithMessage is a free log retrieval operation binding the contract event 0xc405fe8958410bbaf0c73b7a0c3e20859e86ca168a4c9b0def9c54d2555a306b.
+//
+// Solidity: event WithdrawalWithMessage(address indexed _l2Sender, address indexed _l1Receiver, uint256 _amount, bytes _additionalData)
+func (_IEthToken *IEthTokenFilterer) FilterWithdrawalWithMessage(opts *bind.FilterOpts, _l2Sender []common.Address, _l1Receiver []common.Address) (*IEthTokenWithdrawalWithMessageIterator, error) {
+
+	var _l2SenderRule []interface{}
+	for _, _l2SenderItem := range _l2Sender {
+		_l2SenderRule = append(_l2SenderRule, _l2SenderItem)
+	}
+	var _l1ReceiverRule []interface{}
+	for _, _l1ReceiverItem := range _l1Receiver {
+		_l1ReceiverRule = append(_l1ReceiverRule, _l1ReceiverItem)
+	}
+
+	logs, sub, err := _IEthToken.contract.FilterLogs(opts, "WithdrawalWithMessage", _l2SenderRule, _l1ReceiverRule)
+	if err != nil {
+		return nil, err
+	}
+	return &IEthTokenWithdrawalWithMessageIterator{contract: _IEthToken.contract, event: "WithdrawalWithMessage", logs: logs, sub: sub}, nil
+}
+
+// WatchWithdrawalWithMessage is a free log subscription operation binding the contract event 0xc405fe8958410bbaf0c73b7a0c3e20859e86ca168a4c9b0def9c54d2555a306b.
+//
+// Solidity: event WithdrawalWithMessage(address indexed _l2Sender, address indexed _l1Receiver, uint256 _amount, bytes _additionalData)
+func (_IEthToken *IEthTokenFilterer) WatchWithdrawalWithMessage(opts *bind.WatchOpts, sink chan<- *IEthTokenWithdrawalWithMessage, _l2Sender []common.Address, _l1Receiver []common.Address) (event.Subscription, error) {
+
+	var _l2SenderRule []interface{}
+	for _, _l2SenderItem := range _l2Sender {
+		_l2SenderRule = append(_l2SenderRule, _l2SenderItem)
+	}
+	var _l1ReceiverRule []interface{}
+	for _, _l1ReceiverItem := range _l1Receiver {
+		_l1ReceiverRule = append(_l1ReceiverRule, _l1ReceiverItem)
+	}
+
+	logs, sub, err := _IEthToken.contract.WatchLogs(opts, "WithdrawalWithMessage", _l2SenderRule, _l1ReceiverRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(IEthTokenWithdrawalWithMessage)
+				if err := _IEthToken.contract.UnpackLog(event, "WithdrawalWithMessage", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseWithdrawalWithMessage is a log parse operation binding the contract event 0xc405fe8958410bbaf0c73b7a0c3e20859e86ca168a4c9b0def9c54d2555a306b.
+//
+// Solidity: event WithdrawalWithMessage(address indexed _l2Sender, address indexed _l1Receiver, uint256 _amount, bytes _additionalData)
+func (_IEthToken *IEthTokenFilterer) ParseWithdrawalWithMessage(log types.Log) (*IEthTokenWithdrawalWithMessage, error) {
+	event := new(IEthTokenWithdrawalWithMessage)
+	if err := _IEthToken.contract.UnpackLog(event, "WithdrawalWithMessage", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
