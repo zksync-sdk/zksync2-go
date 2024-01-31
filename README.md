@@ -26,7 +26,7 @@ To begin, it is useful to have a basic understanding of the types of objects ava
 
 ## 🛠 Prerequisites
 
--   `go: >= 1.17` ([installation guide](https://go.dev/doc/install))
+-   `go: >= 1.21` ([installation guide](https://go.dev/doc/install))
 
 ## 📥 Installation & Setup
 
@@ -177,13 +177,13 @@ In order to run test you need to run [local-setup](https://github.com/matter-lab
 For running tests, use:
 
 ```shell
-go test ./test/...
+make test
 ```
 
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! If you're interested in contributing to the zksync2-go Golang SDK,
+We welcome contributions from the community! If you're interested in contributing to the `zksync2-go` Golang SDK,
 please take a look at our [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for guidelines and details on the process.
 
-Thank you for making zksync2-go Golang SDK better! 🙌
+Thank you for making `zksync2-go` Golang SDK better! 🙌
