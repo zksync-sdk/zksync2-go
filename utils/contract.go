@@ -47,7 +47,7 @@ func UndoL1ToL2Alias(address common.Address) common.Address {
 
 func getContractDeployerABI() (*abi.ABI, error) {
 	if contractDeployerABI == nil {
-		cda, err := abi.JSON(strings.NewReader(contractdeployer.ContractDeployerMetaData.ABI))
+		cda, err := abi.JSON(strings.NewReader(contractdeployer.IContractDeployerMetaData.ABI))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load Deployer ABI: %w", err)
 		}
