@@ -372,7 +372,7 @@ func (c *BaseClient) BridgeContracts(ctx context.Context) (*zkTypes.BridgeContra
 }
 
 func (c *BaseClient) ContractAccountInfo(ctx context.Context, address common.Address) (*zkTypes.ContractAccountInfo, error) {
-	contractDeployer, err := contractdeployer.NewContractDeployerCaller(utils.ContractDeployerAddress, c)
+	contractDeployer, err := contractdeployer.NewIContractDeployerCaller(utils.ContractDeployerAddress, c)
 	if err != nil {
 		return nil, err
 	}
