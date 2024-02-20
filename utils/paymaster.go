@@ -31,7 +31,7 @@ func GetApprovalBasedPaymasterInput(paymasterInput types.ApprovalBasedPaymasterI
 
 // GetGeneralPaymasterInput returns encoded input for a general-based paymaster.
 func GetGeneralPaymasterInput(paymasterInput types.GeneralPaymasterInput) ([]byte, error) {
-	return paymasterFlowAbi.Pack("general", paymasterInput)
+	return paymasterFlowAbi.Pack("general", paymasterInput.GetInput())
 }
 
 // GetPaymasterParams returns a correctly-formed paymaster parameters for common paymaster flows.
