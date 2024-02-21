@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
@@ -200,15 +201,39 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zk
 		tx.Gas = gas
 
 	}
+	if tx.Data == nil {
+		tx.Data = hexutil.Bytes{}
+	}
+
 	return tx.ToTransaction712(a.auth.From), nil
 }
 
 func (a *WalletL2) SignTransaction(tx *zkTypes.Transaction712) ([]byte, error) {
-	signature, err := (*a.signer).SignTypedData((*a.signer).Domain(), tx)
+	var gas uint64 = 0
+	if tx.Gas != nil {
+		gas = tx.Gas.Uint64()
+	}
+	preparedTx, err := a.PopulateTransaction(context.Background(), Transaction{
+		To:         tx.To,
+		Data:       tx.Data,
+		Value:      tx.Value,
+		Nonce:      tx.Nonce,
+		GasTipCap:  tx.GasTipCap,
+		GasFeeCap:  tx.GasFeeCap,
+		Gas:        gas,
+		AccessList: tx.AccessList,
+		ChainID:    tx.ChainID,
+		Meta:       tx.Meta,
+	})
 	if err != nil {
 		return nil, err
 	}
-	return tx.RLPValues(signature)
+
+	signature, err := (*a.signer).SignTypedData((*a.signer).Domain(), preparedTx)
+	if err != nil {
+		return nil, err
+	}
+	return preparedTx.RLPValues(signature)
 }
 
 func (a *WalletL2) SendTransaction(ctx context.Context, tx *Transaction) (common.Hash, error) {
