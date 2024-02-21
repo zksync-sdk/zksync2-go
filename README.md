@@ -177,7 +177,7 @@ In order to run test you need to run [local-setup](https://github.com/matter-lab
 For running tests, use:
 
 ```shell
-make test
+make run-test
 ```
 
 
