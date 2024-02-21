@@ -4,11 +4,13 @@ import (
 	"context"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/zksync-sdk/zksync2-go/accounts"
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 	"os"
@@ -52,8 +54,6 @@ func TestIntegrationWallet_L1BridgeContracts(t *testing.T) {
 }
 
 func TestIntegrationWallet_BalanceL1(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -70,15 +70,13 @@ func TestIntegrationWallet_BalanceL1(t *testing.T) {
 	assert.NoError(t, err, "BalanceL1 should not return an error")
 	assert.NotNil(t, ethBalance, "BalanceL1 should return a non-nil ETH balance")
 
-	tokenBalance, err := wallet.BalanceL1(nil, common.HexToAddress(tokenData.L1Address))
+	tokenBalance, err := wallet.BalanceL1(nil, L1Dai)
 
 	assert.NoError(t, err, "BalanceL1 should not return an error")
 	assert.NotNil(t, tokenBalance, "BlockByNumber should return a non-nil token balance")
 }
 
 func TestIntegrationWallet_AllowanceL1(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -93,15 +91,13 @@ func TestIntegrationWallet_AllowanceL1(t *testing.T) {
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	ethBalance, err := wallet.AllowanceL1(nil, common.HexToAddress(tokenData.L1Address), bridgeContracts.L1Erc20DefaultBridge)
+	ethBalance, err := wallet.AllowanceL1(nil, L1Dai, bridgeContracts.L1Erc20DefaultBridge)
 
 	assert.NoError(t, err, "AllowanceL1 should not return an error")
 	assert.NotNil(t, ethBalance, "AllowanceL1 should return a non-nil token allowance")
 }
 
 func TestIntegrationWallet_L2TokenAddress(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -113,15 +109,14 @@ func TestIntegrationWallet_L2TokenAddress(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	l2Address, err := wallet.L2TokenAddress(context.Background(), common.HexToAddress(tokenData.L1Address))
+	l2Address, err := wallet.L2TokenAddress(context.Background(), L1Dai)
 
 	assert.NoError(t, err, "L2TokenAddress should not return an error")
-	assert.Equal(t, common.HexToAddress(tokenData.L2Address), l2Address, "L2 token addresses should be the same")
+	assert.Equal(t, L2Dai, l2Address, "L2 token addresses should be the same")
 }
 
 func TestIntegrationWallet_ApproveERC20(t *testing.T) {
-	tokenData := readToken()
-	l1TokenAddress := common.HexToAddress(tokenData.L1Address)
+	l1TokenAddress := L1Dai
 	approveAmount := big.NewInt(1)
 
 	client, err := clients.Dial(ZkSyncEraProvider)
@@ -141,7 +136,7 @@ func TestIntegrationWallet_ApproveERC20(t *testing.T) {
 	allowanceBefore, err := wallet.AllowanceL1(nil, l1TokenAddress, bridgeContracts.L1Erc20DefaultBridge)
 	assert.NoError(t, err, "AllowanceL1 should not return an error")
 
-	tx, err := wallet.ApproveERC20(nil, common.HexToAddress(tokenData.L1Address), approveAmount, bridgeContracts.L1Erc20DefaultBridge)
+	tx, err := wallet.ApproveERC20(nil, L1Dai, approveAmount, bridgeContracts.L1Erc20DefaultBridge)
 	assert.NoError(t, err, "ApproveERC20 should not return an error")
 
 	txReceipt, err := bind.WaitMined(context.Background(), ethClient, tx)
@@ -222,10 +217,7 @@ func TestIntegrationWallet_DepositETH(t *testing.T) {
 }
 
 func TestIntegrationWallet_DepositToken(t *testing.T) {
-	tokenData := readToken()
 	amount := big.NewInt(5)
-	l1TokenAddress := common.HexToAddress(tokenData.L1Address)
-	l2TokenAddress := common.HexToAddress(tokenData.L2Address)
 
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
@@ -238,15 +230,15 @@ func TestIntegrationWallet_DepositToken(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	l2BalanceBeforeDeposit, err := wallet.Balance(context.Background(), l2TokenAddress, nil)
+	l2BalanceBeforeDeposit, err := wallet.Balance(context.Background(), L2Dai, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	l1BalanceBeforeDeposit, err := wallet.BalanceL1(nil, l1TokenAddress)
+	l1BalanceBeforeDeposit, err := wallet.BalanceL1(nil, L1Dai)
 	assert.NoError(t, err, "BalanceL1 should not return an error")
 
 	tx, err := wallet.Deposit(nil, accounts.DepositTransaction{
 		To:              wallet.Address(),
-		Token:           l1TokenAddress,
+		Token:           L1Dai,
 		Amount:          amount,
 		ApproveERC20:    true,
 		RefundRecipient: wallet.Address(),
@@ -263,14 +255,136 @@ func TestIntegrationWallet_DepositToken(t *testing.T) {
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, l2Receipt.BlockHash, "Transaction should be mined")
 
-	l2BalanceAfterDeposit, err := wallet.Balance(context.Background(), l2TokenAddress, nil)
+	l2BalanceAfterDeposit, err := wallet.Balance(context.Background(), L2Dai, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	l1BalanceAfterDeposit, err := wallet.BalanceL1(nil, l1TokenAddress)
+	l1BalanceAfterDeposit, err := wallet.BalanceL1(nil, L1Dai)
 	assert.NoError(t, err, "BalanceL1 should not return an error")
 
 	assert.True(t, new(big.Int).Sub(l2BalanceAfterDeposit, l2BalanceBeforeDeposit).Cmp(amount) >= 0, "Balance on L2 should be increased")
 	assert.True(t, new(big.Int).Sub(l1BalanceBeforeDeposit, l1BalanceAfterDeposit).Cmp(amount) >= 0, "Balance on L1 should be decreased")
+}
+
+func TestIntegrationWallet_RequestExecute(t *testing.T) {
+	amount := big.NewInt(7_000_000_000)
+
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	l2BalanceBeforeTx, err := wallet.Balance(context.Background(), utils.EthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	l1BalanceBeforeTx, err := wallet.BalanceL1(nil, utils.EthAddress)
+	assert.NoError(t, err, "BalanceL1 should not return an error")
+
+	mainContract, err := client.MainContractAddress(context.Background())
+	assert.NoError(t, err, "client.MainContractAddress should not return an error")
+
+	tx, err := wallet.RequestExecute(nil, accounts.RequestExecuteTransaction{
+		ContractAddress: mainContract,
+		L2GasLimit:      big.NewInt(900_000),
+		L2Value:         amount,
+	})
+	assert.NoError(t, err, "Request execute should not return an error")
+
+	l1Receipt, err := bind.WaitMined(context.Background(), ethClient, tx)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+
+	l2Tx, err := client.L2TransactionFromPriorityOp(context.Background(), l1Receipt)
+	assert.NoError(t, err, "L2TransactionFromPriorityOp should not return an error")
+
+	l2Receipt, err := client.WaitMined(context.Background(), l2Tx.Hash)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+	assert.NotNil(t, l2Receipt.BlockHash, "Transaction should be mined")
+
+	l2BalanceAfterTx, err := wallet.Balance(context.Background(), utils.EthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	l1BalanceAfterTx, err := wallet.BalanceL1(nil, utils.EthAddress)
+	assert.NoError(t, err, "BalanceL1 should not return an error")
+
+	assert.True(t, new(big.Int).Sub(l2BalanceAfterTx, l2BalanceBeforeTx).Cmp(amount) >= 0, "Balance on L2 should be increased")
+	assert.True(t, new(big.Int).Sub(l1BalanceBeforeTx, l1BalanceAfterTx).Cmp(amount) >= 0, "Balance on L1 should be decreased")
+}
+
+func TestIntegrationWallet_BalanceETH(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	balance, err := wallet.Balance(context.Background(), utils.EthAddress, nil)
+
+	assert.NoError(t, err, "Balance should not return an error")
+	assert.True(t, balance.Cmp(big.NewInt(0)) >= 0, "Balance should return a non-negative number")
+}
+
+func TestIntegrationWallet_BalanceToken(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	balance, err := wallet.Balance(context.Background(), L2Dai, nil)
+
+	assert.NoError(t, err, "Balance should not return an error")
+	assert.True(t, balance.Cmp(big.NewInt(0)) >= 0, "Balance should return a non-negative number")
+}
+
+func TestIntegrationWallet_AllBalances(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	balances, err := wallet.AllBalances(context.Background())
+
+	assert.NoError(t, err, "AllBalances should not return an error")
+	assert.Len(t, balances, 2, "Should have ETH and DAI balance")
+}
+
+func TestIntegrationWallet_L2BridgeContracts(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	bridges, err := wallet.L2BridgeContracts(context.Background())
+
+	assert.NoError(t, err, "L2BridgeContracts should not return an error")
+	assert.NotNil(t, bridges, "L2BridgeContracts should return bridges")
 }
 
 func TestIntegrationWallet_Withdraw(t *testing.T) {
@@ -290,35 +404,36 @@ func TestIntegrationWallet_Withdraw(t *testing.T) {
 	l2BalanceBeforeWithdrawal, err := wallet.Balance(context.Background(), utils.EthAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	//l1BalanceBeforeWithdrawal, err := wallet.BalanceL1(nil, l1TokenAddress)
-	//assert.NoError(t, err, "BalanceL1 should not return an error")
-
-	tx, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
+	withdrawTx, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
 		To:     wallet.Address(),
 		Amount: amount,
 		Token:  utils.EthAddress,
 	})
 	assert.NoError(t, err, "Withdraw should not return an error")
 
-	receipt, err := client.WaitMined(context.Background(), tx.Hash())
+	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx.Hash())
 	assert.NoError(t, err, "client.WaitMined should not return an error")
-	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
+	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
+
+	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
+	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
+
+	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
+	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
+
+	finalizeWithdrawReceipt, err := bind.WaitMined(context.Background(), ethClient, finalizeWithdrawTx)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
 	l2BalanceAfterWithdrawal, err := wallet.Balance(context.Background(), utils.EthAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	//l1BalanceAfterWithdrawal, err := wallet.BalanceL1(nil, l1TokenAddress)
-	//assert.NoError(t, err, "BalanceL1 should not return an error")
-
 	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
-	//assert.True(t, new(big.Int).Sub(l1BalanceBeforeDeposit, l1BalanceAfterDeposit).Cmp(amount) >= 0, "Balance on L1 should be decreased")
 }
 
 func TestIntegrationWallet_WithdrawToken(t *testing.T) {
-	tokenData := readToken()
 	amount := big.NewInt(5)
-	//l1TokenAddress := common.HexToAddress(tokenData.L1Address)
-	l2TokenAddress := common.HexToAddress(tokenData.L2Address)
 
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
@@ -331,36 +446,39 @@ func TestIntegrationWallet_WithdrawToken(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	l2BalanceBeforeWithdrawal, err := wallet.Balance(context.Background(), l2TokenAddress, nil)
+	l2BalanceBeforeWithdrawal, err := wallet.Balance(context.Background(), L2Dai, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	//l1BalanceBeforeWithdrawal, err := wallet.BalanceL1(nil, l1TokenAddress)
-	//assert.NoError(t, err, "BalanceL1 should not return an error")
-
-	tx, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
+	withdrawTx, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
 		To:     wallet.Address(),
 		Amount: amount,
-		Token:  l2TokenAddress,
+		Token:  L2Dai,
 	})
 	assert.NoError(t, err, "Withdraw should not return an error")
 
-	receipt, err := client.WaitMined(context.Background(), tx.Hash())
+	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx.Hash())
 	assert.NoError(t, err, "client.WaitMined should not return an error")
-	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
+	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := wallet.Balance(context.Background(), l2TokenAddress, nil)
+	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
+	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
+
+	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
+	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
+
+	finalizeWithdrawReceipt, err := bind.WaitMined(context.Background(), ethClient, finalizeWithdrawTx)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
+
+	l2BalanceAfterWithdrawal, err := wallet.Balance(context.Background(), L2Dai, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	//l1BalanceAfterWithdrawal, err := wallet.BalanceL1(nil, l1TokenAddress)
-	//assert.NoError(t, err, "BalanceL1 should not return an error")
-
 	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
-	//assert.True(t, new(big.Int).Sub(l1BalanceBeforeDeposit, l1BalanceAfterDeposit).Cmp(amount) >= 0, "Balance on L1 should be decreased")
 }
 
 func TestIntegrationWallet_Transfer(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
-	receiver := common.HexToAddress(Receiver)
 
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
@@ -376,11 +494,11 @@ func TestIntegrationWallet_Transfer(t *testing.T) {
 	balanceBeforeTransferSender, err := wallet.Balance(context.Background(), utils.EthAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceBeforeTransferReceiver, err := client.BalanceAt(context.Background(), receiver, nil)
+	balanceBeforeTransferReceiver, err := client.BalanceAt(context.Background(), Receiver, nil)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	tx, err := wallet.Transfer(nil, accounts.TransferTransaction{
-		To:     receiver,
+		To:     Receiver,
 		Amount: amount,
 		Token:  utils.EthAddress,
 	})
@@ -401,10 +519,7 @@ func TestIntegrationWallet_Transfer(t *testing.T) {
 }
 
 func TestIntegrationWallet_TransferToken(t *testing.T) {
-	tokenData := readToken()
 	amount := big.NewInt(5)
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
-	receiver := common.HexToAddress(Receiver)
 
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
@@ -417,19 +532,19 @@ func TestIntegrationWallet_TransferToken(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	tokenContract, err := erc20.NewIERC20(tokenAddress, client)
+	tokenContract, err := erc20.NewIERC20(L2Dai, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	balanceBeforeTransferSender, err := wallet.Balance(context.Background(), tokenAddress, nil)
+	balanceBeforeTransferSender, err := wallet.Balance(context.Background(), L2Dai, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceBeforeTransferReceiver, err := tokenContract.BalanceOf(nil, receiver)
+	balanceBeforeTransferReceiver, err := tokenContract.BalanceOf(nil, Receiver)
 	assert.NoError(t, err, "BalanceOf should not return an error")
 
 	tx, err := wallet.Transfer(nil, accounts.TransferTransaction{
-		To:     receiver,
+		To:     Receiver,
 		Amount: amount,
-		Token:  tokenAddress,
+		Token:  L2Dai,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
@@ -437,19 +552,69 @@ func TestIntegrationWallet_TransferToken(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := wallet.Balance(context.Background(), tokenAddress, nil)
+	balanceAfterTransferSender, err := wallet.Balance(context.Background(), L2Dai, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceAfterTransferReceiver, err := tokenContract.BalanceOf(nil, receiver)
+	balanceAfterTransferReceiver, err := tokenContract.BalanceOf(nil, Receiver)
 	assert.NoError(t, err, "BalanceOf should not return an error")
 
 	assert.True(t, new(big.Int).Sub(balanceBeforeTransferSender, balanceAfterTransferSender).Cmp(amount) >= 0, "Sender balance should be decreased")
 	assert.True(t, new(big.Int).Sub(balanceAfterTransferReceiver, balanceBeforeTransferReceiver).Cmp(amount) >= 0, "Receiver balance should be increased")
 }
 
-func TestIntegrationWallet_SendTransaction(t *testing.T) {
-	tokenData := readToken()
+func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
 
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	nonce, err := wallet.Nonce(context.Background(), nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	tx := &types.Transaction712{
+		Nonce:     new(big.Int).SetUint64(nonce),
+		GasTipCap: big.NewInt(0),
+		GasFeeCap: big.NewInt(250_000_000),
+		Gas:       big.NewInt(154_379),
+		To:        &Receiver,
+		Value:     big.NewInt(7_000_000_000),
+		ChainID:   big.NewInt(270),
+		From:      &Address,
+		Data:      hexutil.Bytes{},
+		Meta: &types.Eip712Meta{
+			GasPerPubdata: utils.NewBig(50_000),
+		},
+	}
+
+	populatedTx, err := wallet.PopulateTransaction(context.Background(), accounts.Transaction{
+		To:    &Receiver,
+		Value: big.NewInt(7_000_000_000),
+	})
+
+	assert.NoError(t, err, "PopulateTransaction should not return an error")
+	assert.Equal(t, tx, populatedTx, "Transactions should be the same")
+}
+
+func TestIntegrationWallet_SignTransaction(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	signedTx, err := wallet.SignTransaction(&types.Transaction712{
+		To:    &Receiver,
+		Value: big.NewInt(1_000_000_000_000_000_000), // 1ETH
+	})
+
+	assert.NoError(t, err, "SignTransaction should not return an error")
+	assert.NotNil(t, signedTx, "Transactions should be nil")
+}
+
+func TestIntegrationWallet_SendTransaction(t *testing.T) {
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -460,12 +625,11 @@ func TestIntegrationWallet_SendTransaction(t *testing.T) {
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
 
-	approveTokenCalldata, err := tokenAbi.Pack("approve", common.HexToAddress(Receiver), big.NewInt(1))
+	approveTokenCalldata, err := tokenAbi.Pack("approve", Receiver, big.NewInt(1))
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 	txHash, err := wallet.SendTransaction(context.Background(), &accounts.Transaction{
-		To:   &tokenAddress,
+		To:   &L2Dai,
 		Data: approveTokenCalldata,
 	})
 	assert.NoError(t, err, "SendTransaction should not return an error")
@@ -489,6 +653,197 @@ func TestIntegrationWallet_DeployWithCreate(t *testing.T) {
 
 	hash, err := wallet.DeployWithCreate(nil, accounts.CreateTransaction{Bytecode: bytecode})
 	assert.NoError(t, err, "DeployWithCreate should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), hash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+
+	contractAddress := receipt.ContractAddress
+	assert.NotNil(t, contractAddress, "Contract should be deployed")
+}
+
+func TestIntegrationWallet_DeployWithCreateConstructor(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	bytecode, err := os.ReadFile("./testfiles/Incrementer.zbin")
+	assert.NoError(t, err, "ReadFile should not return an error")
+
+	abi, err := IncrementerMetaData.GetAbi()
+	assert.NoError(t, err, "GetAbi should not return an error")
+
+	constructor, err := abi.Pack("", big.NewInt(2))
+	assert.NoError(t, err, "Pack should not return an error")
+
+	hash, err := wallet.DeployWithCreate(nil, accounts.CreateTransaction{
+		Bytecode: bytecode,
+		Calldata: constructor,
+	})
+	assert.NoError(t, err, "DeployWithCreate should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), hash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+
+	contractAddress := receipt.ContractAddress
+	assert.NotNil(t, contractAddress, "Contract should be deployed")
+}
+
+func TestIntegrationWallet_DeployWithCreateDeps(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	demoBytecode, err := os.ReadFile("./testfiles/Demo.zbin")
+	assert.NoError(t, err, "ReadFile should not return an error")
+
+	fooBytecode, err := os.ReadFile("./testfiles/Foo.zbin")
+	assert.NoError(t, err, "ReadFile should not return an error")
+
+	hash, err := wallet.DeployWithCreate(nil, accounts.CreateTransaction{
+		Bytecode:     demoBytecode,
+		Dependencies: [][]byte{fooBytecode},
+	})
+
+	assert.NoError(t, err, "DeployWithCreate should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), hash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+
+	contractAddress := receipt.ContractAddress
+	assert.NotNil(t, contractAddress, "Contract should be deployed")
+}
+
+func TestIntegrationWallet_DeployWithCreateAccount(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testfiles/Paymaster.json")
+	assert.NoError(t, err, "ReadStandardJson should not return an error")
+
+	constructor, err := paymasterAbi.Pack("", L2Dai)
+	assert.NoError(t, err, "Pack should not return an error")
+
+	hash, err := wallet.DeployAccountWithCreate(nil, accounts.CreateTransaction{
+		Bytecode: bytecode,
+		Calldata: constructor,
+	})
+	assert.NoError(t, err, "DeployWithCreate should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), hash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+
+	contractAddress := receipt.ContractAddress
+	assert.NotNil(t, contractAddress, "Contract should be deployed")
+}
+
+func TestIntegrationWallet_Deploy(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	bytecode, err := os.ReadFile("./testfiles/Storage.zbin")
+	assert.NoError(t, err, "ReadFile should not return an error")
+
+	hash, err := wallet.Deploy(nil, accounts.Create2Transaction{Bytecode: bytecode})
+	assert.NoError(t, err, "Deploy should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), hash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+
+	contractAddress := receipt.ContractAddress
+	assert.NotNil(t, contractAddress, "Contract should be deployed")
+}
+
+func TestIntegrationWallet_DeployConstructor(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	bytecode, err := os.ReadFile("./testfiles/Incrementer.zbin")
+	assert.NoError(t, err, "ReadFile should not return an error")
+
+	abi, err := IncrementerMetaData.GetAbi()
+	assert.NoError(t, err, "GetAbi should not return an error")
+
+	constructor, err := abi.Pack("", big.NewInt(2))
+	assert.NoError(t, err, "Pack should not return an error")
+
+	hash, err := wallet.Deploy(nil, accounts.Create2Transaction{
+		Bytecode: bytecode,
+		Calldata: constructor,
+	})
+	assert.NoError(t, err, "Deploy should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), hash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+
+	contractAddress := receipt.ContractAddress
+	assert.NotNil(t, contractAddress, "Contract should be deployed")
+}
+
+func TestIntegrationWallet_DeployDeps(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	demoBytecode, err := os.ReadFile("./testfiles/Demo.zbin")
+	assert.NoError(t, err, "ReadFile should not return an error")
+
+	fooBytecode, err := os.ReadFile("./testfiles/Foo.zbin")
+	assert.NoError(t, err, "ReadFile should not return an error")
+
+	hash, err := wallet.Deploy(nil, accounts.Create2Transaction{
+		Bytecode:     demoBytecode,
+		Dependencies: [][]byte{fooBytecode},
+	})
+
+	assert.NoError(t, err, "Deploy should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), hash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+
+	contractAddress := receipt.ContractAddress
+	assert.NotNil(t, contractAddress, "Contract should be deployed")
+}
+
+func TestIntegrationWallet_DeployAccount(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testfiles/Paymaster.json")
+	assert.NoError(t, err, "ReadStandardJson should not return an error")
+
+	constructor, err := paymasterAbi.Pack("", L2Dai)
+	assert.NoError(t, err, "Pack should not return an error")
+
+	hash, err := wallet.Deploy(nil, accounts.Create2Transaction{
+		Bytecode: bytecode,
+		Calldata: constructor,
+	})
+	assert.NoError(t, err, "Deploy should not return an error")
 
 	receipt, err := client.WaitMined(context.Background(), hash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
