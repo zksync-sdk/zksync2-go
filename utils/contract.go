@@ -19,6 +19,7 @@ var (
 	ContractDeployerAddress = common.HexToAddress("0x0000000000000000000000000000000000008006")
 	L1MessengerAddress      = common.HexToAddress("0x0000000000000000000000000000000000008008")
 	L2EthTokenAddress       = common.HexToAddress("0x000000000000000000000000000000000000800a")
+	NonceHolderAddress      = common.HexToAddress("0x0000000000000000000000000000000000008003")
 
 	// L1ToL2AliasOffset Used for applying and undoing aliases on contract addresses during bridging from L1 to L2.
 	L1ToL2AliasOffset = common.HexToAddress("0x1111000000000000000000000000000000001111")
