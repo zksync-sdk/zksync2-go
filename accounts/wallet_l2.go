@@ -185,7 +185,7 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zk
 		tx.GasFeeCap = gasFeeCap
 	}
 	if tx.GasTipCap == nil {
-		tx.GasTipCap = big.NewInt(100_000_000) // TODO: Estimate correct one
+		tx.GasTipCap = big.NewInt(0)
 	}
 	if tx.Meta == nil {
 		tx.Meta = &zkTypes.Eip712Meta{GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())}
