@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -14,7 +13,6 @@ import (
 	zkTypes "github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
-	"strings"
 )
 
 // TransferCallMsg contains parameters for transfer call.
@@ -45,7 +43,8 @@ func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
 	} else {
 		value = big.NewInt(0)
 		to = &m.Token
-		erc20abi, err := abi.JSON(strings.NewReader(erc20.IERC20MetaData.ABI))
+
+		erc20abi, err := erc20.IERC20MetaData.GetAbi()
 		if err != nil {
 			return nil, fmt.Errorf("failed to load erc20abi: %w", err)
 		}
@@ -85,7 +84,7 @@ type WithdrawalCallMsg struct {
 
 func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereum.CallMsg, error) {
 	if m.Token == utils.EthAddress {
-		ethTokenAbi, err := abi.JSON(strings.NewReader(ethtoken.IEthTokenMetaData.ABI))
+		ethTokenAbi, err := ethtoken.IEthTokenMetaData.GetAbi()
 		if err != nil {
 			return nil, fmt.Errorf("failed to load ethTokenAbi: %w", err)
 		}
@@ -105,7 +104,7 @@ func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereu
 			Data:      data,
 		}, nil
 	} else {
-		l2BridgeAbi, err := abi.JSON(strings.NewReader(l2bridge.IL2BridgeMetaData.ABI))
+		l2BridgeAbi, err := l2bridge.IL2BridgeMetaData.GetAbi()
 		if err != nil {
 			return nil, fmt.Errorf("failed to load l2BridgeAbi: %w", err)
 		}

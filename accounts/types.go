@@ -407,9 +407,10 @@ func (t *Transaction) ToCallMsg(from common.Address) zkTypes.CallMsg {
 // TransferTransaction represents a transfer transaction on L2
 // initiated by the account associated with AdapterL2.
 type TransferTransaction struct {
-	To     common.Address // The address of the recipient.
-	Amount *big.Int       // The amount of the token to transfer.
-	Token  common.Address // The address of the token. ETH by default.
+	To              common.Address           // The address of the recipient.
+	Amount          *big.Int                 // The amount of the token to transfer.
+	Token           common.Address           // The address of the token. ETH by default.
+	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
 }
 
 func (t *TransferTransaction) ToTransaction(opts *TransactOpts) *Transaction {
@@ -439,9 +440,10 @@ func (t *TransferTransaction) ToTransferCallMsg(from common.Address, opts *Trans
 // WithdrawalTransaction represents a withdrawal transaction on L1 from L2
 // initiated by the account associated with AdapterL2.
 type WithdrawalTransaction struct {
-	To     common.Address // The address that will receive the withdrawn tokens on L1.
-	Token  common.Address // The address of the token to withdraw.
-	Amount *big.Int       // The amount of the token to withdraw.
+	To              common.Address           // The address that will receive the withdrawn tokens on L1.
+	Token           common.Address           // The address of the token to withdraw.
+	Amount          *big.Int                 // The amount of the token to withdraw.
+	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
 
 	// The address of the bridge contract to be used. Defaults to the default zkSync bridge
 	// (either L2EthBridge or L2Erc20Bridge).
