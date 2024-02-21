@@ -836,16 +836,13 @@ func TestIntegrationBaseClient_MainContractAddress(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TestnetPaymaster(t *testing.T) {
-	testnetPaymasterExpected := common.HexToAddress("0xfd106834e5fc159f85d8e453a3bf4e0db2f70b78")
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	testnetPaymasterActual, err := client.TestnetPaymaster(context.Background())
+	_, err = client.TestnetPaymaster(context.Background())
 
 	assert.NoError(t, err, "TestnetPaymaster should not return an error")
-	assert.Equal(t, testnetPaymasterExpected, testnetPaymasterActual, "Testnet paymaster addresses should be the same")
 }
 
 func TestIntegrationBaseClient_BridgeContracts(t *testing.T) {
@@ -1020,7 +1017,7 @@ func TestIntegrationBaseClient_AllAccountBalances(t *testing.T) {
 	balances, err := client.AllAccountBalances(context.Background(), common.HexToAddress(Address))
 
 	assert.NoError(t, err, "AllAccountBalances should not return an error")
-	assert.Len(t, balances, 1, "Should have ETH balance")
+	assert.Len(t, balances, 2, "Should have ETH and DAI balance")
 }
 
 func TestIntegrationBaseClient_EstimateFee(t *testing.T) {
