@@ -4,5 +4,5 @@ fetch-contracts:
 generate-contracts:
 	cd scripts/generate-contracts && ./execute.sh && cd ../..
 
-test:
+run-tests:
 	go test ./test/...

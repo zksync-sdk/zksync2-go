@@ -239,33 +239,29 @@ func TestIntegrationBaseClient_BalanceAt(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	balance, err := client.BalanceAt(context.Background(), common.HexToAddress(Address), nil)
+	balance, err := client.BalanceAt(context.Background(), Address, nil)
 
 	assert.NoError(t, err, "BalanceAt should not return an error")
 	assert.NotNil(t, balance, "BalanceAt should return a non-nil balance")
 }
 
 func TestIntegrationBaseClient_StorageAt(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	storage, err := client.StorageAt(context.Background(), common.HexToAddress(tokenData.L2Address), common.HexToHash("0"), nil)
+	storage, err := client.StorageAt(context.Background(), L2Dai, common.HexToHash("0"), nil)
 
 	assert.NoError(t, err, "StorageAt should not return an error")
 	assert.NotNil(t, storage, "StorageAt should return a non-nil storage slot")
 }
 
 func TestIntegrationBaseClient_CodeAt(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	code, err := client.CodeAt(context.Background(), common.HexToAddress(tokenData.L2Address), nil)
+	code, err := client.CodeAt(context.Background(), L2Dai, nil)
 
 	assert.NoError(t, err, "CodeAt should not return an error")
 	assert.NotNil(t, code, "CodeAt should return a non-nil bytecode")
@@ -276,15 +272,13 @@ func TestIntegrationBaseClient_NonceAt(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	nonce, err := client.NonceAt(context.Background(), common.HexToAddress(Address), nil)
+	nonce, err := client.NonceAt(context.Background(), Address, nil)
 
 	assert.NoError(t, err, "NonceAt should not return an error")
 	assert.NotNil(t, nonce, "NonceAt should return a non-nil nonce")
 }
 
 func TestIntegrationBaseClient_FilterLogs(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -292,7 +286,7 @@ func TestIntegrationBaseClient_FilterLogs(t *testing.T) {
 	logs, err := client.FilterLogs(context.Background(), ethereum.FilterQuery{
 		FromBlock: big.NewInt(0),
 		ToBlock:   big.NewInt(1000),
-		Addresses: []common.Address{common.HexToAddress(tokenData.L2Address)},
+		Addresses: []common.Address{L2Dai},
 	})
 
 	assert.NoError(t, err, "FilterLogs should not return an error")
@@ -300,8 +294,6 @@ func TestIntegrationBaseClient_FilterLogs(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_FilterLogsL2(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -309,7 +301,7 @@ func TestIntegrationBaseClient_FilterLogsL2(t *testing.T) {
 	logs, err := client.FilterLogsL2(context.Background(), ethereum.FilterQuery{
 		FromBlock: big.NewInt(0),
 		ToBlock:   big.NewInt(1000),
-		Addresses: []common.Address{common.HexToAddress(tokenData.L2Address)},
+		Addresses: []common.Address{L2Dai},
 	})
 
 	assert.NoError(t, err, "FilterLogsL2 should not return an error")
@@ -380,33 +372,29 @@ func TestIntegrationBaseClient_PendingBalanceAt(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	balance, err := client.PendingBalanceAt(context.Background(), common.HexToAddress(Address))
+	balance, err := client.PendingBalanceAt(context.Background(), Address)
 
 	assert.NoError(t, err, "PendingBalanceAt should not return an error")
 	assert.NotNil(t, balance, "PendingBalanceAt should return a non-nil balance")
 }
 
 func TestIntegrationBaseClient_PendingStorageAt(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	storage, err := client.PendingStorageAt(context.Background(), common.HexToAddress(tokenData.L2Address), common.HexToHash("0"))
+	storage, err := client.PendingStorageAt(context.Background(), L2Dai, common.HexToHash("0"))
 
 	assert.NoError(t, err, "PendingStorageAt should not return an error")
 	assert.NotNil(t, storage, "PendingStorageAt should return a non-nil storage slot")
 }
 
 func TestIntegrationBaseClient_PendingCodeAt(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	code, err := client.PendingCodeAt(context.Background(), common.HexToAddress(tokenData.L2Address))
+	code, err := client.PendingCodeAt(context.Background(), L2Dai)
 
 	assert.NoError(t, err, "PendingCodeAt should not return an error")
 	assert.NotNil(t, code, "PendingCodeAt should return a non-nil bytecode")
@@ -417,7 +405,7 @@ func TestIntegrationBaseClient_PendingNonceAt(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	nonce, err := client.PendingNonceAt(context.Background(), common.HexToAddress(Address))
+	nonce, err := client.PendingNonceAt(context.Background(), Address)
 
 	assert.NoError(t, err, "PendingNonceAt should not return an error")
 	assert.NotNil(t, nonce, "PendingNonceAt should return a non-nil nonce")
@@ -439,13 +427,9 @@ func TestIntegrationBaseClient_PendingNonceAt(t *testing.T) {
 //}
 
 func TestIntegrationBaseClient_CallContract(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
-
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
@@ -454,7 +438,7 @@ func TestIntegrationBaseClient_CallContract(t *testing.T) {
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
 	result, err := client.CallContract(context.Background(), ethereum.CallMsg{
-		To:   &tokenAddress,
+		To:   &L2Dai,
 		Data: symbolCalldata,
 	}, nil)
 	assert.NoError(t, err, "CallContract should not return an error")
@@ -467,13 +451,9 @@ func TestIntegrationBaseClient_CallContract(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_CallContractL2(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
-
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
@@ -483,7 +463,7 @@ func TestIntegrationBaseClient_CallContractL2(t *testing.T) {
 
 	result, err := client.CallContractL2(context.Background(), zkTypes.CallMsg{
 		CallMsg: ethereum.CallMsg{
-			To:   &tokenAddress,
+			To:   &L2Dai,
 			Data: symbolCalldata,
 		},
 	}, nil)
@@ -497,13 +477,9 @@ func TestIntegrationBaseClient_CallContractL2(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_CallContractAtHash(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
-
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
@@ -515,7 +491,7 @@ func TestIntegrationBaseClient_CallContractAtHash(t *testing.T) {
 	assert.NoError(t, err, "BlockByNumber should not return an error")
 
 	result, err := client.CallContractAtHash(context.Background(), ethereum.CallMsg{
-		To:   &tokenAddress,
+		To:   &L2Dai,
 		Data: symbolCalldata,
 	}, block.Hash)
 	assert.NoError(t, err, "CallContractAtHash should not return an error")
@@ -528,13 +504,9 @@ func TestIntegrationBaseClient_CallContractAtHash(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_CallContractAtHashL2(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
-
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
@@ -547,7 +519,7 @@ func TestIntegrationBaseClient_CallContractAtHashL2(t *testing.T) {
 
 	result, err := client.CallContractAtHashL2(context.Background(), zkTypes.CallMsg{
 		CallMsg: ethereum.CallMsg{
-			To:   &tokenAddress,
+			To:   &L2Dai,
 			Data: symbolCalldata,
 		},
 	}, block.Hash)
@@ -561,13 +533,9 @@ func TestIntegrationBaseClient_CallContractAtHashL2(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_PendingCallContract(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
-
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
@@ -576,7 +544,7 @@ func TestIntegrationBaseClient_PendingCallContract(t *testing.T) {
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
 	result, err := client.PendingCallContract(context.Background(), ethereum.CallMsg{
-		To:   &tokenAddress,
+		To:   &L2Dai,
 		Data: symbolCalldata,
 	})
 	assert.NoError(t, err, "PendingCallContract should not return an error")
@@ -589,13 +557,9 @@ func TestIntegrationBaseClient_PendingCallContract(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
-
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
@@ -605,7 +569,7 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 
 	result, err := client.PendingCallContractL2(context.Background(), zkTypes.CallMsg{
 		CallMsg: ethereum.CallMsg{
-			To:   &tokenAddress,
+			To:   &L2Dai,
 			Data: symbolCalldata,
 		},
 	})
@@ -641,8 +605,6 @@ func TestIntegrationBaseClient_SuggestGasTipCap(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_EstimateGas(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -650,13 +612,12 @@ func TestIntegrationBaseClient_EstimateGas(t *testing.T) {
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
 
-	approveTokenCalldata, err := tokenAbi.Pack("approve", common.HexToAddress(Receiver), big.NewInt(1))
+	approveTokenCalldata, err := tokenAbi.Pack("approve", Receiver, big.NewInt(1))
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 	gas, err := client.EstimateGas(context.Background(), ethereum.CallMsg{
-		From: common.HexToAddress(Address),
-		To:   &tokenAddress,
+		From: Address,
+		To:   &L2Dai,
 		Data: approveTokenCalldata,
 	})
 
@@ -665,8 +626,6 @@ func TestIntegrationBaseClient_EstimateGas(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_EstimateGasL2(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -674,14 +633,13 @@ func TestIntegrationBaseClient_EstimateGasL2(t *testing.T) {
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
 
-	approveTokenCalldata, err := tokenAbi.Pack("approve", common.HexToAddress(Receiver), big.NewInt(1))
+	approveTokenCalldata, err := tokenAbi.Pack("approve", Receiver, big.NewInt(1))
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 	gas, err := client.EstimateGasL2(context.Background(), zkTypes.CallMsg{
 		CallMsg: ethereum.CallMsg{
-			From: common.HexToAddress(Address),
-			To:   &tokenAddress,
+			From: Address,
+			To:   &L2Dai,
 			Data: approveTokenCalldata,
 		},
 	})
@@ -691,8 +649,6 @@ func TestIntegrationBaseClient_EstimateGasL2(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -700,24 +656,22 @@ func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
 	privateKey, err := crypto.HexToECDSA(PrivateKey)
 	assert.NoError(t, err, "crypto.HexToECDSA should not return an error")
 
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
-
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
 
-	approveTokenCalldata, err := tokenAbi.Pack("approve", common.HexToAddress(Receiver), big.NewInt(1))
+	approveTokenCalldata, err := tokenAbi.Pack("approve", Receiver, big.NewInt(1))
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
 	chainID, err := client.ChainID(context.Background())
 	assert.NoError(t, err, "ChainID should not return an error")
 
-	nonce, err := client.NonceAt(context.Background(), common.HexToAddress(Address), nil)
+	nonce, err := client.NonceAt(context.Background(), Address, nil)
 	assert.NoError(t, err, "NonceAt should not return an error")
 
 	gas, err := client.EstimateGasL2(context.Background(), zkTypes.CallMsg{
 		CallMsg: ethereum.CallMsg{
-			From: common.HexToAddress(Address),
-			To:   &tokenAddress,
+			From: Address,
+			To:   &L2Dai,
 			Data: approveTokenCalldata,
 		},
 	})
@@ -728,7 +682,7 @@ func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
 
 	transaction := types.NewTx(
 		&types.DynamicFeeTx{
-			To:        &tokenAddress,
+			To:        &L2Dai,
 			Nonce:     nonce,
 			Gas:       gas,
 			GasFeeCap: gasPrice,
@@ -748,8 +702,6 @@ func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_SendRawTransaction(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -760,12 +712,11 @@ func TestIntegrationBaseClient_SendRawTransaction(t *testing.T) {
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
 
-	approveTokenCalldata, err := tokenAbi.Pack("approve", common.HexToAddress(Receiver), big.NewInt(1))
+	approveTokenCalldata, err := tokenAbi.Pack("approve", Receiver, big.NewInt(1))
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	tokenAddress := common.HexToAddress(tokenData.L2Address)
 	tx, err := w.PopulateTransaction(context.Background(), accounts.Transaction{
-		To:   &tokenAddress,
+		To:   &L2Dai,
 		Data: approveTokenCalldata,
 	})
 	assert.NoError(t, err, "PopulateTransaction should not return an error")
@@ -791,7 +742,7 @@ func TestIntegrationBaseClient_WaitMined(t *testing.T) {
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	tx, err := w.Transfer(nil, accounts.TransferTransaction{
-		To:     common.HexToAddress(Receiver),
+		To:     Receiver,
 		Amount: big.NewInt(7_000_000_000),
 		Token:  utils.EthAddress,
 	})
@@ -812,7 +763,7 @@ func TestIntegrationBaseClient_WaitFinalized(t *testing.T) {
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	tx, err := w.Transfer(nil, accounts.TransferTransaction{
-		To:     common.HexToAddress(Receiver),
+		To:     Receiver,
 		Amount: big.NewInt(7_000_000_000),
 		Token:  utils.EthAddress,
 	})
@@ -857,13 +808,11 @@ func TestIntegrationBaseClient_BridgeContracts(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_ContractAccountInfo(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	accountInfo, err := client.ContractAccountInfo(context.Background(), common.HexToAddress(tokenData.L2Address))
+	accountInfo, err := client.ContractAccountInfo(context.Background(), L2Dai)
 
 	assert.NoError(t, err, "ContractAccountInfo should not return an error")
 	assert.NotNil(t, accountInfo, "ContractAccountInfo should return a non-nil account information")
@@ -934,13 +883,11 @@ func TestIntegrationBaseClient_BlockDetails(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TransactionDetails(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	txTmp, _, err := client.TransactionByHash(context.Background(), common.HexToHash(tokenData.L2TxHash))
+	txTmp, _, err := client.TransactionByHash(context.Background(), L2DepositTx)
 	assert.NoError(t, err, "TransactionByHash should not return an error")
 
 	tx, err := client.TransactionInBlock(context.Background(), *txTmp.BlockHash, 0)
@@ -964,8 +911,6 @@ func TestIntegrationBaseClient_TransactionDetails(t *testing.T) {
 //}
 
 func TestIntegrationBaseClient_L2TransactionFromPriorityOp(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -974,7 +919,7 @@ func TestIntegrationBaseClient_L2TransactionFromPriorityOp(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	l1Receipt, err := ethClient.TransactionReceipt(context.Background(), common.HexToHash(tokenData.L1TxHash))
+	l1Receipt, err := ethClient.TransactionReceipt(context.Background(), L1DepositTx)
 	assert.NoError(t, err, "ethclient.TransactionReceipt should not return an error")
 
 	l2Tx, err := client.L2TransactionFromPriorityOp(context.Background(), l1Receipt)
@@ -984,29 +929,25 @@ func TestIntegrationBaseClient_L2TransactionFromPriorityOp(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_L2TokenAddress(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	l2Address, err := client.L2TokenAddress(context.Background(), common.HexToAddress(tokenData.L1Address))
+	l2Address, err := client.L2TokenAddress(context.Background(), L1Dai)
 
 	assert.NoError(t, err, "L2TokenAddress should not return an error")
-	assert.Equal(t, common.HexToAddress(tokenData.L2Address), l2Address, "L2 token addresses should be the same")
+	assert.Equal(t, L2Dai, l2Address, "L2 token addresses should be the same")
 }
 
 func TestIntegrationBaseClient_L1TokenAddress(t *testing.T) {
-	tokenData := readToken()
-
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	l1Address, err := client.L1TokenAddress(context.Background(), common.HexToAddress(tokenData.L2Address))
+	l1Address, err := client.L1TokenAddress(context.Background(), L2Dai)
 
 	assert.NoError(t, err, "L1TokenAddress should not return an error")
-	assert.Equal(t, common.HexToAddress(tokenData.L1Address), l1Address, "L1 token addresses should be the same")
+	assert.Equal(t, L1Dai, l1Address, "L1 token addresses should be the same")
 }
 
 func TestIntegrationBaseClient_AllAccountBalances(t *testing.T) {
@@ -1014,7 +955,7 @@ func TestIntegrationBaseClient_AllAccountBalances(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	balances, err := client.AllAccountBalances(context.Background(), common.HexToAddress(Address))
+	balances, err := client.AllAccountBalances(context.Background(), Address)
 
 	assert.NoError(t, err, "AllAccountBalances should not return an error")
 	assert.Len(t, balances, 2, "Should have ETH and DAI balance")
@@ -1025,11 +966,10 @@ func TestIntegrationBaseClient_EstimateFee(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	receiver := common.HexToAddress(Receiver)
 	fee, err := client.EstimateFee(context.Background(), zkTypes.CallMsg{
 		CallMsg: ethereum.CallMsg{
-			From:  common.HexToAddress(Address),
-			To:    &receiver,
+			From:  Address,
+			To:    &Receiver,
 			Value: big.NewInt(7_000_000_000),
 		},
 	})
@@ -1043,11 +983,10 @@ func TestIntegrationBaseClient_EstimateGasL1(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	receiver := common.HexToAddress(Receiver)
 	gas, err := client.EstimateGasL1(context.Background(), zkTypes.CallMsg{
 		CallMsg: ethereum.CallMsg{
-			From:  common.HexToAddress(Address),
-			To:    &receiver,
+			From:  Address,
+			To:    &Receiver,
 			Value: big.NewInt(7_000_000_000),
 		},
 		Meta: &zkTypes.Eip712Meta{
@@ -1065,8 +1004,8 @@ func TestIntegrationBaseClient_EstimateGasTransfer(t *testing.T) {
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
 	gas, err := client.EstimateGasTransfer(context.Background(), clients.TransferCallMsg{
-		From:   common.HexToAddress(Address),
-		To:     common.HexToAddress(Receiver),
+		From:   Address,
+		To:     Receiver,
 		Amount: big.NewInt(7_000_000_000),
 	})
 
@@ -1080,8 +1019,8 @@ func TestIntegrationBaseClient_EstimateGasWithdraw(t *testing.T) {
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
 	gas, err := client.EstimateGasWithdraw(context.Background(), clients.WithdrawalCallMsg{
-		From:   common.HexToAddress(Address),
-		To:     common.HexToAddress(Receiver),
+		From:   Address,
+		To:     Receiver,
 		Amount: big.NewInt(7_000_000_000),
 	})
 
@@ -1099,7 +1038,7 @@ func TestIntegrationBaseClient_EstimateL1ToL2Execute(t *testing.T) {
 
 	gas, err := client.EstimateL1ToL2Execute(context.Background(), zkTypes.CallMsg{
 		CallMsg: ethereum.CallMsg{
-			From:  common.HexToAddress(Address),
+			From:  Address,
 			To:    &mainContractAddress,
 			Value: big.NewInt(7_000_000_000),
 		},
