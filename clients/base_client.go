@@ -754,3 +754,13 @@ func (c *BaseClient) getBlock(ctx context.Context, method string, args ...interf
 		L1BatchTimestamp: block.L1BatchTimestamp.ToInt(),
 	}, nil
 }
+
+// Proof Returns Merkle proofs for one or more storage values at the specified account along with a Merkle proof of their authenticity.
+func (c *BaseClient) Proof(ctx context.Context, address common.Address, keys []common.Hash, l1BatchNumber *big.Int) (*zkTypes.StorageProof, error) {
+	var res zkTypes.StorageProof
+	err := c.rpcClient.CallContext(ctx, &res, "zks_getProof", address, keys, l1BatchNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getProof: %w", err)
+	}
+	return &res, nil
+}
