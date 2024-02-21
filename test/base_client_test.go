@@ -899,17 +899,6 @@ func TestIntegrationBaseClient_TransactionDetails(t *testing.T) {
 	assert.NotNil(t, txDetails, "TransactionDetails should return a non-nil block details")
 }
 
-//func TestIntegrationBaseClient_LogProof(t *testing.T) {
-//	client, err := clients.Dial(ZkSyncEraProvider)
-//	defer client.Close()
-//	assert.NoError(t, err, "clients.Dial should not return an error")
-//
-//	logProof, err := client.LogProof(context.Background())
-//
-//	assert.NoError(t, err, "LogProof should not return an error")
-//	assert.NotNil(t, logProof, "LogProof should return a non-nil block range")
-//}
-
 func TestIntegrationBaseClient_L2TransactionFromPriorityOp(t *testing.T) {
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
@@ -1047,3 +1036,34 @@ func TestIntegrationBaseClient_EstimateL1ToL2Execute(t *testing.T) {
 	assert.NoError(t, err, "EstimateL1ToL2Execute should not return an error")
 	assert.Greater(t, gas, uint64(0), "EstimateL1ToL2Execute should return a positive number")
 }
+
+//func TestIntegrationBaseClient_Proof(t *testing.T) {
+//	client, err := clients.Dial(ZkSyncEraProvider)
+//	defer client.Close()
+//	assert.NoError(t, err, "clients.Dial should not return an error")
+//
+//	baseClient, ok := client.(*clients.BaseClient)
+//	assert.True(t, ok, "Casting should not return error")
+//
+//	addressPadded := common.LeftPadBytes(Address.Bytes(), 32)
+//
+//	// Convert the slot number to a hex string and pad it to 32 bytes
+//	slotBytes := common.Hex2Bytes("0x00") // slot with index 0
+//	slotPadded := common.LeftPadBytes(slotBytes, 32)
+//
+//	// Concatenate the padded address and slot number
+//	concatenated := append(addressPadded, slotPadded...)
+//	storageKey := crypto.Keccak256(concatenated)
+//
+//	l1BatchNumber, err := client.L1BatchNumber(context.Background())
+//	assert.NoError(t, err, "L1BatchNumber should not return an error")
+//
+//	storageProof, err := baseClient.Proof(
+//		context.Background(),
+//		utils.NonceHolderAddress,
+//		[]common.Hash{common.BytesToHash(storageKey)},
+//		l1BatchNumber)
+//
+//	assert.NoError(t, err, "Proof should not return an error")
+//	assert.NotNil(t, storageProof, "Proof should return a non-nil value")
+//}
