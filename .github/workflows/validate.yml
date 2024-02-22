@@ -1,7 +1,7 @@
 name: Validate
 on:
   pull_request:
-    branch: main
+    branches: [main]
     types: [ opened, reopened, synchronize ]
 
 permissions:
@@ -18,18 +18,8 @@ jobs:
           fetch-depth: 0
       - name: Install Go
         uses: actions/setup-go@v5.0.0
-      - name: Run gofmt
-        run: |
-          fmt_output=$(gofmt -l .)
-
-          if [ -n "$fmt_output" ]; then
-            echo "Code not formatted correctly:"
-            echo "$fmt_output"
-            exit 1
-          else
-            echo "Code is formatted correctly"
-            exit 0
-          fi
+      - name: Check code
+        run:  make check-format
   commits:
     name: Check commits
     runs-on: ubuntu-latest
