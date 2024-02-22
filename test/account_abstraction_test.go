@@ -58,7 +58,7 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 
 	// ===== Deploy Paymaster =====
-	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testfiles/Paymaster.json")
+	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testdata/Paymaster.json")
 	assert.NoError(t, err, "ReadStandardJson should not return an error")
 
 	paymasterConstructor, err := paymasterAbi.Pack("", tokenAddress)
