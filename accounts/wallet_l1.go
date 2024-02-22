@@ -272,7 +272,7 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 		recommendedETHBalance.Mul(recommendedETHBalance, gasPriceForEstimation)
 		recommendedETHBalance.Add(recommendedETHBalance, baseCost)
 		return nil, fmt.Errorf("not enough balance for deposit. Under the provided gas price, "+
-			"the recommended balance to perform a deposit is %w ETH", recommendedETHBalance)
+			"the recommended balance to perform a deposit is %v ETH", recommendedETHBalance)
 	}
 
 	// For ETH token the value that the user passes to the estimation is the one which has the
