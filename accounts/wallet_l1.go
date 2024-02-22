@@ -279,7 +279,17 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 	// value for the L2 commission subtracted.
 	amountForEstimation := big.NewInt(dummyAmount.Int64())
 	if msg.Token != utils.EthAddress {
-		allowance, errAllowance := a.AllowanceL1(nil, msg.Token, *msg.BridgeAddress)
+		var bridgeAddress common.Address
+		if msg.BridgeAddress == nil {
+			contracts, errContracts := (*a.clientL2).BridgeContracts(ensureContext(ctx))
+			if errContracts != nil {
+				return nil, errContracts
+			}
+			bridgeAddress = contracts.L1Erc20DefaultBridge
+		} else {
+			bridgeAddress = *msg.BridgeAddress
+		}
+		allowance, errAllowance := a.AllowanceL1(nil, msg.Token, bridgeAddress)
 		if errAllowance != nil {
 			return nil, errAllowance
 		}
