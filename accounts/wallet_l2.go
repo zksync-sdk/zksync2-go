@@ -11,6 +11,7 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
 	"github.com/zksync-sdk/zksync2-go/contracts/ethtoken"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/nonceholder"
 	zkTypes "github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
@@ -102,6 +103,16 @@ func (a *WalletL2) AllBalances(ctx context.Context) (map[common.Address]*big.Int
 
 func (a *WalletL2) L2BridgeContracts(_ context.Context) (*zkTypes.L2BridgeContracts, error) {
 	return &zkTypes.L2BridgeContracts{Erc20: a.defaultL2Bridge}, nil
+}
+
+// DeploymentNonce fetch the deployment nonce of the account.
+func (a *WalletL2) DeploymentNonce(opts *CallOpts) (*big.Int, error) {
+	callOpts := ensureCallOpts(opts).ToCallOpts(a.auth.From)
+	nonceHolder, err := nonceholder.NewINonceHolder(utils.NonceHolderAddress, *a.client)
+	if err != nil {
+		return nil, err
+	}
+	return nonceHolder.GetDeploymentNonce(callOpts, a.Address())
 }
 
 func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*types.Transaction, error) {

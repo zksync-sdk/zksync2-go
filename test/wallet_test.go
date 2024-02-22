@@ -499,6 +499,24 @@ func TestIntegrationWallet_L2BridgeContracts(t *testing.T) {
 	assert.NotNil(t, bridges, "L2BridgeContracts should return bridges")
 }
 
+func TestIntegrationWallet_DeploymentNonce(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWalletL2(common.Hex2Bytes(PrivateKey), &client)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	deploymentNonce, err := wallet.DeploymentNonce(nil)
+
+	assert.NoError(t, err, "DeploymentNonce should not return an error")
+	assert.True(t, deploymentNonce.Cmp(big.NewInt(0)) >= 0, "Deployment nonce should be non-negative number")
+}
+
 func TestIntegrationWallet_Withdraw(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
