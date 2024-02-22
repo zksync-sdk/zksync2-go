@@ -6,3 +6,9 @@ generate-contracts:
 
 run-tests:
 	go test ./test/...
+
+check-format:
+	cd scripts/ && ./check-format.sh && cd ../..
+
+format:
+	gofmt -w .
