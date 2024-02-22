@@ -265,6 +265,118 @@ func TestIntegrationWallet_DepositToken(t *testing.T) {
 	assert.True(t, new(big.Int).Sub(l1BalanceBeforeDeposit, l1BalanceAfterDeposit).Cmp(amount) >= 0, "Balance on L1 should be decreased")
 }
 
+func TestIntegrationWallet_FullRequiredDepositFeeETH(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	feeData := &accounts.FullDepositFee{
+		MaxFeePerGas:         big.NewInt(1_500_000_010),
+		MaxPriorityFeePerGas: big.NewInt(1_500_000_000),
+		BaseCost:             big.NewInt(289_770_500_000_000),
+		L1GasLimit:           big.NewInt(22_792),
+		L2GasLimit:           big.NewInt(579_541),
+	}
+
+	depositFee, err := wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
+		Token: utils.EthAddress,
+		To:    Receiver,
+	})
+
+	assert.NoError(t, err, "FullRequiredDepositFee should not return an error")
+	assert.Equal(t, feeData, depositFee, "Fees should be the same")
+}
+
+func TestIntegrationWallet_FullRequiredDepositFeeNotEnoughBalance(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	chainId, err := client.ChainID(context.Background())
+	assert.NoError(t, err, "ChainID should not return an error")
+
+	wallet, err := accounts.NewRandomWallet(chainId.Int64(), &client, ethClient)
+	assert.NoError(t, err, "NewRandomWallet should not return an error")
+
+	_, err = wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
+		Token: utils.EthAddress,
+		To:    Receiver,
+	})
+
+	assert.Error(t, err, "Should throw error when there is not enough balance")
+	assert.Contains(t, err.Error(), "not enough balance for deposit")
+}
+
+func TestIntegrationWallet_FullRequiredDepositFeeTokenNotEnoughAllowance(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	_, err = wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
+		Token: L1Dai,
+		To:    Address,
+	})
+
+	assert.Error(t, err, "Should throw error when there is not enough allowance")
+	assert.EqualError(t, err, "not enough allowance to cover the deposit")
+}
+
+func TestIntegrationWallet_FullRequiredDepositFeeToken(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	feeData := &accounts.FullDepositFee{
+		MaxFeePerGas:         big.NewInt(1_500_000_010),
+		MaxPriorityFeePerGas: big.NewInt(1_500_000_000),
+		BaseCost:             big.NewInt(288992000000000),
+		L1GasLimit:           big.NewInt(210_981),
+		L2GasLimit:           big.NewInt(577984),
+	}
+
+	bridgeContracts, err := client.BridgeContracts(context.Background())
+	assert.NoError(t, err, "BridgeContracts should not return an error")
+
+	approveTx, err := wallet.ApproveERC20(nil, L1Dai, big.NewInt(5), bridgeContracts.L1Erc20DefaultBridge)
+	assert.NoError(t, err, "ApproveERC20 should not return an error")
+
+	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+
+	depositFee, err := wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
+		Token: L1Dai,
+		To:    Address,
+	})
+
+	assert.NoError(t, err, "FullRequiredDepositFee should not return an error")
+	assert.Equal(t, feeData, depositFee, "Fees should be the same")
+}
+
 func TestIntegrationWallet_RequestExecute(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
