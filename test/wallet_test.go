@@ -778,7 +778,7 @@ func TestIntegrationWallet_DeployWithCreate(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	bytecode, err := os.ReadFile("./testfiles/Storage.zbin")
+	bytecode, err := os.ReadFile("./testdata/Storage.zbin")
 	assert.NoError(t, err, "ReadFile should not return an error")
 
 	hash, err := wallet.DeployWithCreate(nil, accounts.CreateTransaction{Bytecode: bytecode})
@@ -799,7 +799,7 @@ func TestIntegrationWallet_DeployWithCreateConstructor(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	bytecode, err := os.ReadFile("./testfiles/Incrementer.zbin")
+	bytecode, err := os.ReadFile("./testdata/Incrementer.zbin")
 	assert.NoError(t, err, "ReadFile should not return an error")
 
 	abi, err := IncrementerMetaData.GetAbi()
@@ -829,10 +829,10 @@ func TestIntegrationWallet_DeployWithCreateDeps(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	demoBytecode, err := os.ReadFile("./testfiles/Demo.zbin")
+	demoBytecode, err := os.ReadFile("./testdata/Demo.zbin")
 	assert.NoError(t, err, "ReadFile should not return an error")
 
-	fooBytecode, err := os.ReadFile("./testfiles/Foo.zbin")
+	fooBytecode, err := os.ReadFile("./testdata/Foo.zbin")
 	assert.NoError(t, err, "ReadFile should not return an error")
 
 	hash, err := wallet.DeployWithCreate(nil, accounts.CreateTransaction{
@@ -857,7 +857,7 @@ func TestIntegrationWallet_DeployWithCreateAccount(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testfiles/Paymaster.json")
+	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testdata/Paymaster.json")
 	assert.NoError(t, err, "ReadStandardJson should not return an error")
 
 	constructor, err := paymasterAbi.Pack("", L2Dai)
@@ -884,7 +884,7 @@ func TestIntegrationWallet_Deploy(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	bytecode, err := os.ReadFile("./testfiles/Storage.zbin")
+	bytecode, err := os.ReadFile("./testdata/Storage.zbin")
 	assert.NoError(t, err, "ReadFile should not return an error")
 
 	hash, err := wallet.Deploy(nil, accounts.Create2Transaction{Bytecode: bytecode})
@@ -905,7 +905,7 @@ func TestIntegrationWallet_DeployConstructor(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	bytecode, err := os.ReadFile("./testfiles/Incrementer.zbin")
+	bytecode, err := os.ReadFile("./testdata/Incrementer.zbin")
 	assert.NoError(t, err, "ReadFile should not return an error")
 
 	abi, err := IncrementerMetaData.GetAbi()
@@ -935,10 +935,10 @@ func TestIntegrationWallet_DeployDeps(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	demoBytecode, err := os.ReadFile("./testfiles/Demo.zbin")
+	demoBytecode, err := os.ReadFile("./testdata/Demo.zbin")
 	assert.NoError(t, err, "ReadFile should not return an error")
 
-	fooBytecode, err := os.ReadFile("./testfiles/Foo.zbin")
+	fooBytecode, err := os.ReadFile("./testdata/Foo.zbin")
 	assert.NoError(t, err, "ReadFile should not return an error")
 
 	hash, err := wallet.Deploy(nil, accounts.Create2Transaction{
@@ -963,7 +963,7 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testfiles/Paymaster.json")
+	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testdata/Paymaster.json")
 	assert.NoError(t, err, "ReadStandardJson should not return an error")
 
 	constructor, err := paymasterAbi.Pack("", L2Dai)

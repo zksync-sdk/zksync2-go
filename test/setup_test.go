@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-const TokenPath = "./testfiles/tokens.json"
+const TokenPath = "./testdata/tokens.json"
 
 func readTokens() []TokenData {
 	file, err := os.Open(TokenPath)
