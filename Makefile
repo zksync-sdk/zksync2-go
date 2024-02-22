@@ -5,7 +5,7 @@ generate-contracts:
 	cd scripts/generate-contracts && ./execute.sh && cd ../..
 
 run-tests:
-	go test ./test/...
+	go test ./utils ./test
 
 check-format:
 	cd scripts/ && ./check-format.sh && cd ../..
