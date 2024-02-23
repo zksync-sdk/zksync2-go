@@ -224,7 +224,12 @@ func (c *BaseClient) PendingTransactionCount(ctx context.Context) (uint, error) 
 }
 
 func (c *BaseClient) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
-	return c.ethClient.CallContract(ctx, msg, blockNumber)
+	var hex hexutil.Bytes
+	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", toCallArg(msg), toBlockNumArg(blockNumber))
+	if err != nil {
+		return nil, err
+	}
+	return hex, nil
 }
 
 func (c *BaseClient) CallContractL2(ctx context.Context, msg zkTypes.CallMsg, blockNumber *big.Int) ([]byte, error) {
@@ -237,7 +242,12 @@ func (c *BaseClient) CallContractL2(ctx context.Context, msg zkTypes.CallMsg, bl
 }
 
 func (c *BaseClient) CallContractAtHash(ctx context.Context, msg ethereum.CallMsg, blockHash common.Hash) ([]byte, error) {
-	return c.ethClient.CallContractAtHash(ctx, msg, blockHash)
+	var hex hexutil.Bytes
+	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", toCallArg(msg), rpc.BlockNumberOrHashWithHash(blockHash, false))
+	if err != nil {
+		return nil, err
+	}
+	return hex, nil
 }
 
 func (c *BaseClient) CallContractAtHashL2(ctx context.Context, msg zkTypes.CallMsg, blockHash common.Hash) ([]byte, error) {
@@ -250,7 +260,12 @@ func (c *BaseClient) CallContractAtHashL2(ctx context.Context, msg zkTypes.CallM
 }
 
 func (c *BaseClient) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {
-	return c.ethClient.PendingCallContract(ctx, msg)
+	var hex hexutil.Bytes
+	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", toCallArg(msg), "pending")
+	if err != nil {
+		return nil, err
+	}
+	return hex, nil
 }
 
 func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.CallMsg) ([]byte, error) {
@@ -271,7 +286,12 @@ func (c *BaseClient) SuggestGasTipCap(_ context.Context) (*big.Int, error) {
 }
 
 func (c *BaseClient) EstimateGas(ctx context.Context, call ethereum.CallMsg) (uint64, error) {
-	return c.ethClient.EstimateGas(ctx, call)
+	var hex hexutil.Uint64
+	err := c.rpcClient.CallContext(ctx, &hex, "eth_estimateGas", toCallArg(call))
+	if err != nil {
+		return 0, err
+	}
+	return uint64(hex), nil
 }
 
 func (c *BaseClient) EstimateGasL2(ctx context.Context, msg zkTypes.CallMsg) (uint64, error) {
@@ -725,24 +745,26 @@ func (c *BaseClient) getBlock(ctx context.Context, method string, args ...interf
 
 	return &zkTypes.Block{
 		Header: &types.Header{
-			ParentHash:      block.ParentHash,
-			UncleHash:       block.UncleHash,
-			Coinbase:        block.Coinbase,
-			Root:            block.Root,
-			TxHash:          block.TxHash,
-			ReceiptHash:     block.ReceiptHash,
-			Bloom:           block.Bloom,
-			Difficulty:      block.Difficulty.ToInt(),
-			Number:          block.Number.ToInt(),
-			GasLimit:        uint64(block.GasLimit),
-			GasUsed:         uint64(block.GasUsed),
-			Time:            uint64(block.Time),
-			Extra:           block.Extra,
-			MixDigest:       block.MixDigest,
-			Nonce:           block.Nonce,
-			BaseFee:         block.BaseFee.ToInt(),
-			WithdrawalsHash: nil,
-			ExcessDataGas:   block.ExcessDataGas.ToInt(),
+			ParentHash:       block.ParentHash,
+			UncleHash:        block.UncleHash,
+			Coinbase:         block.Coinbase,
+			Root:             block.Root,
+			TxHash:           block.TxHash,
+			ReceiptHash:      block.ReceiptHash,
+			Bloom:            block.Bloom,
+			Difficulty:       block.Difficulty.ToInt(),
+			Number:           block.Number.ToInt(),
+			GasLimit:         uint64(block.GasLimit),
+			GasUsed:          uint64(block.GasUsed),
+			Time:             uint64(block.Time),
+			Extra:            block.Extra,
+			MixDigest:        block.MixDigest,
+			Nonce:            block.Nonce,
+			BaseFee:          block.BaseFee.ToInt(),
+			WithdrawalsHash:  nil,
+			BlobGasUsed:      nil,
+			ExcessBlobGas:    nil,
+			ParentBeaconRoot: nil,
 		},
 		Uncles:           uncles,
 		Transactions:     block.Transactions,
@@ -763,4 +785,16 @@ func (c *BaseClient) Proof(ctx context.Context, address common.Address, keys []c
 		return nil, fmt.Errorf("failed to query zks_getProof: %w", err)
 	}
 	return &res, nil
+}
+
+func generateRandomAddress() (common.Address, error) {
+	privateKey, err := crypto.GenerateKey()
+	if err != nil {
+		return common.Address{}, fmt.Errorf("failed to generate radnom private key: %w", err)
+	}
+	publicKey, ok := privateKey.Public().(*ecdsa.PublicKey)
+	if !ok {
+		return common.Address{}, fmt.Errorf("failed to convert public key to ECDSA")
+	}
+	return crypto.PubkeyToAddress(*publicKey), nil
 }
