@@ -5,7 +5,7 @@
 
 docker create -it --name abigen \
 	--entrypoint /usr/local/bin/entrypoint.sh \
-	ethereum/client-go:alltools-v1.12.2
+	ethereum/client-go:alltools-v1.13.13
 
 docker cp ../../abi abigen:/abi
 docker cp entrypoint.sh abigen:/usr/local/bin/entrypoint.sh
