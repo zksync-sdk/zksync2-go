@@ -17,6 +17,25 @@ import (
 	"testing"
 )
 
+func TestIntegration_NewWalletFromMnemonic(t *testing.T) {
+	const MNEMONIC = "stuff slice staff easily soup parent arm payment cotton trade scatter struggle"
+
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(EthereumProvider)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	chainId, err := client.ChainID(context.Background())
+	assert.NoError(t, err, "ChainID should not return an error")
+
+	wallet, err := accounts.NewWalletFromMnemonic(MNEMONIC, chainId.Int64(), &client, ethClient)
+	assert.NoError(t, err, "NewWalletFromMnemonic should not return an error")
+	assert.NotNil(t, wallet, "Wallet should not be nil")
+}
+
 func TestIntegrationWallet_MainContract(t *testing.T) {
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()

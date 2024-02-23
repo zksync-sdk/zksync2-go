@@ -7,8 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/miguelmota/go-ethereum-hdwallet"
 	"github.com/pkg/errors"
+	"github.com/stephenlacy/go-ethereum-hdwallet"
 	"github.com/zksync-sdk/zksync2-go/eip712"
 )
 
