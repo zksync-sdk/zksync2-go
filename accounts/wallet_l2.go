@@ -105,7 +105,7 @@ func (a *WalletL2) L2BridgeContracts(_ context.Context) (*zkTypes.L2BridgeContra
 	return &zkTypes.L2BridgeContracts{Erc20: a.defaultL2Bridge}, nil
 }
 
-// DeploymentNonce fetch the deployment nonce of the account.
+// DeploymentNonce returns the deployment nonce of the account.
 func (a *WalletL2) DeploymentNonce(opts *CallOpts) (*big.Int, error) {
 	callOpts := ensureCallOpts(opts).ToCallOpts(a.auth.From)
 	nonceHolder, err := nonceholder.NewINonceHolder(utils.NonceHolderAddress, *a.client)
