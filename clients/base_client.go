@@ -777,7 +777,7 @@ func (c *BaseClient) getBlock(ctx context.Context, method string, args ...interf
 	}, nil
 }
 
-// Proof Returns Merkle proofs for one or more storage values at the specified account along with a Merkle proof of their authenticity.
+// Proof returns Merkle proofs for one or more storage values at the specified account along with a Merkle proof of their authenticity.
 func (c *BaseClient) Proof(ctx context.Context, address common.Address, keys []common.Hash, l1BatchNumber *big.Int) (*zkTypes.StorageProof, error) {
 	var res zkTypes.StorageProof
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getProof", address, keys, l1BatchNumber)
@@ -785,16 +785,4 @@ func (c *BaseClient) Proof(ctx context.Context, address common.Address, keys []c
 		return nil, fmt.Errorf("failed to query zks_getProof: %w", err)
 	}
 	return &res, nil
-}
-
-func generateRandomAddress() (common.Address, error) {
-	privateKey, err := crypto.GenerateKey()
-	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to generate radnom private key: %w", err)
-	}
-	publicKey, ok := privateKey.Public().(*ecdsa.PublicKey)
-	if !ok {
-		return common.Address{}, fmt.Errorf("failed to convert public key to ECDSA")
-	}
-	return crypto.PubkeyToAddress(*publicKey), nil
 }
