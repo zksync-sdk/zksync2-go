@@ -988,7 +988,7 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 	constructor, err := paymasterAbi.Pack("", L2Dai)
 	assert.NoError(t, err, "Pack should not return an error")
 
-	hash, err := wallet.Deploy(nil, accounts.Create2Transaction{
+	hash, err := wallet.DeployAccount(nil, accounts.Create2Transaction{
 		Bytecode: bytecode,
 		Calldata: constructor,
 	})
