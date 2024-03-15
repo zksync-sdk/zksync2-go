@@ -120,10 +120,7 @@ func TestIntegrationBaseClient_TransactionByHash(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	block, err := client.BlockByNumber(context.Background(), nil)
-	assert.NoError(t, err, "BlockByNumber should not return an error")
-
-	tx, isPending, err := client.TransactionByHash(context.Background(), block.Transactions[0].Hash)
+	tx, isPending, err := client.TransactionByHash(context.Background(), L2DepositTx)
 
 	assert.NoError(t, err, "TransactionByHash should not return an error")
 	assert.NotNil(t, tx, "TransactionByHash should return a non-nil transaction")
