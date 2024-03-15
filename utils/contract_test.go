@@ -14,10 +14,24 @@ func TestApplyL1ToL2Alias(t *testing.T) {
 	assert.Equal(t, expected, l2ContractAddress, "Addresses should be the same")
 }
 
+func TestApplyL1ToL2AliasZeroAddress(t *testing.T) {
+	l1ContractAddress := common.HexToAddress("0xeeeeffffffffffffffffffffffffffffffffeeef")
+	l2ContractAddress := ApplyL1ToL2Alias(l1ContractAddress)
+	expected := common.HexToAddress("0x0000000000000000000000000000000000000000")
+	assert.Equal(t, expected, l2ContractAddress, "Addresses should be the same")
+}
+
 func TestUndoL1ToL2Alias(t *testing.T) {
 	l2ContractAddress := common.HexToAddress("0x813A42B8205E5DedCd3374e5f4419843ADa77FFC")
 	l1ContractAddress := UndoL1ToL2Alias(l2ContractAddress)
 	expected := common.HexToAddress("0x702942B8205E5dEdCD3374E5f4419843adA76Eeb")
+	assert.Equal(t, expected, l1ContractAddress, "Addresses should be the same")
+}
+
+func TestUndoL1ToL2AliasZeroAddress(t *testing.T) {
+	l2ContractAddress := common.HexToAddress("0x1111000000000000000000000000000000001111")
+	l1ContractAddress := UndoL1ToL2Alias(l2ContractAddress)
+	expected := common.HexToAddress("0x0000000000000000000000000000000000000000")
 	assert.Equal(t, expected, l1ContractAddress, "Addresses should be the same")
 }
 
