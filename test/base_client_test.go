@@ -132,13 +132,10 @@ func TestIntegrationBaseClient_TransactionSender(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	block, err := client.BlockByNumber(context.Background(), nil)
-	assert.NoError(t, err, "BlockByNumber should not return an error")
-
-	tx, _, err := client.TransactionByHash(context.Background(), block.Transactions[0].Hash)
+	tx, _, err := client.TransactionByHash(context.Background(), L2DepositTx)
 	assert.NoError(t, err, "TransactionByHash should not return an error")
 
-	sender, err := client.TransactionSender(context.Background(), tx, block.Hash, 0)
+	sender, err := client.TransactionSender(context.Background(), tx, *tx.BlockHash, uint(tx.TransactionIndex))
 
 	assert.NoError(t, err, "TransactionSender should not return an error")
 	assert.NotNil(t, sender, "TransactionSender should return a non-nil sender")
