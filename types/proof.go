@@ -1,6 +1,9 @@
 package types
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"math/big"
+)
 
 // MessageProof represents a message proof.
 type MessageProof struct {
@@ -18,4 +21,11 @@ type StorageProof struct {
 		Value string   `json:"value"`
 		Index int      `json:"index"`
 	} `json:"storageProof"`
+}
+
+type PriorityOpConfirmation struct {
+	L1BatchNumber     *big.Int
+	L2MessageIndex    int
+	L2TxNumberInBlock *big.Int
+	Proof             []common.Hash
 }

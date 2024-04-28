@@ -16,8 +16,8 @@ import (
 // An account typically contains a private key, allowing it to sign various types of payloads.
 // Wallet implements the Adapter interface.
 type Wallet struct {
-	AdapterL1
-	AdapterL2
+	WalletL1
+	WalletL2
 	Deployer
 
 	clientL1 *ethclient.Client
@@ -52,25 +52,27 @@ func NewWalletFromSigner(signer *Signer, clientL2 *clients.Client, clientL1 *eth
 		return nil, errors.New("signer must be provided")
 	}
 	var (
-		adapterL1 AdapterL1
-		adapterL2 AdapterL2
-		err       error
+		walletL1 *WalletL1
+		walletL2 *WalletL2
+		err      error
 	)
 
+	walletL1 = new(WalletL1)
 	if clientL1 != nil {
-		if adapterL1, err = NewWalletL1FromSigner(signer, clientL1, clientL2); err != nil {
+		if walletL1, err = NewWalletL1FromSigner(signer, clientL1, clientL2); err != nil {
 			return nil, err
 		}
 	}
-	if adapterL2, err = NewWalletL2FromSigner(signer, clientL2); err != nil {
+	if walletL2, err = NewWalletL2FromSigner(signer, clientL2); err != nil {
 		return nil, err
 	}
+	a := AdapterL2(walletL2)
 	return &Wallet{
-		AdapterL1: adapterL1,
-		AdapterL2: adapterL2,
-		Deployer:  NewBaseDeployer(&adapterL2),
-		clientL1:  clientL1,
-		clientL2:  clientL2,
+		WalletL1: *walletL1,
+		WalletL2: *walletL2,
+		Deployer: NewBaseDeployer(&a),
+		clientL1: clientL1,
+		clientL2: clientL2,
 	}, nil
 }
 
@@ -100,7 +102,7 @@ func NewWalletFromRawPrivateKey(rawPk []byte, chainId int64, clientL2 *clients.C
 }
 
 // NewRandomWallet creates an instance of Wallet with a randomly generated account.
-// // The clientL2 and clientL1 parameters are optional, and can be configured with Wallet.Connect
+// The clientL2 and clientL1 parameters are optional, and can be configured with Wallet.Connect
 // and Wallet.ConnectL1, respectively.
 func NewRandomWallet(chainId int64, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
 	signer, err := NewRandomBaseSigner(chainId)

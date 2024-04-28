@@ -738,7 +738,7 @@ func TestIntegrationBaseClient_WaitMined(t *testing.T) {
 	tx, err := w.Transfer(nil, accounts.TransferTransaction{
 		To:     Receiver,
 		Amount: big.NewInt(7_000_000_000),
-		Token:  utils.EthAddress,
+		Token:  utils.LegacyEthAddress,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
@@ -759,7 +759,7 @@ func TestIntegrationBaseClient_WaitFinalized(t *testing.T) {
 	tx, err := w.Transfer(nil, accounts.TransferTransaction{
 		To:     Receiver,
 		Amount: big.NewInt(7_000_000_000),
-		Token:  utils.EthAddress,
+		Token:  utils.LegacyEthAddress,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
@@ -778,6 +778,20 @@ func TestIntegrationBaseClient_MainContractAddress(t *testing.T) {
 
 	assert.NoError(t, err, "MainContractAddress should not return an error")
 	assert.NotNil(t, mainContract, "MainContractAddress should return a non-nil address")
+}
+
+func TestIntegrationBaseClient_BridgehubContractAddress(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	baseClient, ok := (client).(*clients.BaseClient)
+	assert.True(t, ok, "Casting to BaseClient should not return an error")
+
+	bridgehubContractAddress, err := baseClient.BridgehubContractAddress(context.Background())
+
+	assert.NoError(t, err, "BridgehubContractAddress should not return an error")
+	assert.NotNil(t, bridgehubContractAddress, "BridgehubContractAddress should return a non-nil address")
 }
 
 func TestIntegrationBaseClient_TestnetPaymaster(t *testing.T) {
@@ -922,6 +936,17 @@ func TestIntegrationBaseClient_L2TokenAddress(t *testing.T) {
 	assert.Equal(t, L2Dai, l2Address, "L2 token addresses should be the same")
 }
 
+func TestIntegration_NonEthBasedChain_BaseClient_L2TokenAddress(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	l2Address, err := client.L2TokenAddress(context.Background(), utils.LegacyEthAddress)
+
+	assert.NoError(t, err, "L2TokenAddress should not return an error")
+	assert.NotNil(t, l2Address, "L2 token addresses should be nil")
+}
+
 func TestIntegrationBaseClient_L1TokenAddress(t *testing.T) {
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
@@ -933,7 +958,7 @@ func TestIntegrationBaseClient_L1TokenAddress(t *testing.T) {
 	assert.Equal(t, L1Dai, l1Address, "L1 token addresses should be the same")
 }
 
-func TestIntegrationBaseClient_AllAccountBalances(t *testing.T) {
+func TestIntegration_EthBasedChain_BaseClient_AllAccountBalances(t *testing.T) {
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -942,6 +967,17 @@ func TestIntegrationBaseClient_AllAccountBalances(t *testing.T) {
 
 	assert.NoError(t, err, "AllAccountBalances should not return an error")
 	assert.Len(t, balances, 2, "Should have ETH and DAI balance")
+}
+
+func TestIntegration_NonEthBasedChain_BaseClient_AllAccountBalances(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	balances, err := client.AllAccountBalances(context.Background(), Address)
+
+	assert.NoError(t, err, "AllAccountBalances should not return an error")
+	assert.Len(t, balances, 3, "Should have ETH and DAI balance")
 }
 
 func TestIntegrationBaseClient_EstimateFee(t *testing.T) {

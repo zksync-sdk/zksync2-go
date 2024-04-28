@@ -37,7 +37,7 @@ func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
 		to    *common.Address
 	)
 
-	if m.Token == utils.EthAddress {
+	if m.Token == utils.LegacyEthAddress {
 		value = m.Amount
 		to = &m.To
 	} else {
@@ -83,7 +83,7 @@ type WithdrawalCallMsg struct {
 }
 
 func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereum.CallMsg, error) {
-	if m.Token == utils.EthAddress {
+	if m.Token == utils.LegacyEthAddress || m.Token == utils.L2BaseTokenAddress || m.Token == utils.EthAddressInContracts {
 		ethTokenAbi, err := ethtoken.IEthTokenMetaData.GetAbi()
 		if err != nil {
 			return nil, fmt.Errorf("failed to load ethTokenAbi: %w", err)
@@ -95,7 +95,7 @@ func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereu
 		}
 		return &ethereum.CallMsg{
 			From:      m.From,
-			To:        &utils.L2EthTokenAddress,
+			To:        &utils.L2BaseTokenAddress,
 			Gas:       m.Gas,
 			GasPrice:  m.GasPrice,
 			GasFeeCap: m.GasFeeCap,
@@ -113,7 +113,7 @@ func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereu
 			return nil, fmt.Errorf("failed to pack withdraw function: %w", err)
 		}
 		bridge := m.BridgeAddress
-		if bridge == nil {
+		if defaultL2Bridge != nil {
 			bridge = defaultL2Bridge
 		}
 

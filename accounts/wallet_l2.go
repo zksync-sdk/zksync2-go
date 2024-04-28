@@ -2,6 +2,7 @@ package accounts
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -19,9 +20,13 @@ import (
 
 // WalletL2 implements the AdapterL2 interface.
 type WalletL2 struct {
-	client *clients.Client
-	signer *Signer
-	auth   *bind.TransactOpts
+	client    *clients.BaseClient
+	signer    *Signer
+	auth      *bind.TransactOpts
+	baseToken common.Address
+
+	sharedL2BridgeAddress common.Address
+	sharedL2Bridge        *l2bridge.IL2Bridge
 
 	defaultL2BridgeAddress common.Address
 	defaultL2Bridge        *l2bridge.IL2Bridge
@@ -56,36 +61,55 @@ func NewWalletL2FromSigner(signer *Signer, client *clients.Client) (*WalletL2, e
 	}
 	defaultL2Bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2Erc20DefaultBridge, *client)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load IL1Bridge: %w", err)
+		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
+	}
+	sharedL2Bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2SharedBridge, *client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
 	}
 	chainId, err := (*client).ChainID(context.Background())
 	auth, err := newTransactorWithSigner(signer, chainId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
 	}
+	baseClient, ok := (*client).(*clients.BaseClient)
+	if !ok {
+		fmt.Println("The client should be type of clients.BaseClient")
+	}
+	baseToken, err := baseClient.BaseTokenContractAddress(context.Background())
+	if err != nil {
+		return nil, err
+	}
 
 	return &WalletL2{
-		client:                 client,
+		client:                 baseClient,
 		signer:                 signer,
 		auth:                   auth,
+		baseToken:              baseToken,
+		sharedL2BridgeAddress:  bridgeContracts.L2SharedBridge,
+		sharedL2Bridge:         sharedL2Bridge,
 		defaultL2BridgeAddress: bridgeContracts.L2Erc20DefaultBridge,
 		defaultL2Bridge:        defaultL2Bridge,
 	}, nil
 }
 
+// Address returns the address of the associated account.
 func (a *WalletL2) Address() common.Address {
 	return a.auth.From
 }
 
+// Signer returns the signer of the associated account.
 func (a *WalletL2) Signer() Signer {
 	return *a.signer
 }
 
+// Balance returns the balance of the specified token that can be either ETH or any ERC20 token.
+// The block number can be nil, in which case the balance is taken from the latest known block.
 func (a *WalletL2) Balance(ctx context.Context, token common.Address, at *big.Int) (*big.Int, error) {
-	if token == utils.EthAddress {
+	if token == utils.LegacyEthAddress || token == a.baseToken {
 		return (*a.client).BalanceAt(ensureContext(ctx), a.Address(), at)
 	}
-	erc20Token, err := erc20.NewIERC20(token, *a.client)
+	erc20Token, err := erc20.NewIERC20(token, a.client)
 	if err != nil {
 		return nil, err
 	}
@@ -97,46 +121,63 @@ func (a *WalletL2) Balance(ctx context.Context, token common.Address, at *big.In
 
 }
 
+// AllBalances returns all balances for confirmed tokens given by an associated account.
 func (a *WalletL2) AllBalances(ctx context.Context) (map[common.Address]*big.Int, error) {
 	return (*a.client).AllAccountBalances(ensureContext(ctx), a.Address())
 }
 
+// L2BridgeContracts returns L2 bridge contracts.
 func (a *WalletL2) L2BridgeContracts(_ context.Context) (*zkTypes.L2BridgeContracts, error) {
-	return &zkTypes.L2BridgeContracts{Erc20: a.defaultL2Bridge}, nil
+	return &zkTypes.L2BridgeContracts{Erc20: a.defaultL2Bridge, Shared: a.sharedL2Bridge}, nil
 }
 
 // DeploymentNonce returns the deployment nonce of the account.
 func (a *WalletL2) DeploymentNonce(opts *CallOpts) (*big.Int, error) {
 	callOpts := ensureCallOpts(opts).ToCallOpts(a.auth.From)
-	nonceHolder, err := nonceholder.NewINonceHolder(utils.NonceHolderAddress, *a.client)
+	nonceHolder, err := nonceholder.NewINonceHolder(utils.NonceHolderAddress, a.client)
 	if err != nil {
 		return nil, err
 	}
 	return nonceHolder.GetDeploymentNonce(callOpts, a.Address())
 }
 
-func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*types.Transaction, error) {
-	opts := ensureTransactOpts(auth)
+// IsBaseToken returns whether the token is the base token.
+func (a *WalletL2) IsBaseToken(ctx context.Context, token common.Address) (bool, error) {
+	return (*a.client).IsBaseToken(ensureContext(ctx), token)
+}
 
-	if tx.Token == utils.EthAddress {
-		eth, err := ethtoken.NewIEthToken(utils.L2EthTokenAddress, *a.client)
+// Withdraw initiates the withdrawal process which withdraws ETH or any ERC20
+// token from the associated account on L2 network to the target account on L1
+// network.
+func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*types.Transaction, error) {
+	opts := ensureTransactOpts(auth).ToTransactOpts(a.Address(), a.auth.Signer)
+
+	if tx.Token == utils.LegacyEthAddress {
+		tx.Token = utils.EthAddressInContracts
+		if opts.Value != nil && opts.Value != tx.Amount {
+			return nil, errors.New("the tx.value is not equal to the value withdrawn")
+		} else {
+			opts.Value = tx.Amount
+		}
+
+		eth, err := ethtoken.NewIEthToken(utils.L2BaseTokenAddress, a.client)
 		if err != nil {
 			return nil, err
 		}
-		withdrawTx, err := eth.Withdraw(opts.ToTransactOpts(a.Address(), a.auth.Signer), tx.To)
+		withdrawTx, err := eth.Withdraw(opts, tx.To)
 		if err != nil {
 			return nil, err
 		}
 		return withdrawTx, nil
 	} else {
 		if tx.BridgeAddress == nil {
-			tx.BridgeAddress = &a.defaultL2BridgeAddress
+			tx.BridgeAddress = &a.sharedL2BridgeAddress
 		}
-		bridge, err := l2bridge.NewIL2Bridge(*tx.BridgeAddress, *a.client)
+		bridge, err := l2bridge.NewIL2Bridge(*tx.BridgeAddress, a.client)
 		if err != nil {
 			return nil, err
 		}
-		withdrawTx, err := bridge.Withdraw(opts.ToTransactOpts(a.Address(), a.auth.Signer), tx.To, tx.Token, tx.Amount)
+		withdrawTx, err := bridge.Withdraw(opts, tx.To, tx.Token, tx.Amount)
 		if err != nil {
 			return nil, err
 		}
@@ -144,10 +185,12 @@ func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*type
 	}
 }
 
+// EstimateGasWithdraw estimates the amount of gas required for a withdrawal transaction.
 func (a *WalletL2) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMsg) (uint64, error) {
 	return (*a.client).EstimateGasWithdraw(ensureContext(ctx), msg.ToWithdrawalCallMsg(a.Address()))
 }
 
+// Transfer moves the ETH or any ERC20 token from the associated account to the target account.
 func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.Transaction, error) {
 	opts := ensureTransactOpts(auth)
 	if opts.GasLimit == 0 {
@@ -158,11 +201,13 @@ func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.
 		opts.GasLimit = gas
 	}
 
-	if tx.Token == utils.EthAddress {
+	if isBaseToken, err := a.IsBaseToken(opts.Context, tx.Token); tx.Token == utils.LegacyEthAddress || isBaseToken {
 		return a.transferETH(opts, tx)
+	} else if err != nil {
+		return nil, err
 	}
 
-	token, err := erc20.NewIERC20(tx.Token, *a.client)
+	token, err := erc20.NewIERC20(tx.Token, a.client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load erc20 contract: %w", err)
 	}
@@ -170,14 +215,26 @@ func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.
 	return token.Transfer(opts.ToTransactOpts(a.Address(), a.auth.Signer), tx.To, tx.Amount)
 }
 
+// EstimateGasTransfer estimates the amount of gas required for a transfer transaction.
 func (a *WalletL2) EstimateGasTransfer(ctx context.Context, msg TransferCallMsg) (uint64, error) {
 	return (*a.client).EstimateGasTransfer(ensureContext(ctx), msg.ToTransferCallMsg(a.Address()))
 }
 
+// CallContract executes a message call for EIP-712 transaction, which is
+// directly executed in the VM of the node, but never mined into the blockchain.
+//
+// blockNumber selects the block height at which the call runs. It can be nil, in
+// which case the code is taken from the latest known block. Note that state from
+// very old blocks might not be available.
 func (a *WalletL2) CallContract(ctx context.Context, msg CallMsg, blockNumber *big.Int) ([]byte, error) {
 	return (*a.client).CallContractL2(ensureContext(ctx), msg.ToCallMsg(a.Address()), blockNumber)
 }
 
+// PopulateTransaction is designed for users who prefer a simplified approach by
+// providing only the necessary data to create a valid transaction. The only
+// required fields are Transaction.To and either Transaction.Data or
+// Transaction.Value (or both, if the method is payable). Any other fields that
+// are not set will be prepared by this method.
 func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zkTypes.Transaction712, error) {
 	if tx.ChainID == nil {
 		tx.ChainID = (*a.signer).Domain().ChainId
@@ -219,6 +276,10 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zk
 	return tx.ToTransaction712(a.auth.From), nil
 }
 
+// SignTransaction returns a signed transaction that is ready to be broadcast to
+// the network. The input transaction must be a valid transaction with all fields
+// having appropriate values. To obtain a valid transaction, you can use the
+// PopulateTransaction method.
 func (a *WalletL2) SignTransaction(tx *zkTypes.Transaction712) ([]byte, error) {
 	var gas uint64 = 0
 	if tx.Gas != nil {
@@ -247,6 +308,8 @@ func (a *WalletL2) SignTransaction(tx *zkTypes.Transaction712) ([]byte, error) {
 	return preparedTx.RLPValues(signature)
 }
 
+// SendTransaction injects a transaction into the pending pool for execution. Any
+// unset transaction fields are prepared using the PopulateTransaction method.
 func (a *WalletL2) SendTransaction(ctx context.Context, tx *Transaction) (common.Hash, error) {
 	preparedTx, err := a.PopulateTransaction(ensureContext(ctx), *tx)
 	if err != nil {

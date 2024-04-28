@@ -4,7 +4,7 @@ on:
     branches: [ main, beta ]
   workflow_dispatch:
   pull_request:
-    branches: [ main, beta ]
+    branches: [main, beta ]
     types: [ opened, reopened, synchronize ]
 
 permissions:
@@ -30,4 +30,4 @@ jobs:
           ./start.sh
           popd
       - name: Run tests
-        run: make run-tests
+        run: make run-tests-on-eth-based-chain

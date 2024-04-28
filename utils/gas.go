@@ -19,9 +19,9 @@ var (
 	MaxPriorityFeePerGas = big.NewInt(1_000_000_000)
 
 	// L1RecommendedMinErc20DepositGasLimit This gas limit will be used for displaying the error messages when the users do not have enough fee.
-	L1RecommendedMinErc20DepositGasLimit = big.NewInt(400000)
+	L1RecommendedMinErc20DepositGasLimit = big.NewInt(400_000)
 	// L1RecommendedMinEthDepositGasLimit This gas limit will be used for displaying the error messages when the users do not have enough fee.
-	L1RecommendedMinEthDepositGasLimit = big.NewInt(200000)
+	L1RecommendedMinEthDepositGasLimit = big.NewInt(200_000)
 )
 
 func ScaleGasLimit(gasLimit *big.Int) *big.Int {

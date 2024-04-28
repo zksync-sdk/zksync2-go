@@ -1,6 +1,9 @@
 package test
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"reflect"
+)
 
 const EthereumProvider = "http://localhost:8545"
 const ZkSyncEraProvider = "http://localhost:3050"
@@ -20,4 +23,37 @@ type TokenData struct {
 	Symbol   string         `json:"symbol"`
 	Decimals int            `json:"decimals"`
 	Address  common.Address `json:"address"`
+}
+
+func DeepEqualIgnore(s1, s2 interface{}, ignoreFields ...string) bool {
+	// contains checks if a string slice contains a specific string.
+	contains := func(slice []string, str string) bool {
+		for _, s := range slice {
+			if s == str {
+				return true
+			}
+		}
+		return false
+	}
+
+	v1 := reflect.ValueOf(s1)
+	v2 := reflect.ValueOf(s2)
+
+	for i := 0; i < v1.NumField(); i++ {
+		field := v1.Type().Field(i)
+		fieldName := field.Name
+
+		if contains(ignoreFields, fieldName) {
+			continue
+		}
+
+		val1 := v1.Field(i)
+		val2 := v2.Field(i)
+
+		if !reflect.DeepEqual(val1.Interface(), val2.Interface()) {
+			return false
+		}
+	}
+
+	return true
 }
