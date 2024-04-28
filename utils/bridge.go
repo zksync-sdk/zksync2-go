@@ -24,21 +24,29 @@ func CreateETH() *types.Token {
 
 // Erc20DefaultBridgeData Returns the data needed for correct initialization of an L1 token counterpart on L2.
 func Erc20DefaultBridgeData(l1TokenAddress common.Address, backend bind.ContractBackend) ([]byte, error) {
-	token, err := erc20.NewIERC20(l1TokenAddress, backend)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load IERC20: %w", err)
-	}
-	name, err := token.Name(nil)
-	if err != nil {
-		return nil, err
-	}
-	symbol, err := token.Symbol(nil)
-	if err != nil {
-		return nil, err
-	}
-	decimals, err := token.Decimals(nil)
-	if err != nil {
-		return nil, err
+	var (
+		name     = "Ether"
+		symbol   = "ETH"
+		decimals = uint8(18)
+	)
+
+	if l1TokenAddress != EthAddressInContracts {
+		token, err := erc20.NewIERC20(l1TokenAddress, backend)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load IERC20: %w", err)
+		}
+		name, err = token.Name(nil)
+		if err != nil {
+			return nil, err
+		}
+		symbol, err = token.Symbol(nil)
+		if err != nil {
+			return nil, err
+		}
+		decimals, err = token.Decimals(nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	stringAbiType, err := abi.NewType("string", "", nil)

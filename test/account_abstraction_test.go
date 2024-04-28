@@ -80,7 +80,7 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	transferTx, err := wallet.Transfer(nil, accounts.TransferTransaction{
 		To:     paymasterAddress,
 		Amount: big.NewInt(2_000_000_000_000_000_000),
-		Token:  utils.EthAddress,
+		Token:  utils.LegacyEthAddress,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
@@ -88,7 +88,7 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 
 	// Read token and ETH balances from user and paymaster accounts
-	balanceBefore, err := wallet.Balance(context.Background(), utils.EthAddress, nil)
+	balanceBefore, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	tokenBalanceBefore, err := token.BalanceOf(nil, wallet.Address())
@@ -124,7 +124,7 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	_, err = client.WaitMined(context.Background(), hash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 
-	balanceAfter, err := wallet.Balance(context.Background(), utils.EthAddress, nil)
+	balanceAfter, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	tokenBalanceAfter, err := token.BalanceOf(nil, wallet.Address())

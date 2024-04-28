@@ -29,6 +29,12 @@ type BaseClient struct {
 
 	mainContractAddress common.Address
 	mainContract        *zksync.IZkSync
+
+	testnetPaymasterAddress common.Address
+	bridgehubAddress        common.Address
+	baseTokenAddress        common.Address
+
+	bridgeContracts *zkTypes.BridgeContracts
 }
 
 // Dial connects a client to the given URL.
@@ -45,6 +51,30 @@ func DialContext(ctx context.Context, rawUrl string) (Client, error) {
 	return NewClient(c), nil
 }
 
+// DialBase connects a client to the given URL.
+func DialBase(rawUrl string) (*BaseClient, error) {
+	c, err := rpc.DialContext(context.Background(), rawUrl)
+	if err != nil {
+		return nil, err
+	}
+	return &BaseClient{
+		rpcClient: c,
+		ethClient: ethclient.NewClient(c),
+	}, nil
+}
+
+// DialContextBase connects a client to the given URL with context.
+func DialContextBase(ctx context.Context, rawUrl string) (*BaseClient, error) {
+	c, err := rpc.DialContext(ctx, rawUrl)
+	if err != nil {
+		return nil, err
+	}
+	return &BaseClient{
+		rpcClient: c,
+		ethClient: ethclient.NewClient(c),
+	}, nil
+}
+
 // NewClient creates a client that uses the given RPC client.
 func NewClient(c *rpc.Client) Client {
 	return &BaseClient{
@@ -53,42 +83,60 @@ func NewClient(c *rpc.Client) Client {
 	}
 }
 
+// Client gets the underlying RPC client.
 func (c *BaseClient) Client() *rpc.Client {
 	return c.rpcClient
 }
 
+// Close closes the underlying RPC connection.
 func (c *BaseClient) Close() {
 	c.ethClient.Close()
 }
 
+// ChainID retrieves the current chain ID for transaction replay protection.
 func (c *BaseClient) ChainID(ctx context.Context) (*big.Int, error) {
 	return c.ethClient.ChainID(ctx)
 }
 
+// BlockByHash returns the given full block.
+//
+// Note that loading full blocks requires two requests. Use HeaderByHash
+// if you don't need all transactions or uncle headers.
 func (c *BaseClient) BlockByHash(ctx context.Context, hash common.Hash) (*zkTypes.Block, error) {
 	return c.getBlock(ctx, "eth_getBlockByHash", hash, true)
 }
 
+// BlockByNumber returns a block from the current canonical chain. If number is nil, the
+// latest known block is returned.
+//
+// Note that loading full blocks requires two requests. Use HeaderByNumber
+// if you don't need all transactions or uncle headers.
 func (c *BaseClient) BlockByNumber(ctx context.Context, number *big.Int) (*zkTypes.Block, error) {
 	return c.getBlock(ctx, "eth_getBlockByNumber", toBlockNumArg(number), true)
 }
 
+// BlockNumber returns the most recent block number
 func (c *BaseClient) BlockNumber(ctx context.Context) (uint64, error) {
 	return c.ethClient.BlockNumber(ctx)
 }
 
+// PeerCount returns the number of p2p peers as reported by the net_peerCount method
 func (c *BaseClient) PeerCount(ctx context.Context) (uint64, error) {
 	return c.ethClient.PeerCount(ctx)
 }
 
+// HeaderByHash returns the block header with the given hash.
 func (c *BaseClient) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
 	return c.ethClient.HeaderByHash(ctx, hash)
 }
 
+// HeaderByNumber returns a block header from the current canonical chain. If number is
+// nil, the latest known header is returned.
 func (c *BaseClient) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
 	return c.ethClient.HeaderByNumber(ctx, number)
 }
 
+// TransactionByHash returns the transaction with the given hash.
 func (c *BaseClient) TransactionByHash(ctx context.Context, hash common.Hash) (tx *zkTypes.TransactionResponse, isPending bool, err error) {
 	var resp *zkTypes.TransactionResponse
 	err = c.rpcClient.CallContext(ctx, &resp, "eth_getTransactionByHash", hash)
@@ -102,6 +150,9 @@ func (c *BaseClient) TransactionByHash(ctx context.Context, hash common.Hash) (t
 	return resp, resp.BlockHash == nil, nil
 }
 
+// TransactionSender returns the sender address of the given transaction. The transaction
+// must be known to the remote node and included in the blockchain at the given block and
+// index. The sender is the one derived by the protocol at the time of inclusion.
 func (c *BaseClient) TransactionSender(ctx context.Context, tx *zkTypes.TransactionResponse, block common.Hash, index uint) (common.Address, error) {
 	var meta struct {
 		Hash *common.Hash
@@ -116,10 +167,12 @@ func (c *BaseClient) TransactionSender(ctx context.Context, tx *zkTypes.Transact
 	return meta.From, nil
 }
 
+// TransactionCount returns the total number of transactions in the given block.
 func (c *BaseClient) TransactionCount(ctx context.Context, blockHash common.Hash) (uint, error) {
 	return c.ethClient.TransactionCount(ctx, blockHash)
 }
 
+// TransactionInBlock returns a single transaction at index in the given block.
 func (c *BaseClient) TransactionInBlock(ctx context.Context, blockHash common.Hash, index uint) (*zkTypes.TransactionResponse, error) {
 	var tx *zkTypes.TransactionResponse
 	err := c.rpcClient.CallContext(ctx, &tx, "eth_getTransactionByBlockHashAndIndex", blockHash, hexutil.Uint64(index))
@@ -134,6 +187,8 @@ func (c *BaseClient) TransactionInBlock(ctx context.Context, blockHash common.Ha
 	return tx, err
 }
 
+// TransactionReceipt returns the receipt of a transaction by transaction hash.
+// Note that the receipt is not available for pending transactions.
 func (c *BaseClient) TransactionReceipt(ctx context.Context, txHash common.Hash) (*zkTypes.Receipt, error) {
 	var resp *zkTypes.Receipt
 	err := c.rpcClient.CallContext(ctx, &resp, "eth_getTransactionReceipt", txHash)
@@ -145,38 +200,55 @@ func (c *BaseClient) TransactionReceipt(ctx context.Context, txHash common.Hash)
 	return resp, nil
 }
 
+// SyncProgress retrieves the current progress of the sync algorithm. If there's
+// no sync currently running, it returns nil.
 func (c *BaseClient) SyncProgress(ctx context.Context) (*ethereum.SyncProgress, error) {
 	return c.ethClient.SyncProgress(ctx)
 }
 
+// SubscribeNewHead subscribes to notifications about the current blockchain head
+// on the given channel.
 func (c *BaseClient) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (ethereum.Subscription, error) {
 	return c.ethClient.SubscribeNewHead(ctx, ch)
 }
 
+// NetworkID returns the network ID for this client.
 func (c *BaseClient) NetworkID(ctx context.Context) (*big.Int, error) {
 	return c.ethClient.NetworkID(ctx)
 }
 
+// BalanceAt returns the wei balance of the given account.
+// The block number can be nil, in which case the balance is taken from the latest known block.
 func (c *BaseClient) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
 	return c.ethClient.BalanceAt(ctx, account, blockNumber)
 }
 
+// StorageAt returns the value of key in the contract storage of the given account.
+// The block number can be nil, in which case the value is taken from the latest known block.
 func (c *BaseClient) StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error) {
 	return c.ethClient.StorageAt(ctx, account, key, blockNumber)
 }
 
+// CodeAt returns the contract code of the given account.
+// The block number can be nil, in which case the code is taken from the latest known block.
 func (c *BaseClient) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
 	return c.ethClient.CodeAt(ctx, account, blockNumber)
 }
 
+// NonceAt returns the account nonce of the given account.
+// The block number can be nil, in which case the nonce is taken from the latest known block.
 func (c *BaseClient) NonceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (uint64, error) {
 	return c.ethClient.NonceAt(ctx, account, blockNumber)
 }
 
+// FilterLogs performs the same function as FilterLogsL2, and that method should be used instead.
+// This method is designed to be compatible with bind.ContractBackend.
 func (c *BaseClient) FilterLogs(ctx context.Context, query ethereum.FilterQuery) ([]types.Log, error) {
 	return c.ethClient.FilterLogs(ctx, query)
 }
 
+// FilterLogsL2 executes a log filter operation, blocking during execution and
+// returning all the results in one batch.
 func (c *BaseClient) FilterLogsL2(ctx context.Context, q ethereum.FilterQuery) ([]zkTypes.Log, error) {
 	var result []zkTypes.Log
 	arg, err := toFilterArg(q)
@@ -187,10 +259,14 @@ func (c *BaseClient) FilterLogsL2(ctx context.Context, q ethereum.FilterQuery) (
 	return result, err
 }
 
+// SubscribeFilterLogs performs the same function as SubscribeFilterLogsL2, and that method should be used instead.
+// This method is designed to be compatible with bind.ContractBackend.
 func (c *BaseClient) SubscribeFilterLogs(ctx context.Context, query ethereum.FilterQuery, ch chan<- types.Log) (ethereum.Subscription, error) {
 	return c.ethClient.SubscribeFilterLogs(ctx, query, ch)
 }
 
+// SubscribeFilterLogsL2 creates a background log filtering operation, returning
+// a subscription immediately, which can be used to stream the found events.
 func (c *BaseClient) SubscribeFilterLogsL2(ctx context.Context, query ethereum.FilterQuery, ch chan<- zkTypes.Log) (ethereum.Subscription, error) {
 	arg, err := toFilterArg(query)
 	if err != nil {
@@ -206,23 +282,38 @@ func (c *BaseClient) SubscribeFilterLogsL2(ctx context.Context, query ethereum.F
 	return sub, nil
 }
 
+// PendingBalanceAt returns the wei balance of the given account in the pending state.
 func (c *BaseClient) PendingBalanceAt(ctx context.Context, account common.Address) (*big.Int, error) {
 	return c.ethClient.PendingBalanceAt(ctx, account)
 }
+
+// PendingStorageAt returns the value of key in the contract storage of the given account in the pending state.
 func (c *BaseClient) PendingStorageAt(ctx context.Context, account common.Address, key common.Hash) ([]byte, error) {
 	return c.ethClient.PendingStorageAt(ctx, account, key)
 }
+
+// PendingCodeAt returns the contract code of the given account in the pending state.
 func (c *BaseClient) PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error) {
 	return c.ethClient.PendingCodeAt(ctx, account)
 }
+
+// PendingNonceAt returns the account nonce of the given account in the pending state.
+// This is the nonce that should be used for the next transaction.
 func (c *BaseClient) PendingNonceAt(ctx context.Context, account common.Address) (uint64, error) {
 	return c.ethClient.PendingNonceAt(ctx, account)
 }
 
+// PendingTransactionCount returns the total number of transactions in the pending state.
 func (c *BaseClient) PendingTransactionCount(ctx context.Context) (uint, error) {
 	return c.ethClient.PendingTransactionCount(ctx)
 }
 
+// CallContract executes a message call transaction, which is directly executed in the VM
+// of the node, but never mined into the blockchain.
+//
+// blockNumber selects the block height at which the call runs. It can be nil, in which
+// case the code is taken from the latest known block. Note that state from very old
+// blocks might not be available.
 func (c *BaseClient) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", toCallArg(msg), toBlockNumArg(blockNumber))
@@ -232,6 +323,8 @@ func (c *BaseClient) CallContract(ctx context.Context, msg ethereum.CallMsg, blo
 	return hex, nil
 }
 
+// CallContractL2 is almost the same as CallContract except that it executes a message call
+// for EIP-712 transaction.
 func (c *BaseClient) CallContractL2(ctx context.Context, msg zkTypes.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, toBlockNumArg(blockNumber))
@@ -241,6 +334,8 @@ func (c *BaseClient) CallContractL2(ctx context.Context, msg zkTypes.CallMsg, bl
 	return hex, nil
 }
 
+// CallContractAtHash is almost the same as CallContract except that it selects
+// the block by block hash instead of block height.
 func (c *BaseClient) CallContractAtHash(ctx context.Context, msg ethereum.CallMsg, blockHash common.Hash) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", toCallArg(msg), rpc.BlockNumberOrHashWithHash(blockHash, false))
@@ -250,6 +345,8 @@ func (c *BaseClient) CallContractAtHash(ctx context.Context, msg ethereum.CallMs
 	return hex, nil
 }
 
+// CallContractAtHashL2 is almost the same as CallContractL2 except that it selects
+// the block by block hash instead of block height.
 func (c *BaseClient) CallContractAtHashL2(ctx context.Context, msg zkTypes.CallMsg, blockHash common.Hash) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, rpc.BlockNumberOrHashWithHash(blockHash, false))
@@ -259,6 +356,8 @@ func (c *BaseClient) CallContractAtHashL2(ctx context.Context, msg zkTypes.CallM
 	return hex, nil
 }
 
+// PendingCallContract executes a message call transaction using the EVM.
+// The state seen by the contract call is the pending state.
 func (c *BaseClient) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", toCallArg(msg), "pending")
@@ -268,6 +367,8 @@ func (c *BaseClient) PendingCallContract(ctx context.Context, msg ethereum.CallM
 	return hex, nil
 }
 
+// PendingCallContractL2 executes a message call for EIP-712 transaction using the EVM.
+// The state seen by the contract call is the pending state.
 func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.CallMsg) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, "pending")
@@ -277,14 +378,22 @@ func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.Call
 	return hex, nil
 }
 
+// SuggestGasPrice retrieves the currently suggested gas price to allow a timely
+// execution of a transaction.
 func (c *BaseClient) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
 	return c.ethClient.SuggestGasPrice(ctx)
 }
 
+// SuggestGasTipCap retrieves the currently suggested gas tip cap after 1559 to
+// allow a timely execution of a transaction.
 func (c *BaseClient) SuggestGasTipCap(_ context.Context) (*big.Int, error) {
 	return utils.MaxPriorityFeePerGas, nil
 }
 
+// EstimateGas tries to estimate the gas needed to execute a transaction based on
+// the current pending state of the backend blockchain. There is no guarantee that this is
+// the true gas limit requirement as other transactions may be added or removed by miners,
+// but it should provide a basis for setting a reasonable default.
 func (c *BaseClient) EstimateGas(ctx context.Context, call ethereum.CallMsg) (uint64, error) {
 	var hex hexutil.Uint64
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_estimateGas", toCallArg(call))
@@ -294,6 +403,7 @@ func (c *BaseClient) EstimateGas(ctx context.Context, call ethereum.CallMsg) (ui
 	return uint64(hex), nil
 }
 
+// EstimateGasL2 is almost the same as EstimateGas except that it executes an EIP-712 transaction.
 func (c *BaseClient) EstimateGasL2(ctx context.Context, msg zkTypes.CallMsg) (uint64, error) {
 	var hex hexutil.Uint64
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_estimateGas", msg)
@@ -303,10 +413,15 @@ func (c *BaseClient) EstimateGasL2(ctx context.Context, msg zkTypes.CallMsg) (ui
 	return uint64(hex), nil
 }
 
+// SendTransaction injects a signed transaction into the pending pool for execution.
+//
+// If the transaction was a contract creation use the TransactionReceipt method to get the
+// contract address after the transaction has been mined.
 func (c *BaseClient) SendTransaction(ctx context.Context, tx *types.Transaction) error {
 	return c.ethClient.SendTransaction(ctx, tx)
 }
 
+// SendRawTransaction injects a signed raw transaction into the pending pool for execution.
 func (c *BaseClient) SendRawTransaction(ctx context.Context, tx []byte) (common.Hash, error) {
 	var res string
 	err := c.rpcClient.CallContext(ctx, &res, "eth_sendRawTransaction", hexutil.Encode(tx))
@@ -316,6 +431,8 @@ func (c *BaseClient) SendRawTransaction(ctx context.Context, tx []byte) (common.
 	return common.HexToHash(res), nil
 }
 
+// WaitMined waits for tx to be mined on the blockchain.
+// It stops waiting when the context is canceled.
 func (c *BaseClient) WaitMined(ctx context.Context, txHash common.Hash) (*zkTypes.Receipt, error) {
 	queryTicker := time.NewTicker(time.Second)
 	defer queryTicker.Stop()
@@ -333,6 +450,8 @@ func (c *BaseClient) WaitMined(ctx context.Context, txHash common.Hash) (*zkType
 	}
 }
 
+// WaitFinalized waits for tx to be finalized on the blockchain.
+// It stops waiting when the context is canceled.
 func (c *BaseClient) WaitFinalized(ctx context.Context, txHash common.Hash) (*zkTypes.Receipt, error) {
 	receipt, err := c.WaitMined(ctx, txHash)
 	if err != nil {
@@ -364,33 +483,94 @@ func (c *BaseClient) WaitFinalized(ctx context.Context, txHash common.Hash) (*zk
 	}
 }
 
+// BridgehubContractAddress returns the Bridgehub smart contract address.
+func (c *BaseClient) BridgehubContractAddress(ctx context.Context) (common.Address, error) {
+	if c.bridgehubAddress == (common.Address{}) {
+		var res string
+		err := c.rpcClient.CallContext(ctx, &res, "zks_getBridgehubContract")
+		if err != nil {
+			return common.Address{}, fmt.Errorf("failed to query zks_getBridgehubContract: %w", err)
+		}
+		c.bridgehubAddress = common.HexToAddress(res)
+	}
+	return c.bridgehubAddress, nil
+}
+
+// MainContractAddress returns the address of the zkSync Era contract.
 func (c *BaseClient) MainContractAddress(ctx context.Context) (common.Address, error) {
-	var res string
-	err := c.rpcClient.CallContext(ctx, &res, "zks_getMainContract")
-	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to query zks_getMainContract: %w", err)
+	if c.mainContractAddress == (common.Address{}) {
+		var res string
+		err := c.rpcClient.CallContext(ctx, &res, "zks_getMainContract")
+		if err != nil {
+			return common.Address{}, fmt.Errorf("failed to query zks_getMainContract: %w", err)
+		}
+		c.mainContractAddress = common.HexToAddress(res)
 	}
-	return common.HexToAddress(res), nil
+	return c.mainContractAddress, nil
+
 }
 
+// TestnetPaymaster returns the testnet paymaster address if available, or nil.
 func (c *BaseClient) TestnetPaymaster(ctx context.Context) (common.Address, error) {
-	var res string
-	err := c.rpcClient.CallContext(ctx, &res, "zks_getTestnetPaymaster")
-	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to query zks_getTestnetPaymaster: %w", err)
+	if c.testnetPaymasterAddress == (common.Address{}) {
+		var res string
+		err := c.rpcClient.CallContext(ctx, &res, "zks_getTestnetPaymaster")
+		if err != nil {
+			return common.Address{}, fmt.Errorf("failed to query zks_getTestnetPaymaster: %w", err)
+		}
+		c.testnetPaymasterAddress = common.HexToAddress(res)
 	}
-	return common.HexToAddress(res), nil
+	return c.testnetPaymasterAddress, nil
 }
 
+// BridgeContracts returns the addresses of the default zkSync Era bridge
+// contracts on both L1 and L2.
 func (c *BaseClient) BridgeContracts(ctx context.Context) (*zkTypes.BridgeContracts, error) {
-	res := zkTypes.BridgeContracts{}
-	err := c.rpcClient.CallContext(ctx, &res, "zks_getBridgeContracts")
-	if err != nil {
-		return nil, fmt.Errorf("failed to query zks_getBridgeContracts: %w", err)
+	if c.bridgeContracts == nil {
+		res := zkTypes.BridgeContracts{}
+		err := c.rpcClient.CallContext(ctx, &res, "zks_getBridgeContracts")
+		if err != nil {
+			return nil, fmt.Errorf("failed to query zks_getBridgeContracts: %w", err)
+		}
+		c.bridgeContracts = &res
 	}
-	return &res, nil
+	return c.bridgeContracts, nil
 }
 
+// BaseTokenContractAddress returns the L1 base token address.
+func (c *BaseClient) BaseTokenContractAddress(ctx context.Context) (common.Address, error) {
+	if c.baseTokenAddress == (common.Address{}) {
+		var res string
+		err := c.rpcClient.CallContext(ctx, &res, "zks_getBaseTokenL1Address")
+		if err != nil {
+			return common.Address{}, fmt.Errorf("failed to query zks_getBaseTokenL1Address: %w", err)
+		}
+		c.baseTokenAddress = common.HexToAddress(res)
+	}
+	return c.baseTokenAddress, nil
+
+}
+
+// IsEthBasedChain returns whether the chain is ETH-based.
+func (c *BaseClient) IsEthBasedChain(ctx context.Context) (bool, error) {
+	baseToken, err := c.BaseTokenContractAddress(ctx)
+	if err != nil {
+		return false, err
+	}
+	return baseToken == utils.EthAddressInContracts, nil
+}
+
+// IsBaseToken returns whether the token is the base token.
+func (c *BaseClient) IsBaseToken(ctx context.Context, token common.Address) (bool, error) {
+	baseToken, err := c.BaseTokenContractAddress(ctx)
+	if err != nil {
+		return false, err
+	}
+	return token == baseToken || token == utils.L2BaseTokenAddress, nil
+}
+
+// ContractAccountInfo returns the version of the supported account abstraction
+// and nonce ordering from a given contract address.
 func (c *BaseClient) ContractAccountInfo(ctx context.Context, address common.Address) (*zkTypes.ContractAccountInfo, error) {
 	contractDeployer, err := contractdeployer.NewIContractDeployerCaller(utils.ContractDeployerAddress, c)
 	if err != nil {
@@ -406,6 +586,7 @@ func (c *BaseClient) ContractAccountInfo(ctx context.Context, address common.Add
 	}, nil
 }
 
+// L1ChainID returns the chain id of the underlying L1.
 func (c *BaseClient) L1ChainID(ctx context.Context) (*big.Int, error) {
 	var res string
 	err := c.rpcClient.CallContext(ctx, &res, "zks_L1ChainId")
@@ -419,6 +600,7 @@ func (c *BaseClient) L1ChainID(ctx context.Context) (*big.Int, error) {
 	return resp, nil
 }
 
+// L1BatchNumber returns the latest L1 batch number.
 func (c *BaseClient) L1BatchNumber(ctx context.Context) (*big.Int, error) {
 	var res string
 	err := c.rpcClient.CallContext(ctx, &res, "zks_L1BatchNumber")
@@ -432,6 +614,7 @@ func (c *BaseClient) L1BatchNumber(ctx context.Context) (*big.Int, error) {
 	return resp, nil
 }
 
+// L1BatchBlockRange returns the range of blocks contained within a batch given by batch number.
 func (c *BaseClient) L1BatchBlockRange(ctx context.Context, l1BatchNumber *big.Int) (*BlockRange, error) {
 	var resp *BlockRange
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getL1BatchBlockRange", l1BatchNumber)
@@ -443,6 +626,7 @@ func (c *BaseClient) L1BatchBlockRange(ctx context.Context, l1BatchNumber *big.I
 	return resp, nil
 }
 
+// L1BatchDetails returns data pertaining to a given batch.
 func (c *BaseClient) L1BatchDetails(ctx context.Context, l1BatchNumber *big.Int) (*zkTypes.BatchDetails, error) {
 	var resp *zkTypes.BatchDetails
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getL1BatchDetails", l1BatchNumber)
@@ -454,6 +638,7 @@ func (c *BaseClient) L1BatchDetails(ctx context.Context, l1BatchNumber *big.Int)
 	return resp, nil
 }
 
+// BlockDetails returns additional zkSync Era-specific information about the L2 block.
 func (c *BaseClient) BlockDetails(ctx context.Context, block uint32) (*zkTypes.BlockDetails, error) {
 	var resp *zkTypes.BlockDetails
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getBlockDetails", block)
@@ -465,6 +650,7 @@ func (c *BaseClient) BlockDetails(ctx context.Context, block uint32) (*zkTypes.B
 	return resp, nil
 }
 
+// TransactionDetails returns data from a specific transaction given by the transaction hash.
 func (c *BaseClient) TransactionDetails(ctx context.Context, txHash common.Hash) (*zkTypes.TransactionDetails, error) {
 	var resp *zkTypes.TransactionDetails
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getTransactionDetails", txHash)
@@ -476,6 +662,31 @@ func (c *BaseClient) TransactionDetails(ctx context.Context, txHash common.Hash)
 	return resp, nil
 }
 
+// BytecodeByHash returns bytecode of a contract given by its hash.
+func (c *BaseClient) BytecodeByHash(ctx context.Context, bytecodeHash common.Hash) ([]byte, error) {
+	var resp []byte
+	err := c.rpcClient.CallContext(ctx, &resp, "zks_getBytecodeByHash", bytecodeHash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getBytecodeByHash: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
+	}
+	return resp, nil
+}
+
+// RawBlockTransactions returns data of transactions in a block.
+func (c *BaseClient) RawBlockTransactions(ctx context.Context, number uint64) ([]zkTypes.RawBlockTransaction, error) {
+	var resp []zkTypes.RawBlockTransaction
+	err := c.rpcClient.CallContext(ctx, &resp, "zks_getRawBlockTransactions", number)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getRawBlockTransactions: %w", err)
+	} else if resp == nil {
+		return nil, ethereum.NotFound
+	}
+	return resp, nil
+}
+
+// LogProof returns the proof for a transaction's L2 to L1 log sent via the L1Messenger system contract.
 func (c *BaseClient) LogProof(ctx context.Context, txHash common.Hash, logIndex int) (*zkTypes.MessageProof, error) {
 	var resp *zkTypes.MessageProof
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getL2ToL1LogProof", txHash, logIndex)
@@ -499,6 +710,18 @@ func (c *BaseClient) MsgProof(ctx context.Context, block uint32, sender common.A
 	return resp, nil
 }
 
+// Proof returns Merkle proofs for one or more storage values at the specified account along with a Merkle proof of their authenticity.
+func (c *BaseClient) Proof(ctx context.Context, address common.Address, keys []common.Hash, l1BatchNumber *big.Int) (*zkTypes.StorageProof, error) {
+	var res zkTypes.StorageProof
+	err := c.rpcClient.CallContext(ctx, &res, "zks_getProof", address, keys, l1BatchNumber)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getProof: %w", err)
+	}
+	return &res, nil
+}
+
+// L2TransactionFromPriorityOp returns transaction on L2 network from transaction
+// receipt on L1 network.
 func (c *BaseClient) L2TransactionFromPriorityOp(ctx context.Context, l1TxReceipt *types.Receipt) (*zkTypes.TransactionResponse, error) {
 	if c.mainContract == nil {
 		if err := c.cacheMainContract(ctx); err != nil {
@@ -521,6 +744,50 @@ func (c *BaseClient) L2TransactionFromPriorityOp(ctx context.Context, l1TxReceip
 		}
 	}
 	return nil, errors.New("wrong tx")
+}
+
+// PriorityOpConfirmation returns the transaction confirmation data that is part of `L2->L1` message.
+// The txHash is the  hash of the L2 transaction where the message was initiated.
+// The index is used in case there were multiple transactions in one message, you may pass an index of the
+// transaction which confirmation data should be fetched.
+func (c *BaseClient) PriorityOpConfirmation(ctx context.Context, txHash common.Hash, index int) (*zkTypes.PriorityOpConfirmation, error) {
+	receipt, err := c.TransactionReceipt(ctx, txHash)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
+	}
+	if receipt == nil {
+		return nil, errors.New("transaction receipt not found")
+	}
+	fLogs := make([]struct {
+		i int
+		l *zkTypes.L2ToL1Log
+	}, 0)
+	for i, l := range receipt.L2ToL1Logs {
+		if l.Sender == utils.BootloaderFormalAddress {
+			fLogs = append(fLogs, struct {
+				i int
+				l *zkTypes.L2ToL1Log
+			}{i, l})
+		}
+	}
+
+	if len(fLogs) < index+1 {
+		return nil, errors.New("message not found")
+	}
+
+	l2ToL1LogIndex := fLogs[index].i
+	l2ToL1Log := fLogs[index].l
+	proof, err := c.LogProof(ctx, txHash, l2ToL1LogIndex)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
+	}
+
+	return &zkTypes.PriorityOpConfirmation{
+		L1BatchNumber:     l2ToL1Log.L1BatchNumber.ToInt(),
+		L2MessageIndex:    proof.Id,
+		L2TxNumberInBlock: receipt.L1BatchNumber.ToInt(),
+		Proof:             proof.Proof,
+	}, nil
 }
 
 // Deprecated: Method is deprecated and will be removed in the near future.
@@ -547,35 +814,45 @@ func (c *BaseClient) TokenPrice(ctx context.Context, address common.Address) (*b
 	return resp, nil
 }
 
+// L2TokenAddress returns the L2 token address equivalent for a L1 token address
+// as they are not equal. ETH address is set to zero address.
 func (c *BaseClient) L2TokenAddress(ctx context.Context, token common.Address) (common.Address, error) {
-	if token == utils.EthAddress {
-		return utils.EthAddress, nil
-	} else {
-		bridgeContracts, err := c.BridgeContracts(ctx)
-		if err != nil {
-			return common.Address{}, err
-		}
-		bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2Erc20DefaultBridge, c)
-		if err != nil {
-			return common.Address{}, err
-		}
-		tokenAddress, err := bridge.L2TokenAddress(&bind.CallOpts{Context: ctx}, token)
-		if err != nil {
-			return common.Address{}, err
-		}
-		return tokenAddress, nil
+	if token == utils.LegacyEthAddress {
+		token = utils.EthAddressInContracts
 	}
+
+	if baseToken, err := c.BaseTokenContractAddress(ctx); err == nil && token == baseToken {
+		return utils.L2BaseTokenAddress, nil
+	} else if err != nil {
+		return common.Address{}, err
+	}
+
+	bridgeContracts, err := c.BridgeContracts(ctx)
+	if err != nil {
+		return common.Address{}, err
+	}
+	bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2SharedBridge, c)
+	if err != nil {
+		return common.Address{}, err
+	}
+	tokenAddress, err := bridge.L2TokenAddress(&bind.CallOpts{Context: ctx}, token)
+	if err != nil {
+		return common.Address{}, err
+	}
+	return tokenAddress, nil
 }
 
+// L1TokenAddress returns the L1 token address equivalent for a L2 token address
+// as they are not equal. ETH address is set to zero address.
 func (c *BaseClient) L1TokenAddress(ctx context.Context, token common.Address) (common.Address, error) {
-	if token == utils.EthAddress {
-		return utils.EthAddress, nil
+	if token == utils.LegacyEthAddress {
+		return utils.LegacyEthAddress, nil
 	} else {
 		bridgeContracts, err := c.BridgeContracts(ctx)
 		if err != nil {
 			return common.Address{}, err
 		}
-		bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2Erc20DefaultBridge, c)
+		bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2SharedBridge, c)
 		if err != nil {
 			return common.Address{}, err
 		}
@@ -587,6 +864,7 @@ func (c *BaseClient) L1TokenAddress(ctx context.Context, token common.Address) (
 	}
 }
 
+// AllAccountBalances returns all balances for confirmed tokens given by an account address.
 func (c *BaseClient) AllAccountBalances(ctx context.Context, address common.Address) (map[common.Address]*big.Int, error) {
 	res := make(map[common.Address]string)
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getAllAccountBalances", address)
@@ -603,6 +881,7 @@ func (c *BaseClient) AllAccountBalances(ctx context.Context, address common.Addr
 	return resp, nil
 }
 
+// EstimateFee Returns the fee for the transaction.
 func (c *BaseClient) EstimateFee(ctx context.Context, msg zkTypes.CallMsg) (*zkTypes.Fee, error) {
 	var res zkTypes.Fee
 	err := c.rpcClient.CallContext(ctx, &res, "zks_estimateFee", msg)
@@ -612,6 +891,7 @@ func (c *BaseClient) EstimateFee(ctx context.Context, msg zkTypes.CallMsg) (*zkT
 	return &res, nil
 }
 
+// EstimateGasL1 estimates the amount of gas required to submit a transaction from L1 to L2.
 func (c *BaseClient) EstimateGasL1(ctx context.Context, msg zkTypes.CallMsg) (uint64, error) {
 	var res hexutil.Uint64
 	err := c.rpcClient.CallContext(ctx, &res, "zks_estimateGasL1ToL2", msg)
@@ -621,6 +901,7 @@ func (c *BaseClient) EstimateGasL1(ctx context.Context, msg zkTypes.CallMsg) (ui
 	return uint64(res), nil
 }
 
+// EstimateGasTransfer estimates the amount of gas required for a transfer transaction.
 func (c *BaseClient) EstimateGasTransfer(ctx context.Context, msg TransferCallMsg) (uint64, error) {
 	callMsg, err := msg.ToCallMsg()
 	if err != nil {
@@ -629,18 +910,22 @@ func (c *BaseClient) EstimateGasTransfer(ctx context.Context, msg TransferCallMs
 	return c.EstimateGas(ctx, *callMsg)
 }
 
+// EstimateGasWithdraw estimates the amount of gas required for a withdrawal transaction.
 func (c *BaseClient) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMsg) (uint64, error) {
 	var (
 		callMsg *ethereum.CallMsg
 		err     error
 	)
+	if msg.Token == utils.LegacyEthAddress {
+		msg.Token = utils.EthAddressInContracts
+	}
 
 	if msg.BridgeAddress == nil {
 		contracts, errBridge := c.BridgeContracts(ctx)
 		if errBridge != nil {
 			return 0, fmt.Errorf("failed to getBridgeContracts: %w", errBridge)
 		}
-		callMsg, err = msg.ToCallMsg(&contracts.L2Erc20DefaultBridge)
+		callMsg, err = msg.ToCallMsg(&contracts.L2SharedBridge)
 	} else {
 		callMsg, err = msg.ToCallMsg(nil)
 		if err != nil {
@@ -650,6 +935,7 @@ func (c *BaseClient) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCall
 	return c.EstimateGas(ctx, *callMsg)
 }
 
+// EstimateL1ToL2Execute estimates the amount of gas required for an L1 to L2 execute operation.
 func (c *BaseClient) EstimateL1ToL2Execute(ctx context.Context, msg zkTypes.CallMsg) (uint64, error) {
 	if msg.Meta == nil || msg.Meta.GasPerPubdata == nil {
 		msg.Meta = &zkTypes.Eip712Meta{GasPerPubdata: utils.NewBig(utils.RequiredL1ToL2GasPerPubdataLimit.Int64())}
@@ -775,14 +1061,4 @@ func (c *BaseClient) getBlock(ctx context.Context, method string, args ...interf
 		L1BatchNumber:    block.L1BatchNumber.ToInt(),
 		L1BatchTimestamp: block.L1BatchTimestamp.ToInt(),
 	}, nil
-}
-
-// Proof returns Merkle proofs for one or more storage values at the specified account along with a Merkle proof of their authenticity.
-func (c *BaseClient) Proof(ctx context.Context, address common.Address, keys []common.Hash, l1BatchNumber *big.Int) (*zkTypes.StorageProof, error) {
-	var res zkTypes.StorageProof
-	err := c.rpcClient.CallContext(ctx, &res, "zks_getProof", address, keys, l1BatchNumber)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query zks_getProof: %w", err)
-	}
-	return &res, nil
 }

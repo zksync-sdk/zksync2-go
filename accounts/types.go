@@ -9,8 +9,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zksync-sdk/zksync2-go/clients"
+	"github.com/zksync-sdk/zksync2-go/contracts/bridgehub"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1bridge"
-	"github.com/zksync-sdk/zksync2-go/contracts/zksync"
 	zkTypes "github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
@@ -206,11 +206,9 @@ func (m *DepositCallMsg) ToCallMsg(from, l1Bridge common.Address) (ethereum.Call
 		return ethereum.CallMsg{}, err
 	}
 
-	var bridge common.Address
+	bridge := l1Bridge
 	if m.BridgeAddress != nil {
 		bridge = *m.BridgeAddress
-	} else {
-		bridge = l1Bridge
 	}
 
 	return ethereum.CallMsg{
@@ -246,7 +244,7 @@ func (m *DepositCallMsg) PopulateEmptyFields(from common.Address) {
 		m.GasPerPubdataByte = utils.RequiredL1ToL2GasPerPubdataLimit
 	}
 	if m.Token == (common.Address{}) {
-		m.Token = utils.EthAddress
+		m.Token = utils.LegacyEthAddress
 	}
 }
 
@@ -256,6 +254,7 @@ type RequestExecuteCallMsg struct {
 	ContractAddress common.Address // The L2 receiver address.
 	Calldata        []byte         // The input of the L2 transaction.
 	L2GasLimit      *big.Int       // Maximum amount of L2 gas that transaction can consume during execution on L2.
+	MintValue       *big.Int       // The amount of base token that needs to be minted on non-ETH-based L2.
 	L2Value         *big.Int       // `msg.value` of L2 transaction.
 	FactoryDeps     [][]byte       // An array of L2 bytecodes that will be marked as known on L2.
 
@@ -285,6 +284,7 @@ func (m *RequestExecuteCallMsg) ToRequestExecuteTransaction() RequestExecuteTran
 		ContractAddress:   m.ContractAddress,
 		Calldata:          m.Calldata,
 		L2GasLimit:        m.L2GasLimit,
+		MintValue:         m.MintValue,
 		L2Value:           m.L2Value,
 		FactoryDeps:       m.FactoryDeps,
 		OperatorTip:       m.OperatorTip,
@@ -293,13 +293,55 @@ func (m *RequestExecuteCallMsg) ToRequestExecuteTransaction() RequestExecuteTran
 	}
 }
 
+// Deprecated in favor of ToCallMsgWithChainID
 func (m *RequestExecuteCallMsg) ToCallMsg(from common.Address) (ethereum.CallMsg, error) {
-	zksyncAbi, err := zksync.IZkSyncMetaData.GetAbi()
+	bridgehubAbi, err := bridgehub.IBridgehubMetaData.GetAbi()
 	if err != nil {
 		return ethereum.CallMsg{}, fmt.Errorf("failed to load IZkSync ABI: %w", err)
 	}
-	requestExecuteCalldata, err := zksyncAbi.Pack("requestL2Transaction", m.ContractAddress, m.L2Value,
-		m.Calldata, m.L2GasLimit, m.GasPerPubdataByte, m.FactoryDeps, m.RefundRecipient)
+	requestExecuteCalldata, err := bridgehubAbi.Pack("requestL2TransactionDirect", bridgehub.L2TransactionRequestDirect{
+		ChainId:                  nil, // set it properly after method
+		MintValue:                m.MintValue,
+		L2Contract:               m.ContractAddress,
+		L2Value:                  m.L2Value,
+		L2Calldata:               m.Calldata,
+		L2GasLimit:               m.L2GasLimit,
+		L2GasPerPubdataByteLimit: m.GasPerPubdataByte,
+		FactoryDeps:              m.FactoryDeps,
+		RefundRecipient:          m.RefundRecipient,
+	})
+	if err != nil {
+		return ethereum.CallMsg{}, err
+	}
+
+	return ethereum.CallMsg{
+		From:      from,
+		To:        &m.ContractAddress,
+		Gas:       m.Gas,
+		GasPrice:  m.GasPrice,
+		GasFeeCap: m.GasFeeCap,
+		GasTipCap: m.GasTipCap,
+		Value:     m.Value,
+		Data:      requestExecuteCalldata,
+	}, nil
+}
+
+func (m *RequestExecuteCallMsg) ToCallMsgWithChainID(from common.Address, chainID *big.Int) (ethereum.CallMsg, error) {
+	bridgehubAbi, err := bridgehub.IBridgehubMetaData.GetAbi()
+	if err != nil {
+		return ethereum.CallMsg{}, fmt.Errorf("failed to load IZkSync ABI: %w", err)
+	}
+	requestExecuteCalldata, err := bridgehubAbi.Pack("requestL2TransactionDirect", bridgehub.L2TransactionRequestDirect{
+		ChainId:                  chainID,
+		MintValue:                m.MintValue,
+		L2Contract:               m.ContractAddress,
+		L2Value:                  m.L2Value,
+		L2Calldata:               m.Calldata,
+		L2GasLimit:               m.L2GasLimit,
+		L2GasPerPubdataByteLimit: m.GasPerPubdataByte,
+		FactoryDeps:              m.FactoryDeps,
+		RefundRecipient:          m.RefundRecipient,
+	})
 	if err != nil {
 		return ethereum.CallMsg{}, err
 	}
@@ -470,6 +512,7 @@ type RequestExecuteTransaction struct {
 	ContractAddress common.Address // The L2 receiver address.
 	Calldata        []byte         // The input of the L2 transaction.
 	L2GasLimit      *big.Int       // Maximum amount of L2 gas that transaction can consume during execution on L2.
+	MintValue       *big.Int       // The amount of base token that needs to be minted on non-ETH-based L2.
 	L2Value         *big.Int       // `msg.value` of L2 transaction.
 	FactoryDeps     [][]byte       // An array of L2 bytecodes that will be marked as known on L2.
 
@@ -491,6 +534,7 @@ func (t *RequestExecuteTransaction) ToRequestExecuteCallMsg(opts *TransactOpts) 
 		ContractAddress:   t.ContractAddress,
 		Calldata:          t.Calldata,
 		L2GasLimit:        t.L2GasLimit,
+		MintValue:         t.MintValue,
 		L2Value:           t.L2Value,
 		FactoryDeps:       t.FactoryDeps,
 		OperatorTip:       t.OperatorTip,
@@ -546,6 +590,10 @@ type DepositTransaction struct {
 	// bridge an ERC20 token and didn't call the approveERC20 function beforehand.
 	ApproveERC20 bool
 
+	// Whether should the base token approval be performed under the hood. Set this flag to true if you
+	// bridge an ERC20 token and didn't call the approveERC20 function beforehand.
+	ApproveBaseERC20 bool
+
 	L2GasLimit *big.Int // Maximum amount of L2 gas that transaction can consume during execution on L2.
 
 	// The maximum amount L2 gas that the operator may charge the user for single byte of pubdata.
@@ -555,9 +603,11 @@ type DepositTransaction struct {
 	// If the transaction fails, it will also be the address to receive L2Value.
 	RefundRecipient common.Address
 
-	CustomBridgeData []byte // Additional data that can be sent to a bridge.
+	CustomBridgeData []byte // Additional data that can be sent to the bridge.
 
-	ApproveAuth *TransactOpts // Authorization data for the approval token transaction.
+	ApproveAuth     *TransactOpts // Authorization data for the token approval transaction.
+	ApproveBaseAuth *TransactOpts // Authorization data for the base token approval transaction.
+
 }
 
 func (t *DepositTransaction) ToRequestExecuteTransaction() *RequestExecuteTransaction {
@@ -599,10 +649,13 @@ func (t *DepositTransaction) PopulateEmptyFields(from common.Address) {
 		t.GasPerPubdataByte = utils.RequiredL1ToL2GasPerPubdataLimit
 	}
 	if t.Token == (common.Address{}) {
-		t.Token = utils.EthAddress
+		t.Token = utils.LegacyEthAddress
 	}
 	if t.ApproveERC20 && t.ApproveAuth == nil {
 		t.ApproveAuth = ensureTransactOpts(t.ApproveAuth)
+	}
+	if t.ApproveBaseERC20 && t.ApproveBaseAuth == nil {
+		t.ApproveAuth = ensureTransactOpts(t.ApproveBaseAuth)
 	}
 }
 
@@ -736,4 +789,10 @@ type FullDepositFee struct {
 	BaseCost, // Base cost of the L2 transaction.
 	L1GasLimit, // Gas limit of the L1 transaction.
 	L2GasLimit *big.Int // Gas limit of the L2 transaction.
+}
+
+// AllowanceParams contains the parameters required for approval of an ERC20 token.
+type AllowanceParams struct {
+	Token     common.Address // Token address
+	Allowance *big.Int       // Allowance amount
 }

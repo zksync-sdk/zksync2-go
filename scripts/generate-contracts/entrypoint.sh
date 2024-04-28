@@ -1,5 +1,12 @@
 #!/bin/ash
 
+mkdir -p /contracts/bridgehub
+abigen  \
+	--abi /abi/IBridgehub.json \
+	--out /contracts/bridgehub/bridgehub.go \
+	--pkg bridgehub \
+	--type IBridgehub
+
 mkdir -p /contracts/contractdeployer
 abigen  \
 	--abi /abi/IContractDeployer.json \
@@ -21,12 +28,26 @@ abigen  \
 	--pkg l1bridge \
 	--type IL1Bridge
 
+mkdir -p /contracts/l1erc20bridge
+abigen  \
+	--abi /abi/IL1ERC20Bridge.json \
+	--out /contracts/l1erc20bridge/l1_erc20_bridge.go \
+	--pkg l1erc20bridge \
+	--type IL1ERC20Bridge
+
 mkdir -p /contracts/l1messenger
 abigen  \
 	--abi /abi/IL1Messenger.json \
 	--out /contracts/l1messenger/l1_messenger.go \
 	--pkg l1messenger \
 	--type IL1Messenger
+
+mkdir -p /contracts/l1sharedbridge
+abigen  \
+	--abi /abi/IL1SharedBridge.json \
+	--out /contracts/l1sharedbridge/l1_shared_bridge.go \
+	--pkg l1sharedbridge \
+	--type IL1SharedBridge
 
 mkdir -p /contracts/l2bridge
 abigen  \
@@ -49,12 +70,19 @@ abigen  \
 	--pkg paymasterflow \
 	--type IPaymasterFlow
 
-mkdir -p /contracts/zksync
+mkdir -p /contracts/testneterc20token
 abigen  \
-	--abi /abi/IZkSync.json \
-	--out /contracts/zksync/zk_sync.go \
-	--pkg zksync \
-	--type IZkSync
+	--abi /abi/ITestnetERC20Token.json \
+	--out /contracts/testneterc20token/testnet_erc20_token.go \
+	--pkg testneterc20token \
+	--type ITestnetERC20Token
+
+mkdir -p /contracts/zksyncstatetransition
+abigen  \
+	--abi /abi/IZkSyncStateTransition.json \
+	--out /contracts/zksyncstatetransition/zksync_state_transition.go \
+	--pkg zksyncstatetransition \
+	--type IZkSyncStateTransition
 
 echo "Folder content"
 ls -alhR /contracts

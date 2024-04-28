@@ -14,12 +14,25 @@ import (
 )
 
 var (
-	EthAddress              = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	// EthAddress The address of the L1 ETH token.
+	EthAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	// LegacyEthAddress The address of the L1 ETH token.
+	LegacyEthAddress = common.HexToAddress("0x0000000000000000000000000000000000000000")
+	// EthAddressInContracts In the contracts the zero address can not be used, use one instead.
+	EthAddressInContracts = common.HexToAddress("0x0000000000000000000000000000000000000001")
+	// BootloaderFormalAddress The formal address for the Bootloader.
 	BootloaderFormalAddress = common.HexToAddress("0x0000000000000000000000000000000000008001")
+	// ContractDeployerAddress The address of the Contract deployer.
 	ContractDeployerAddress = common.HexToAddress("0x0000000000000000000000000000000000008006")
-	L1MessengerAddress      = common.HexToAddress("0x0000000000000000000000000000000000008008")
-	L2EthTokenAddress       = common.HexToAddress("0x000000000000000000000000000000000000800a")
-	NonceHolderAddress      = common.HexToAddress("0x0000000000000000000000000000000000008003")
+	// L1MessengerAddress The address of the L1 messenger.
+	L1MessengerAddress = common.HexToAddress("0x0000000000000000000000000000000000008008")
+	// L2EthTokenAddress The address of the L2 `ETH` token.
+	// Deprecated: In favor of L2BaseTokenAddress
+	L2EthTokenAddress = common.HexToAddress("0x000000000000000000000000000000000000800a")
+	// L2BaseTokenAddress The address of the base token.
+	L2BaseTokenAddress = common.HexToAddress("0x000000000000000000000000000000000000800a")
+	// NonceHolderAddress The address of the Nonce holder.
+	NonceHolderAddress = common.HexToAddress("0x0000000000000000000000000000000000008003")
 
 	// L1ToL2AliasOffset Used for applying and undoing aliases on contract addresses during bridging from L1 to L2.
 	L1ToL2AliasOffset = common.HexToAddress("0x1111000000000000000000000000000000001111")

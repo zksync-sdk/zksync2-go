@@ -29,6 +29,15 @@ var (
 	_ = abi.ConvertType
 )
 
+// ContractDeployerForceDeployment is an auto generated low-level Go binding around an user-defined struct.
+type ContractDeployerForceDeployment struct {
+	BytecodeHash    [32]byte
+	NewAddress      common.Address
+	CallConstructor bool
+	Value           *big.Int
+	Input           []byte
+}
+
 // IContractDeployerAccountInfo is an auto generated low-level Go binding around an user-defined struct.
 type IContractDeployerAccountInfo struct {
 	SupportedAAVersion uint8
@@ -37,7 +46,7 @@ type IContractDeployerAccountInfo struct {
 
 // IContractDeployerMetaData contains all meta data concerning the IContractDeployer contract.
 var IContractDeployerMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"accountAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"enumIContractDeployer.AccountNonceOrdering\",\"name\":\"nonceOrdering\",\"type\":\"uint8\"}],\"name\":\"AccountNonceOrderingUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"accountAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"aaVersion\",\"type\":\"uint8\"}],\"name\":\"AccountVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"deployerAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"bytecodeHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"}],\"name\":\"ContractDeployed\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"}],\"name\":\"create\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"}],\"name\":\"create2\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"},{\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"_aaVersion\",\"type\":\"uint8\"}],\"name\":\"create2Account\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"},{\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"_aaVersion\",\"type\":\"uint8\"}],\"name\":\"createAccount\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"getAccountInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"supportedAAVersion\",\"type\":\"uint8\"},{\"internalType\":\"enumIContractDeployer.AccountNonceOrdering\",\"name\":\"nonceOrdering\",\"type\":\"uint8\"}],\"internalType\":\"structIContractDeployer.AccountInfo\",\"name\":\"info\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_senderNonce\",\"type\":\"uint256\"}],\"name\":\"getNewAddressCreate\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"}],\"name\":\"getNewAddressCreate2\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"_version\",\"type\":\"uint8\"}],\"name\":\"updateAccountVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"enumIContractDeployer.AccountNonceOrdering\",\"name\":\"_nonceOrdering\",\"type\":\"uint8\"}],\"name\":\"updateNonceOrdering\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"accountAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"enumIContractDeployer.AccountNonceOrdering\",\"name\":\"nonceOrdering\",\"type\":\"uint8\"}],\"name\":\"AccountNonceOrderingUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"accountAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"aaVersion\",\"type\":\"uint8\"}],\"name\":\"AccountVersionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"deployerAddress\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"bytecodeHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"contractAddress\",\"type\":\"address\"}],\"name\":\"ContractDeployed\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"}],\"name\":\"create\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"}],\"name\":\"create2\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"},{\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"_aaVersion\",\"type\":\"uint8\"}],\"name\":\"create2Account\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"},{\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"_aaVersion\",\"type\":\"uint8\"}],\"name\":\"createAccount\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"extendedAccountVersion\",\"outputs\":[{\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"callConstructor\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"internalType\":\"structContractDeployer.ForceDeployment\",\"name\":\"_deployment\",\"type\":\"tuple\"},{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"}],\"name\":\"forceDeployOnAddress\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"},{\"internalType\":\"bool\",\"name\":\"callConstructor\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"input\",\"type\":\"bytes\"}],\"internalType\":\"structContractDeployer.ForceDeployment[]\",\"name\":\"_deployments\",\"type\":\"tuple[]\"}],\"name\":\"forceDeployOnAddresses\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_address\",\"type\":\"address\"}],\"name\":\"getAccountInfo\",\"outputs\":[{\"components\":[{\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"supportedAAVersion\",\"type\":\"uint8\"},{\"internalType\":\"enumIContractDeployer.AccountNonceOrdering\",\"name\":\"nonceOrdering\",\"type\":\"uint8\"}],\"internalType\":\"structIContractDeployer.AccountInfo\",\"name\":\"info\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_senderNonce\",\"type\":\"uint256\"}],\"name\":\"getNewAddressCreate\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sender\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_bytecodeHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_salt\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"_input\",\"type\":\"bytes\"}],\"name\":\"getNewAddressCreate2\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"enumIContractDeployer.AccountAbstractionVersion\",\"name\":\"_version\",\"type\":\"uint8\"}],\"name\":\"updateAccountVersion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"enumIContractDeployer.AccountNonceOrdering\",\"name\":\"_nonceOrdering\",\"type\":\"uint8\"}],\"name\":\"updateNonceOrdering\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IContractDeployerABI is the input ABI used to generate the binding from.
@@ -186,6 +195,37 @@ func (_IContractDeployer *IContractDeployerTransactorRaw) Transact(opts *bind.Tr
 	return _IContractDeployer.Contract.contract.Transact(opts, method, params...)
 }
 
+// ExtendedAccountVersion is a free data retrieval call binding the contract method 0xbb0fd610.
+//
+// Solidity: function extendedAccountVersion(address _address) view returns(uint8)
+func (_IContractDeployer *IContractDeployerCaller) ExtendedAccountVersion(opts *bind.CallOpts, _address common.Address) (uint8, error) {
+	var out []interface{}
+	err := _IContractDeployer.contract.Call(opts, &out, "extendedAccountVersion", _address)
+
+	if err != nil {
+		return *new(uint8), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(uint8)).(*uint8)
+
+	return out0, err
+
+}
+
+// ExtendedAccountVersion is a free data retrieval call binding the contract method 0xbb0fd610.
+//
+// Solidity: function extendedAccountVersion(address _address) view returns(uint8)
+func (_IContractDeployer *IContractDeployerSession) ExtendedAccountVersion(_address common.Address) (uint8, error) {
+	return _IContractDeployer.Contract.ExtendedAccountVersion(&_IContractDeployer.CallOpts, _address)
+}
+
+// ExtendedAccountVersion is a free data retrieval call binding the contract method 0xbb0fd610.
+//
+// Solidity: function extendedAccountVersion(address _address) view returns(uint8)
+func (_IContractDeployer *IContractDeployerCallerSession) ExtendedAccountVersion(_address common.Address) (uint8, error) {
+	return _IContractDeployer.Contract.ExtendedAccountVersion(&_IContractDeployer.CallOpts, _address)
+}
+
 // GetAccountInfo is a free data retrieval call binding the contract method 0x7b510fe8.
 //
 // Solidity: function getAccountInfo(address _address) view returns((uint8,uint8) info)
@@ -281,86 +321,128 @@ func (_IContractDeployer *IContractDeployerCallerSession) GetNewAddressCreate2(_
 
 // Create is a paid mutator transaction binding the contract method 0x9c4d535b.
 //
-// Solidity: function create(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address newAddress)
+// Solidity: function create(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address)
 func (_IContractDeployer *IContractDeployerTransactor) Create(opts *bind.TransactOpts, _salt [32]byte, _bytecodeHash [32]byte, _input []byte) (*types.Transaction, error) {
 	return _IContractDeployer.contract.Transact(opts, "create", _salt, _bytecodeHash, _input)
 }
 
 // Create is a paid mutator transaction binding the contract method 0x9c4d535b.
 //
-// Solidity: function create(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address newAddress)
+// Solidity: function create(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address)
 func (_IContractDeployer *IContractDeployerSession) Create(_salt [32]byte, _bytecodeHash [32]byte, _input []byte) (*types.Transaction, error) {
 	return _IContractDeployer.Contract.Create(&_IContractDeployer.TransactOpts, _salt, _bytecodeHash, _input)
 }
 
 // Create is a paid mutator transaction binding the contract method 0x9c4d535b.
 //
-// Solidity: function create(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address newAddress)
+// Solidity: function create(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address)
 func (_IContractDeployer *IContractDeployerTransactorSession) Create(_salt [32]byte, _bytecodeHash [32]byte, _input []byte) (*types.Transaction, error) {
 	return _IContractDeployer.Contract.Create(&_IContractDeployer.TransactOpts, _salt, _bytecodeHash, _input)
 }
 
 // Create2 is a paid mutator transaction binding the contract method 0x3cda3351.
 //
-// Solidity: function create2(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address newAddress)
+// Solidity: function create2(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address)
 func (_IContractDeployer *IContractDeployerTransactor) Create2(opts *bind.TransactOpts, _salt [32]byte, _bytecodeHash [32]byte, _input []byte) (*types.Transaction, error) {
 	return _IContractDeployer.contract.Transact(opts, "create2", _salt, _bytecodeHash, _input)
 }
 
 // Create2 is a paid mutator transaction binding the contract method 0x3cda3351.
 //
-// Solidity: function create2(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address newAddress)
+// Solidity: function create2(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address)
 func (_IContractDeployer *IContractDeployerSession) Create2(_salt [32]byte, _bytecodeHash [32]byte, _input []byte) (*types.Transaction, error) {
 	return _IContractDeployer.Contract.Create2(&_IContractDeployer.TransactOpts, _salt, _bytecodeHash, _input)
 }
 
 // Create2 is a paid mutator transaction binding the contract method 0x3cda3351.
 //
-// Solidity: function create2(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address newAddress)
+// Solidity: function create2(bytes32 _salt, bytes32 _bytecodeHash, bytes _input) payable returns(address)
 func (_IContractDeployer *IContractDeployerTransactorSession) Create2(_salt [32]byte, _bytecodeHash [32]byte, _input []byte) (*types.Transaction, error) {
 	return _IContractDeployer.Contract.Create2(&_IContractDeployer.TransactOpts, _salt, _bytecodeHash, _input)
 }
 
 // Create2Account is a paid mutator transaction binding the contract method 0x5d382700.
 //
-// Solidity: function create2Account(bytes32 _salt, bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address newAddress)
+// Solidity: function create2Account(bytes32 _salt, bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address)
 func (_IContractDeployer *IContractDeployerTransactor) Create2Account(opts *bind.TransactOpts, _salt [32]byte, _bytecodeHash [32]byte, _input []byte, _aaVersion uint8) (*types.Transaction, error) {
 	return _IContractDeployer.contract.Transact(opts, "create2Account", _salt, _bytecodeHash, _input, _aaVersion)
 }
 
 // Create2Account is a paid mutator transaction binding the contract method 0x5d382700.
 //
-// Solidity: function create2Account(bytes32 _salt, bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address newAddress)
+// Solidity: function create2Account(bytes32 _salt, bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address)
 func (_IContractDeployer *IContractDeployerSession) Create2Account(_salt [32]byte, _bytecodeHash [32]byte, _input []byte, _aaVersion uint8) (*types.Transaction, error) {
 	return _IContractDeployer.Contract.Create2Account(&_IContractDeployer.TransactOpts, _salt, _bytecodeHash, _input, _aaVersion)
 }
 
 // Create2Account is a paid mutator transaction binding the contract method 0x5d382700.
 //
-// Solidity: function create2Account(bytes32 _salt, bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address newAddress)
+// Solidity: function create2Account(bytes32 _salt, bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address)
 func (_IContractDeployer *IContractDeployerTransactorSession) Create2Account(_salt [32]byte, _bytecodeHash [32]byte, _input []byte, _aaVersion uint8) (*types.Transaction, error) {
 	return _IContractDeployer.Contract.Create2Account(&_IContractDeployer.TransactOpts, _salt, _bytecodeHash, _input, _aaVersion)
 }
 
 // CreateAccount is a paid mutator transaction binding the contract method 0xecf95b8a.
 //
-// Solidity: function createAccount(bytes32 _salt, bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address newAddress)
-func (_IContractDeployer *IContractDeployerTransactor) CreateAccount(opts *bind.TransactOpts, _salt [32]byte, _bytecodeHash [32]byte, _input []byte, _aaVersion uint8) (*types.Transaction, error) {
-	return _IContractDeployer.contract.Transact(opts, "createAccount", _salt, _bytecodeHash, _input, _aaVersion)
+// Solidity: function createAccount(bytes32 , bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address)
+func (_IContractDeployer *IContractDeployerTransactor) CreateAccount(opts *bind.TransactOpts, arg0 [32]byte, _bytecodeHash [32]byte, _input []byte, _aaVersion uint8) (*types.Transaction, error) {
+	return _IContractDeployer.contract.Transact(opts, "createAccount", arg0, _bytecodeHash, _input, _aaVersion)
 }
 
 // CreateAccount is a paid mutator transaction binding the contract method 0xecf95b8a.
 //
-// Solidity: function createAccount(bytes32 _salt, bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address newAddress)
-func (_IContractDeployer *IContractDeployerSession) CreateAccount(_salt [32]byte, _bytecodeHash [32]byte, _input []byte, _aaVersion uint8) (*types.Transaction, error) {
-	return _IContractDeployer.Contract.CreateAccount(&_IContractDeployer.TransactOpts, _salt, _bytecodeHash, _input, _aaVersion)
+// Solidity: function createAccount(bytes32 , bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address)
+func (_IContractDeployer *IContractDeployerSession) CreateAccount(arg0 [32]byte, _bytecodeHash [32]byte, _input []byte, _aaVersion uint8) (*types.Transaction, error) {
+	return _IContractDeployer.Contract.CreateAccount(&_IContractDeployer.TransactOpts, arg0, _bytecodeHash, _input, _aaVersion)
 }
 
 // CreateAccount is a paid mutator transaction binding the contract method 0xecf95b8a.
 //
-// Solidity: function createAccount(bytes32 _salt, bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address newAddress)
-func (_IContractDeployer *IContractDeployerTransactorSession) CreateAccount(_salt [32]byte, _bytecodeHash [32]byte, _input []byte, _aaVersion uint8) (*types.Transaction, error) {
-	return _IContractDeployer.Contract.CreateAccount(&_IContractDeployer.TransactOpts, _salt, _bytecodeHash, _input, _aaVersion)
+// Solidity: function createAccount(bytes32 , bytes32 _bytecodeHash, bytes _input, uint8 _aaVersion) payable returns(address)
+func (_IContractDeployer *IContractDeployerTransactorSession) CreateAccount(arg0 [32]byte, _bytecodeHash [32]byte, _input []byte, _aaVersion uint8) (*types.Transaction, error) {
+	return _IContractDeployer.Contract.CreateAccount(&_IContractDeployer.TransactOpts, arg0, _bytecodeHash, _input, _aaVersion)
+}
+
+// ForceDeployOnAddress is a paid mutator transaction binding the contract method 0xf3385fb6.
+//
+// Solidity: function forceDeployOnAddress((bytes32,address,bool,uint256,bytes) _deployment, address _sender) payable returns()
+func (_IContractDeployer *IContractDeployerTransactor) ForceDeployOnAddress(opts *bind.TransactOpts, _deployment ContractDeployerForceDeployment, _sender common.Address) (*types.Transaction, error) {
+	return _IContractDeployer.contract.Transact(opts, "forceDeployOnAddress", _deployment, _sender)
+}
+
+// ForceDeployOnAddress is a paid mutator transaction binding the contract method 0xf3385fb6.
+//
+// Solidity: function forceDeployOnAddress((bytes32,address,bool,uint256,bytes) _deployment, address _sender) payable returns()
+func (_IContractDeployer *IContractDeployerSession) ForceDeployOnAddress(_deployment ContractDeployerForceDeployment, _sender common.Address) (*types.Transaction, error) {
+	return _IContractDeployer.Contract.ForceDeployOnAddress(&_IContractDeployer.TransactOpts, _deployment, _sender)
+}
+
+// ForceDeployOnAddress is a paid mutator transaction binding the contract method 0xf3385fb6.
+//
+// Solidity: function forceDeployOnAddress((bytes32,address,bool,uint256,bytes) _deployment, address _sender) payable returns()
+func (_IContractDeployer *IContractDeployerTransactorSession) ForceDeployOnAddress(_deployment ContractDeployerForceDeployment, _sender common.Address) (*types.Transaction, error) {
+	return _IContractDeployer.Contract.ForceDeployOnAddress(&_IContractDeployer.TransactOpts, _deployment, _sender)
+}
+
+// ForceDeployOnAddresses is a paid mutator transaction binding the contract method 0xe9f18c17.
+//
+// Solidity: function forceDeployOnAddresses((bytes32,address,bool,uint256,bytes)[] _deployments) payable returns()
+func (_IContractDeployer *IContractDeployerTransactor) ForceDeployOnAddresses(opts *bind.TransactOpts, _deployments []ContractDeployerForceDeployment) (*types.Transaction, error) {
+	return _IContractDeployer.contract.Transact(opts, "forceDeployOnAddresses", _deployments)
+}
+
+// ForceDeployOnAddresses is a paid mutator transaction binding the contract method 0xe9f18c17.
+//
+// Solidity: function forceDeployOnAddresses((bytes32,address,bool,uint256,bytes)[] _deployments) payable returns()
+func (_IContractDeployer *IContractDeployerSession) ForceDeployOnAddresses(_deployments []ContractDeployerForceDeployment) (*types.Transaction, error) {
+	return _IContractDeployer.Contract.ForceDeployOnAddresses(&_IContractDeployer.TransactOpts, _deployments)
+}
+
+// ForceDeployOnAddresses is a paid mutator transaction binding the contract method 0xe9f18c17.
+//
+// Solidity: function forceDeployOnAddresses((bytes32,address,bool,uint256,bytes)[] _deployments) payable returns()
+func (_IContractDeployer *IContractDeployerTransactorSession) ForceDeployOnAddresses(_deployments []ContractDeployerForceDeployment) (*types.Transaction, error) {
+	return _IContractDeployer.Contract.ForceDeployOnAddresses(&_IContractDeployer.TransactOpts, _deployments)
 }
 
 // UpdateAccountVersion is a paid mutator transaction binding the contract method 0x57180981.

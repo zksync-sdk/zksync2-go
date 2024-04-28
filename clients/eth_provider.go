@@ -161,8 +161,10 @@ func (p *DefaultEthProvider) Deposit(token *zkTypes.Token, amount *big.Int, addr
 		auth.Value = baseCost
 		return p.l1ERC20Bridge.Deposit(
 			auth,
+			big.NewInt(0),
 			address,
 			token.L1Address,
+			big.NewInt(0),
 			amount,
 			RecommendedDepositL2GasLimit,
 			DepositGasPerPubdataLimit,
@@ -216,6 +218,7 @@ func (p *DefaultEthProvider) FinalizeWithdrawal(l1BridgeAddress common.Address, 
 	}
 	auth := p.getAuth(options)
 	return l1Bridge.FinalizeWithdrawal(auth,
+		big.NewInt(0),
 		l2BlockNumber,
 		l2MessageIndex,
 		uint16(l2TxNumberInBlock.Uint64()),
@@ -240,8 +243,10 @@ func (p *DefaultEthProvider) ClaimFailedDeposit(l1BridgeAddress common.Address, 
 	}
 	auth := p.getAuth(options)
 	return l1Bridge.ClaimFailedDeposit(auth,
+		big.NewInt(0),
 		depositSender,
 		l1Token,
+		big.NewInt(0),
 		l2TxHash,
 		l2BlockNumber,
 		l2MessageIndex,
@@ -265,7 +270,8 @@ func (p *DefaultEthProvider) IsWithdrawalFinalized(l1BridgeAddress common.Addres
 	if err != nil {
 		return false, fmt.Errorf("failed to init l1Bridge: %w", err)
 	}
-	return l1Bridge.IsWithdrawalFinalized(&bind.CallOpts{},
+	return l1Bridge.IsWithdrawalFinalizedShared(&bind.CallOpts{},
+		big.NewInt(0),
 		l2BlockNumber,
 		l2MessageIndex,
 	)
