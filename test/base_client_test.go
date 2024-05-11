@@ -907,6 +907,46 @@ func TestIntegrationBaseClient_TransactionDetails(t *testing.T) {
 	assert.NotNil(t, txDetails, "TransactionDetails should return a non-nil block details")
 }
 
+func TestIntegrationBaseClient_BytecodeByHash(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	baseClient, ok := (client).(*clients.BaseClient)
+	assert.True(t, ok, "Casting to BaseClient should not return an error")
+
+	testnetPaymaster, err := baseClient.TestnetPaymaster(context.Background())
+	assert.NoError(t, err, "TestnetPaymaster should not return an error")
+
+	testnetPaymasterBytecode, err := baseClient.CodeAt(context.Background(), testnetPaymaster, nil)
+	assert.NoError(t, err, "CodeAt should not return an error")
+
+	testnetPaymasterBytecodeHash, err := utils.HashBytecode(testnetPaymasterBytecode)
+	assert.NoError(t, err, "HashBytecode should not return an error")
+
+	bytecode, err := baseClient.BytecodeByHash(context.Background(), common.BytesToHash(testnetPaymasterBytecodeHash))
+
+	assert.NoError(t, err, "BytecodeByHash should not return an error")
+	assert.Equal(t, testnetPaymasterBytecode, bytecode, "Bytecodes should be the same")
+}
+
+func TestIntegrationBaseClient_RawBlockTransactions(t *testing.T) {
+	client, err := clients.Dial(ZkSyncEraProvider)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	baseClient, ok := (client).(*clients.BaseClient)
+	assert.True(t, ok, "Casting to BaseClient should not return an error")
+
+	blockNumber, err := baseClient.BlockNumber(context.Background())
+	assert.NoError(t, err, "BlockNumber should not return an error")
+
+	rawBlockTransactions, err := baseClient.RawBlockTransactions(context.Background(), blockNumber)
+
+	assert.NoError(t, err, "BytecodeByHash should not return an error")
+	assert.NotNil(t, rawBlockTransactions, "Raw block transactions should not be nil")
+}
+
 func TestIntegrationBaseClient_L2TransactionFromPriorityOp(t *testing.T) {
 	client, err := clients.Dial(ZkSyncEraProvider)
 	defer client.Close()

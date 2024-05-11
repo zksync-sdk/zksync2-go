@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"math/big"
 	"time"
@@ -79,4 +80,33 @@ type BlockDetails struct {
 	} `json:"baseSystemContractsHashes"`
 	OperatorAddress common.Address `json:"operatorAddress"`
 	ProtocolVersion string         `json:"protocolVersion"`
+}
+
+type RawBlockTransaction struct {
+	CommonData struct {
+		L1 struct {
+			CanonicalTxHash    common.Hash    `json:"canonicalTxHash"`
+			DeadlineBlock      *big.Int       `json:"deadlineBlock"`
+			EthBlock           *big.Int       `json:"ethBlock"`
+			EthHash            common.Hash    `json:"ethHash"`
+			FullFee            hexutil.Big    `json:"fullFee"`
+			GasLimit           hexutil.Big    `json:"gasLimit"`
+			GasPerPubdataLimit hexutil.Big    `json:"gasPerPubdataLimit"`
+			Layer2TipFee       hexutil.Big    `json:"layer2TipFee"`
+			MaxFeePerGas       hexutil.Big    `json:"maxFeePerGas"`
+			OpProcessingType   string         `json:"opProcessingType"`
+			PriorityQueueType  string         `json:"priorityQueueType"`
+			RefundRecipient    common.Address `json:"refundRecipient"`
+			Sender             common.Address `json:"sender"`
+			SerialId           *big.Int       `json:"serialId"`
+			ToMint             string         `json:"toMint"`
+		} `json:"L1"`
+	} `json:"common_data"`
+	Execute struct {
+		Calldata        hexutil.Bytes   `json:"calldata"`
+		ContractAddress common.Address  `json:"contractAddress"`
+		FactoryDeps     []hexutil.Bytes `json:"factoryDeps"`
+		Value           hexutil.Big     `json:"value"`
+	} `json:"execute"`
+	ReceivedTimestampMs uint64 `json:"received_timestamp_ms"`
 }
