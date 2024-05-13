@@ -134,6 +134,8 @@ func (s *BaseSigner) SignTypedData(domain *eip712.Domain, data eip712.TypedData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign hash of typed data: %w", err)
 	}
+	// crypto.Sign uses the traditional implementation where v is either 0 or 1,
+	// while Ethereum uses newer implementation where v is either 27 or 28.
 	if sig[64] < 27 {
 		sig[64] += 27
 	}

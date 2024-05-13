@@ -903,17 +903,17 @@ func (c *BaseClient) EstimateGasL1(ctx context.Context, msg zkTypes.CallMsg) (ui
 
 // EstimateGasTransfer estimates the amount of gas required for a transfer transaction.
 func (c *BaseClient) EstimateGasTransfer(ctx context.Context, msg TransferCallMsg) (uint64, error) {
-	callMsg, err := msg.ToCallMsg()
+	callMsg, err := msg.ToZkCallMsg()
 	if err != nil {
 		return 0, err
 	}
-	return c.EstimateGas(ctx, *callMsg)
+	return c.EstimateGasL2(ctx, *callMsg)
 }
 
 // EstimateGasWithdraw estimates the amount of gas required for a withdrawal transaction.
 func (c *BaseClient) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMsg) (uint64, error) {
 	var (
-		callMsg *ethereum.CallMsg
+		callMsg *zkTypes.CallMsg
 		err     error
 	)
 	if msg.Token == utils.LegacyEthAddress {
@@ -925,14 +925,14 @@ func (c *BaseClient) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCall
 		if errBridge != nil {
 			return 0, fmt.Errorf("failed to getBridgeContracts: %w", errBridge)
 		}
-		callMsg, err = msg.ToCallMsg(&contracts.L2SharedBridge)
+		callMsg, err = msg.ToZkCallMsg(&contracts.L2SharedBridge)
 	} else {
-		callMsg, err = msg.ToCallMsg(nil)
+		callMsg, err = msg.ToZkCallMsg(nil)
 		if err != nil {
 			return 0, err
 		}
 	}
-	return c.EstimateGas(ctx, *callMsg)
+	return c.EstimateGasL2(ctx, *callMsg)
 }
 
 // EstimateL1ToL2Execute estimates the amount of gas required for an L1 to L2 execute operation.

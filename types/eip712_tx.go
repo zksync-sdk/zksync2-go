@@ -73,11 +73,7 @@ func (tx *Transaction712) RLPValues(sig []byte) ([]byte, error) {
 		PaymasterParams:      tx.Meta.PaymasterParams,
 	}
 	if len(txRLP.CustomSignature) == 0 {
-		if len(sig) == 65 {
-			txRLP.CustomSignature = sig
-		} else if len(sig) > 0 {
-			return nil, errors.New("invalid length of signature")
-		}
+		txRLP.CustomSignature = sig
 	}
 
 	res, err := rlp.EncodeToBytes(txRLP)
