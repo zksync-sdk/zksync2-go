@@ -272,7 +272,6 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zk
 	if tx.Data == nil {
 		tx.Data = hexutil.Bytes{}
 	}
-
 	return tx.ToTransaction712(a.auth.From), nil
 }
 
@@ -319,7 +318,7 @@ func (a *WalletL2) SendTransaction(ctx context.Context, tx *Transaction) (common
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return (*a.client).SendRawTransaction(context.Background(), rawTx)
+	return (*a.client).SendRawTransaction(ensureContext(ctx), rawTx)
 }
 
 func (a *WalletL2) transferETH(auth *TransactOpts, tx TransferTransaction) (*types.Transaction, error) {

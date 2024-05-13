@@ -28,6 +28,8 @@ type TransferCallMsg struct {
 	GasTipCap *big.Int // EIP-1559 tip per gas.
 
 	AccessList types.AccessList // EIP-2930 access list.
+
+	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
 }
 
 func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
@@ -66,6 +68,52 @@ func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
 	}, nil
 }
 
+func (m *TransferCallMsg) ToZkCallMsg() (*zkTypes.CallMsg, error) {
+	var (
+		value *big.Int
+		data  []byte
+		to    *common.Address
+		meta  *zkTypes.Eip712Meta
+	)
+
+	if m.Token == utils.LegacyEthAddress {
+		value = m.Amount
+		to = &m.To
+	} else {
+		value = big.NewInt(0)
+		to = &m.Token
+
+		erc20abi, err := erc20.IERC20MetaData.GetAbi()
+		if err != nil {
+			return nil, fmt.Errorf("failed to load erc20abi: %w", err)
+		}
+		data, err = erc20abi.Pack("transfer", m.To, m.Amount)
+		if err != nil {
+			return nil, fmt.Errorf("failed to pack transfer function: %w", err)
+		}
+	}
+	if m.PaymasterParams != nil {
+		meta = &zkTypes.Eip712Meta{
+			GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
+			PaymasterParams: m.PaymasterParams,
+		}
+	}
+
+	return &zkTypes.CallMsg{
+		CallMsg: ethereum.CallMsg{
+			From:      m.From,
+			To:        to,
+			Gas:       m.Gas,
+			GasPrice:  m.GasPrice,
+			GasFeeCap: m.GasFeeCap,
+			GasTipCap: m.GasTipCap,
+			Value:     value,
+			Data:      data,
+		},
+		Meta: meta,
+	}, nil
+}
+
 // WithdrawalCallMsg contains parameters for withdrawal call.
 type WithdrawalCallMsg struct {
 	To            common.Address  // The address of the recipient on L1.
@@ -80,6 +128,8 @@ type WithdrawalCallMsg struct {
 	GasTipCap *big.Int // EIP-1559 tip per gas.
 
 	AccessList types.AccessList // EIP-2930 access list.
+
+	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
 }
 
 func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereum.CallMsg, error) {
@@ -128,6 +178,26 @@ func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereu
 			Data:      data,
 		}, nil
 	}
+}
+
+func (m *WithdrawalCallMsg) ToZkCallMsg(defaultL2Bridge *common.Address) (*zkTypes.CallMsg, error) {
+	var meta *zkTypes.Eip712Meta
+
+	msg, err := m.ToCallMsg(defaultL2Bridge)
+	if err != nil {
+		return nil, err
+	}
+	if m.PaymasterParams != nil {
+		meta = &zkTypes.Eip712Meta{
+			GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
+			PaymasterParams: m.PaymasterParams,
+		}
+	}
+
+	return &zkTypes.CallMsg{
+		CallMsg: *msg,
+		Meta:    meta,
+	}, nil
 }
 
 type blockMarshaling struct {

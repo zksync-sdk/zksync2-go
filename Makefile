@@ -5,10 +5,10 @@ generate-contracts:
 	cd scripts/generate-contracts && ./execute.sh && cd ../..
 
 run-tests-on-eth-based-chain:
-	go test -v -skip='^.*_NonEthBasedChain_.*$\' ./test ./utils
+	go test -v -skip='^.*_NonEthBasedChain_.*$\' ./test  ./accounts ./utils
 
 run-tests-on-non-eth-based-chain:
-	go test -v -skip='^.*_EthBasedChain_.*$\'  ./test ./utils
+	go test -v -skip='^.*_EthBasedChain_.*$\'  ./test ./accounts ./utils
 
 check-format:
 	cd scripts/ && ./check-format.sh && cd ../..

@@ -23,8 +23,7 @@ const TokenPath = "./testdata/tokens.json"
 func readTokens() []TokenData {
 	file, err := os.Open(TokenPath)
 	if err != nil {
-		log.Printf("Could not find tokens.json")
-		return nil
+		log.Fatal("Could not find tokens.json")
 	}
 
 	var tokens []TokenData
@@ -33,6 +32,177 @@ func readTokens() []TokenData {
 		log.Fatalf("Error decoding JSON: %s", errDecode)
 	}
 	return tokens
+}
+
+func deployMultisigAccount(wallet *accounts.Wallet, client clients.Client) {
+	_, abi, bytecode, err := utils.ReadStandardJson("./testdata/TwoUserMultisig.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	constructor, err := abi.Pack("", Address1, Address2)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hash, err := wallet.DeployAccount(nil, accounts.Create2Transaction{
+		Bytecode: bytecode,
+		Calldata: constructor,
+		Salt:     Salt,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	receipt, err := client.WaitMined(context.Background(), hash)
+	if err != nil {
+		log.Fatal(err)
+	}
+	multisigAccountAddress := receipt.ContractAddress
+	if multisigAccountAddress != MultisigAccount {
+		log.Fatal("multisig account addresses mismatch")
+	}
+
+	// transfer ETH to multisig account
+	transferTx, err := wallet.Transfer(nil, accounts.TransferTransaction{
+		To:     multisigAccountAddress,
+		Amount: big.NewInt(2_000_000_000_000_000_000),
+		Token:  utils.LegacyEthAddress,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = client.WaitMined(context.Background(), transferTx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// transfer token to multisig account
+	transferTx, err = wallet.Transfer(nil, accounts.TransferTransaction{
+		To:     multisigAccountAddress,
+		Amount: big.NewInt(20),
+		Token:  L2Dai,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = client.WaitMined(context.Background(), transferTx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// transfer approval token to multisig account
+	transferTx, err = wallet.Transfer(nil, accounts.TransferTransaction{
+		To:     multisigAccountAddress,
+		Amount: big.NewInt(5),
+		Token:  ApprovalToken,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = client.WaitMined(context.Background(), transferTx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func deployPaymasterAndToken(wallet *accounts.Wallet, client clients.Client) {
+	tokenAbi, err := TokenMetaData.GetAbi()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	constructor, err := tokenAbi.Pack("", "Crown", "Crown", uint8(18))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hash, err := wallet.Deploy(nil, accounts.Create2Transaction{
+		Bytecode: common.FromHex(TokenMetaData.Bin),
+		Calldata: constructor,
+		Salt:     Salt,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	receipt, err := client.WaitMined(context.Background(), hash)
+	if err != nil {
+		log.Fatal(err)
+	}
+	tokenAddress := receipt.ContractAddress
+	if tokenAddress != ApprovalToken {
+		log.Fatal("token addresses mismatch")
+	}
+
+	// mint tokens to wallet
+	token, err := NewToken(tokenAddress, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	opts, err := bind.NewKeyedTransactorWithChainID(wallet.Signer().PrivateKey(), wallet.Signer().Domain().ChainId)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mint, err := token.Mint(opts, wallet.Address(), big.NewInt(50))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = client.WaitMined(context.Background(), mint.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// deploy paymaster
+	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testdata/Paymaster.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	constructor, err = paymasterAbi.Pack("", tokenAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hash, err = wallet.DeployAccount(nil, accounts.Create2Transaction{
+		Bytecode: bytecode,
+		Calldata: constructor,
+		Salt:     Salt,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	receipt, err = client.WaitMined(context.Background(), hash)
+	if err != nil {
+		log.Fatal(err)
+	}
+	paymasterAddress := receipt.ContractAddress
+	if paymasterAddress != Paymaster {
+		log.Fatal("paymaster addresses mismatch")
+	}
+
+	// transfer ETH to paymaster so it could pay fee
+	transferTx, err := wallet.Transfer(nil, accounts.TransferTransaction{
+		To:     paymasterAddress,
+		Amount: big.NewInt(2_000_000_000_000_000_000),
+		Token:  utils.LegacyEthAddress,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = client.WaitMined(context.Background(), transferTx.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func mintTokenOnL1(wallet *accounts.Wallet, ethClient *ethclient.Client, l1Token common.Address) {
@@ -153,7 +323,7 @@ func prepare() {
 		log.Fatal(err)
 	}
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -246,6 +416,18 @@ func prepare() {
 	fmt.Println("DAI L2: ", L2Dai)
 	fmt.Println("L1 DAI balance: ", l1DaiTokenBalance)
 	fmt.Println("L2 DAI balance: ", l2DaiTokenBalance)
+
+	if approvalTokenBytecode, bytecodeErr := client.CodeAt(context.Background(), ApprovalToken, nil); len(approvalTokenBytecode) == 0 {
+		deployPaymasterAndToken(wallet, client)
+	} else if bytecodeErr != nil {
+		log.Fatal(bytecodeErr)
+	}
+
+	if multisigAccountBytecode, bytecodeErr := client.CodeAt(context.Background(), MultisigAccount, nil); len(multisigAccountBytecode) == 0 {
+		deployMultisigAccount(wallet, client)
+	} else if bytecodeErr != nil {
+		log.Fatal(bytecodeErr)
+	}
 }
 
 func TestMain(m *testing.M) {

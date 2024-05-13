@@ -48,7 +48,7 @@ func TestIntegrationWallet_MainContract(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	mainContract, err := wallet.MainContract(context.Background())
@@ -66,7 +66,7 @@ func TestIntegrationWallet_BridgehubContract(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bridgehub, err := wallet.BridgehubContract(context.Background())
@@ -84,7 +84,7 @@ func TestIntegrationWallet_L1BridgeContracts(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	contracts, err := wallet.L1BridgeContracts(context.Background())
@@ -102,7 +102,7 @@ func TestIntegration_EthBasedChain_Wallet_BaseToken(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	baseToken, err := wallet.BaseToken(nil)
@@ -120,7 +120,7 @@ func TestIntegration_NonEthBasedChain_Wallet_BaseToken(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	baseToken, err := wallet.BaseToken(nil)
@@ -138,7 +138,7 @@ func TestIntegration_EthBasedChain_Wallet_IsEthBasedChain(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	isEthBasedChain, err := wallet.IsEthBasedChain(context.Background())
@@ -156,7 +156,7 @@ func TestIntegration_NonEthBasedChain_Wallet_IsEthBasedChain(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	isEthBasedChain, err := wallet.IsEthBasedChain(context.Background())
@@ -174,7 +174,7 @@ func TestIntegrationWallet_BalanceL1(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	ethBalance, err := wallet.BalanceL1(nil, utils.LegacyEthAddress)
@@ -197,7 +197,7 @@ func TestIntegrationWallet_AllowanceL1(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bridgeContracts, err := client.BridgeContracts(context.Background())
@@ -218,7 +218,7 @@ func TestIntegrationWallet_L2TokenAddress(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2Address, err := wallet.L2TokenAddress(context.Background(), L1Dai)
@@ -236,7 +236,7 @@ func TestIntegration_NonEthBasedChain_Wallet_L2TokenAddress(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2Address, err := wallet.L2TokenAddress(context.Background(), utils.LegacyEthAddress)
@@ -257,7 +257,7 @@ func TestIntegrationWallet_ApproveERC20(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bridgeContracts, err := client.BridgeContracts(context.Background())
@@ -289,7 +289,7 @@ func TestIntegrationWallet_BaseCost(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	baseCost, err := wallet.BaseCost(nil, big.NewInt(100_000), big.NewInt(800), big.NewInt(500_000))
@@ -307,7 +307,7 @@ func TestIntegrationWallet_BalanceETH(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	balance, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
@@ -325,7 +325,7 @@ func TestIntegrationWallet_BalanceToken(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	balance, err := wallet.Balance(context.Background(), L2Dai, nil)
@@ -343,7 +343,7 @@ func TestIntegration_EthBasedChain_Wallet_AllBalances(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	balances, err := wallet.AllBalances(context.Background())
@@ -361,7 +361,7 @@ func TestIntegration_NonEthBasedChain_Wallet_AllBalances(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	balances, err := wallet.AllBalances(context.Background())
@@ -379,7 +379,7 @@ func TestIntegrationWallet_L2BridgeContracts(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bridges, err := wallet.L2BridgeContracts(context.Background())
@@ -397,7 +397,7 @@ func TestIntegrationWallet_DeploymentNonce(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWalletL2(common.Hex2Bytes(PrivateKey), &client)
+	wallet, err := accounts.NewWalletL2(common.Hex2Bytes(PrivateKey1), &client)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	deploymentNonce, err := wallet.DeploymentNonce(nil)
@@ -417,7 +417,7 @@ func TestIntegrationWallet_Withdraw(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2BalanceBeforeWithdrawal, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
@@ -462,7 +462,7 @@ func TestIntegrationWallet_WithdrawToken(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2BalanceBeforeWithdrawal, err := wallet.Balance(context.Background(), L2Dai, nil)
@@ -503,21 +503,17 @@ func TestIntegrationWallet_Transfer(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
-	assert.NoError(t, err, "ethclient.Dial should not return an error")
-	defer ethClient.Close()
-
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	balanceBeforeTransferSender, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceBeforeTransferReceiver, err := client.BalanceAt(context.Background(), Receiver, nil)
+	balanceBeforeTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	tx, err := wallet.Transfer(nil, accounts.TransferTransaction{
-		To:     Receiver,
+		To:     Address2,
 		Amount: amount,
 		Token:  utils.LegacyEthAddress,
 	})
@@ -530,11 +526,11 @@ func TestIntegrationWallet_Transfer(t *testing.T) {
 	balanceAfterTransferSender, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceAfterTransferReceiver, err := wallet.BalanceL1(nil, utils.LegacyEthAddress)
-	assert.NoError(t, err, "BalanceL1 should not return an error")
+	balanceAfterTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
+	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	assert.True(t, new(big.Int).Sub(balanceBeforeTransferSender, balanceAfterTransferSender).Cmp(amount) >= 0, "Sender balance should be decreased")
-	assert.True(t, new(big.Int).Sub(balanceAfterTransferReceiver, balanceBeforeTransferReceiver).Cmp(amount) >= 0, "Receiver balance should be increased")
+	assert.True(t, new(big.Int).Sub(balanceAfterTransferReceiver, balanceBeforeTransferReceiver).Cmp(amount) >= 0, "Address2 balance should be increased")
 }
 
 func TestIntegrationWallet_TransferToken(t *testing.T) {
@@ -544,11 +540,7 @@ func TestIntegrationWallet_TransferToken(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
-	assert.NoError(t, err, "ethclient.Dial should not return an error")
-	defer ethClient.Close()
-
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	tokenContract, err := erc20.NewIERC20(L2Dai, client)
@@ -557,11 +549,11 @@ func TestIntegrationWallet_TransferToken(t *testing.T) {
 	balanceBeforeTransferSender, err := wallet.Balance(context.Background(), L2Dai, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceBeforeTransferReceiver, err := tokenContract.BalanceOf(nil, Receiver)
+	balanceBeforeTransferReceiver, err := tokenContract.BalanceOf(nil, Address2)
 	assert.NoError(t, err, "BalanceOf should not return an error")
 
 	tx, err := wallet.Transfer(nil, accounts.TransferTransaction{
-		To:     Receiver,
+		To:     Address2,
 		Amount: amount,
 		Token:  L2Dai,
 	})
@@ -574,11 +566,11 @@ func TestIntegrationWallet_TransferToken(t *testing.T) {
 	balanceAfterTransferSender, err := wallet.Balance(context.Background(), L2Dai, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceAfterTransferReceiver, err := tokenContract.BalanceOf(nil, Receiver)
+	balanceAfterTransferReceiver, err := tokenContract.BalanceOf(nil, Address2)
 	assert.NoError(t, err, "BalanceOf should not return an error")
 
 	assert.True(t, new(big.Int).Sub(balanceBeforeTransferSender, balanceAfterTransferSender).Cmp(amount) >= 0, "Sender balance should be decreased")
-	assert.True(t, new(big.Int).Sub(balanceAfterTransferReceiver, balanceBeforeTransferReceiver).Cmp(amount) >= 0, "Receiver balance should be increased")
+	assert.True(t, new(big.Int).Sub(balanceAfterTransferReceiver, balanceBeforeTransferReceiver).Cmp(amount) >= 0, "Address2 balance should be increased")
 }
 
 func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
@@ -586,7 +578,7 @@ func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	nonce, err := wallet.Nonce(context.Background(), nil)
@@ -597,10 +589,10 @@ func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
 		GasTipCap: big.NewInt(0),
 		GasFeeCap: big.NewInt(100_000_000),
 		Gas:       big.NewInt(154_379),
-		To:        &Receiver,
+		To:        &Address2,
 		Value:     big.NewInt(7_000_000_000),
 		ChainID:   big.NewInt(270),
-		From:      &Address,
+		From:      &Address1,
 		Data:      hexutil.Bytes{},
 		Meta: &zkTypes.Eip712Meta{
 			GasPerPubdata: utils.NewBig(50_000),
@@ -608,7 +600,7 @@ func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
 	}
 
 	populatedTx, err := wallet.PopulateTransaction(context.Background(), accounts.Transaction{
-		To:    &Receiver,
+		To:    &Address2,
 		Value: big.NewInt(7_000_000_000),
 	})
 
@@ -621,16 +613,16 @@ func TestIntegrationWallet_SignTransaction(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	signedTx, err := wallet.SignTransaction(&zkTypes.Transaction712{
-		To:    &Receiver,
+		To:    &Address2,
 		Value: big.NewInt(1_000_000_000_000_000_000), // 1ETH
 	})
 
 	assert.NoError(t, err, "SignTransaction should not return an error")
-	assert.NotNil(t, signedTx, "Transactions should be nil")
+	assert.NotNil(t, signedTx, "Transaction should not be nil")
 }
 
 func TestIntegrationWallet_SendTransaction(t *testing.T) {
@@ -638,13 +630,13 @@ func TestIntegrationWallet_SendTransaction(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
 
-	approveTokenCalldata, err := tokenAbi.Pack("approve", Receiver, big.NewInt(1))
+	approveTokenCalldata, err := tokenAbi.Pack("approve", Address2, big.NewInt(1))
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
 	txHash, err := wallet.SendTransaction(context.Background(), &accounts.Transaction{
@@ -664,7 +656,7 @@ func TestIntegrationWallet_DeployWithCreate(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bytecode, err := os.ReadFile("./testdata/Storage.zbin")
@@ -685,7 +677,7 @@ func TestIntegrationWallet_DeployWithCreateConstructor(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bytecode, err := os.ReadFile("./testdata/Incrementer.zbin")
@@ -715,7 +707,7 @@ func TestIntegrationWallet_DeployWithCreateDeps(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	demoBytecode, err := os.ReadFile("./testdata/Demo.zbin")
@@ -743,7 +735,7 @@ func TestIntegrationWallet_DeployWithCreateAccount(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testdata/Paymaster.json")
@@ -770,7 +762,7 @@ func TestIntegrationWallet_Deploy(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bytecode, err := os.ReadFile("./testdata/Storage.zbin")
@@ -795,7 +787,7 @@ func TestIntegrationWallet_DeployConstructor(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bytecode, err := os.ReadFile("./testdata/Incrementer.zbin")
@@ -828,7 +820,7 @@ func TestIntegrationWallet_DeployDeps(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	demoBytecode, err := os.ReadFile("./testdata/Demo.zbin")
@@ -859,7 +851,7 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	_, paymasterAbi, bytecode, err := utils.ReadStandardJson("./testdata/Paymaster.json")
@@ -893,7 +885,7 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 //	assert.NoError(t, err, "ethclient.Dial should not return an error")
 //	defer ethClient.Close()
 //
-//	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+//	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 //	assert.NoError(t, err, "NewWallet should not return an error")
 //
 //	tx, err := wallet.ClaimFailedDeposit(nil, common.HexToHash("0x2b870d89f1060463091ed1ed47fa156b37c602d954ee0e41d05a5d5344f3ac23"))
@@ -931,12 +923,12 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 //	assert.NoError(t, err, "ethclient.Dial should not return an error")
 //	defer ethClient.Close()
 //
-//	wallet, err = accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+//	wallet, err = accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 //	assert.NoError(t, err, "NewWallet should not return an error")
 //
 //	tx, err = wallet.Deposit(nil, accounts.DepositTransaction{
 //		Token:            L1Dai,
-//		To:               wallet.Address(),
+//		To:               wallet.Address1(),
 //		Amount:           big.NewInt(5),
 //		ApproveERC20:     true,
 //		ApproveBaseERC20: true,
@@ -957,7 +949,7 @@ func TestIntegration_Wallet_ClaimFailedDepositSuccessfulDeposit(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	tx, err := wallet.Deposit(nil, accounts.DepositTransaction{
@@ -993,12 +985,12 @@ func TestIntegration_EthBasedChain_Wallet_EstimateGasDepositEth(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	gas, err := wallet.EstimateGasDeposit(context.Background(), accounts.DepositCallMsg{
 		Token:  utils.LegacyEthAddress,
-		To:     Receiver,
+		To:     Address2,
 		Amount: big.NewInt(7_000_000_000),
 	})
 
@@ -1015,7 +1007,7 @@ func TestIntegration_EthBasedChain_Wallet_EstimateGasDepositToken(t *testing.T) 
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bridgeContracts, err := client.BridgeContracts(context.Background())
@@ -1029,7 +1021,7 @@ func TestIntegration_EthBasedChain_Wallet_EstimateGasDepositToken(t *testing.T) 
 
 	gas, err := wallet.EstimateGasDeposit(context.Background(), accounts.DepositCallMsg{
 		Token:  L1Dai,
-		To:     Receiver,
+		To:     Address2,
 		Amount: big.NewInt(5),
 	})
 
@@ -1048,7 +1040,7 @@ func TestIntegration_EthBasedChain_Wallet_DepositEth(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2BalanceBeforeDeposit, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
@@ -1096,7 +1088,7 @@ func TestIntegration_EthBasedChain_Wallet_DepositToken(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2BalanceBeforeDeposit, err := wallet.Balance(context.Background(), L2Dai, nil)
@@ -1143,12 +1135,12 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeEth(t *testing.T
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	depositFee, err := wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
 		Token: utils.LegacyEthAddress,
-		To:    Receiver,
+		To:    Address2,
 	})
 
 	assert.NoError(t, err, "FullRequiredDepositFee should not return an error")
@@ -1176,7 +1168,7 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeNotEnoughBalance
 
 	_, err = wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
 		Token: utils.LegacyEthAddress,
-		To:    Receiver,
+		To:    Address2,
 	})
 
 	assert.Error(t, err, "Should throw error when there is not enough balance")
@@ -1192,12 +1184,12 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoughAl
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	_, err = wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
 		Token: L1Dai,
-		To:    Address,
+		To:    Address1,
 	})
 
 	assert.Error(t, err, "Should throw error when there is not enough allowance")
@@ -1213,7 +1205,7 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeToken(t *testing
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	bridgeContracts, err := client.BridgeContracts(context.Background())
@@ -1227,7 +1219,7 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeToken(t *testing
 
 	depositFee, err := wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
 		Token: L1Dai,
-		To:    Address,
+		To:    Address1,
 	})
 
 	assert.NoError(t, err, "FullRequiredDepositFee should not return an error")
@@ -1247,7 +1239,7 @@ func TestIntegration_EthBasedChain_Wallet_EstimateRequestExecute(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	baseClient, ok := client.(*clients.BaseClient)
@@ -1280,7 +1272,7 @@ func TestIntegration_EthBasedChain_Wallet_RequestExecute(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2BalanceBeforeTx, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
@@ -1328,12 +1320,12 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositEth(t *testing.T)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	msg := accounts.DepositCallMsg{
 		Token:  utils.LegacyEthAddress,
-		To:     Receiver,
+		To:     Address2,
 		Amount: big.NewInt(7_000_000_000),
 	}
 	allowanceParams, err := wallet.DepositAllowanceParams(nil, msg)
@@ -1363,7 +1355,7 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositBaseToken(t *test
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	token, err := wallet.BaseToken(nil)
@@ -1371,7 +1363,7 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositBaseToken(t *test
 
 	msg := accounts.DepositCallMsg{
 		Token:  token,
-		To:     Receiver,
+		To:     Address2,
 		Amount: big.NewInt(7_000_000_000),
 	}
 	allowanceParams, err := wallet.DepositAllowanceParams(nil, msg)
@@ -1401,12 +1393,12 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositNonBasedToken(t *
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	msg := accounts.DepositCallMsg{
 		Token:  L1Dai,
-		To:     Receiver,
+		To:     Address2,
 		Amount: big.NewInt(5),
 	}
 	allowanceParams, err := wallet.DepositAllowanceParams(nil, msg)
@@ -1444,7 +1436,7 @@ func TestIntegration_NonEthBasedChain_Wallet_DepositEth(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2BalanceBeforeDeposit, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
@@ -1493,7 +1485,7 @@ func TestIntegration_NonEthBasedChain_Wallet_DepositBaseToken(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2BalanceBeforeDeposit, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
@@ -1545,7 +1537,7 @@ func TestIntegration_NonEthBasedChain_Wallet_DepositNonBaseToken(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2BalanceBeforeDeposit, err := wallet.Balance(context.Background(), L2Dai, nil)
@@ -1601,7 +1593,7 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeNotEnoughBase
 
 	_, err = wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
 		Token: utils.LegacyEthAddress,
-		To:    Receiver,
+		To:    Address2,
 	})
 
 	assert.Error(t, err, "Should throw error when there is not enough balance")
@@ -1617,12 +1609,12 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeEth(t *testin
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	msg := accounts.DepositCallMsg{
 		Token:  utils.LegacyEthAddress,
-		To:     Receiver,
+		To:     Address2,
 		Amount: big.NewInt(1),
 	}
 	allowanceParams, err := wallet.DepositAllowanceParams(nil, msg)
@@ -1656,7 +1648,7 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeBaseToken(t *
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	token, err := wallet.BaseToken(nil)
@@ -1664,7 +1656,7 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeBaseToken(t *
 
 	msg := accounts.DepositCallMsg{
 		Token:  token,
-		To:     Receiver,
+		To:     Address2,
 		Amount: big.NewInt(1),
 	}
 
@@ -1699,12 +1691,12 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeNonBaseToken(
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	msg := accounts.DepositCallMsg{
 		Token:  L1Dai,
-		To:     Receiver,
+		To:     Address2,
 		Amount: big.NewInt(1),
 	}
 	allowanceParams, err := wallet.DepositAllowanceParams(nil, msg)
@@ -1744,7 +1736,7 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoug
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2ChainId, err := client.ChainID(context.Background())
@@ -1793,7 +1785,7 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoug
 
 	msg := accounts.DepositCallMsg{
 		Token:  L1Dai,
-		To:     Receiver,
+		To:     Address2,
 		Amount: big.NewInt(1),
 	}
 	allowanceParams, err := randomWallet.DepositAllowanceParams(nil, msg)
@@ -1822,7 +1814,7 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasRequestExecute(t *testin
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	msg := accounts.RequestExecuteCallMsg{
@@ -1859,7 +1851,7 @@ func TestIntegration_NonEthBasedChain_Wallet_RequestExecute(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	l2BalanceBeforeTx, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)

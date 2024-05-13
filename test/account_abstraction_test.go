@@ -22,7 +22,7 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey), &client, nil)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	// ====== Deploy Token ======
