@@ -14,6 +14,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -188,11 +189,11 @@ func deployPaymasterAndToken(wallet *accounts.Wallet, client clients.Client) {
 		log.Fatal("paymaster addresses mismatch")
 	}
 
-	// transfer ETH to paymaster so it could pay fee
+	// transfer base token to paymaster so it could pay fee
 	transferTx, err := wallet.Transfer(nil, accounts.TransferTransaction{
 		To:     paymasterAddress,
 		Amount: big.NewInt(2_000_000_000_000_000_000),
-		Token:  utils.LegacyEthAddress,
+		Token:  utils.L2BaseTokenAddress,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -287,8 +288,7 @@ func sendTokenToL2(wallet *accounts.Wallet, client clients.Client, ethClient *et
 func wait() {
 	const maxAttempts = 30
 
-	nodeURL := "http://localhost:3050"
-	client, err := clients.Dial(nodeURL)
+	client, err := clients.Dial(L2ChainURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -312,13 +312,13 @@ func prepare() {
 	L1Tokens = readTokens()
 	L1Dai = L1Tokens[0].Address
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer client.Close()
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -431,6 +431,16 @@ func prepare() {
 }
 
 func TestMain(m *testing.M) {
+	var err error
+	IsEthBasedChain, err = strconv.ParseBool(os.Getenv("ETH_BASED_CHAIN"))
+	if err != nil {
+		IsEthBasedChain = true
+	}
+
+	if !IsEthBasedChain {
+		L2ChainURL = "http://localhost:15200"
+	}
+
 	wait()
 	prepare()
 	os.Exit(m.Run())

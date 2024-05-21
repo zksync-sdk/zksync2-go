@@ -562,6 +562,9 @@ func (c *BaseClient) IsEthBasedChain(ctx context.Context) (bool, error) {
 
 // IsBaseToken returns whether the token is the base token.
 func (c *BaseClient) IsBaseToken(ctx context.Context, token common.Address) (bool, error) {
+	if token == utils.LegacyEthAddress {
+		token = utils.EthAddressInContracts
+	}
 	baseToken, err := c.BaseTokenContractAddress(ctx)
 	if err != nil {
 		return false, err
@@ -918,6 +921,15 @@ func (c *BaseClient) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCall
 	)
 	if msg.Token == utils.LegacyEthAddress {
 		msg.Token = utils.EthAddressInContracts
+	}
+
+	isEthBasedChain, err := c.IsEthBasedChain(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	if msg.Token == utils.EthAddressInContracts && isEthBasedChain {
+		msg.Token = utils.L2BaseTokenAddress
 	}
 
 	if msg.BridgeAddress == nil {

@@ -39,7 +39,7 @@ func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
 		to    *common.Address
 	)
 
-	if m.Token == utils.LegacyEthAddress {
+	if m.Token == utils.L2BaseTokenAddress {
 		value = m.Amount
 		to = &m.To
 	} else {
@@ -76,7 +76,7 @@ func (m *TransferCallMsg) ToZkCallMsg() (*zkTypes.CallMsg, error) {
 		meta  *zkTypes.Eip712Meta
 	)
 
-	if m.Token == utils.LegacyEthAddress {
+	if m.Token == utils.L2BaseTokenAddress {
 		value = m.Amount
 		to = &m.To
 	} else {
@@ -133,7 +133,7 @@ type WithdrawalCallMsg struct {
 }
 
 func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereum.CallMsg, error) {
-	if m.Token == utils.LegacyEthAddress || m.Token == utils.L2BaseTokenAddress || m.Token == utils.EthAddressInContracts {
+	if m.Token == utils.L2BaseTokenAddress {
 		ethTokenAbi, err := ethtoken.IEthTokenMetaData.GetAbi()
 		if err != nil {
 			return nil, fmt.Errorf("failed to load ethTokenAbi: %w", err)

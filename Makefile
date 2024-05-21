@@ -8,7 +8,7 @@ run-tests-on-eth-based-chain:
 	go test -v -skip='^.*_NonEthBasedChain_.*$\' ./test  ./accounts ./utils
 
 run-tests-on-non-eth-based-chain:
-	go test -v -skip='^.*_EthBasedChain_.*$\'  ./test ./accounts ./utils
+	ETH_BASED_CHAIN=false go test -v -skip='^.*_EthBasedChain_.*$\'  ./test ./accounts ./utils
 
 check-format:
 	cd scripts/ && ./check-format.sh && cd ../..
