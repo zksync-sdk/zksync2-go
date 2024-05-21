@@ -19,21 +19,21 @@ import (
 )
 
 func TestIntegrationBaseClient_Dial(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 	assert.NotNil(t, client, "clients.Dial should return a non-nil client")
 }
 
 func TestIntegrationBaseClient_DialContext(t *testing.T) {
-	client, err := clients.DialContext(context.Background(), ZkSyncEraProvider)
+	client, err := clients.DialContext(context.Background(), L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialContext should not return an error")
 	assert.NotNil(t, client, "clients.DialContext should return a non-nil client")
 }
 
 func TestIntegrationBaseClient_ChainID(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -44,7 +44,7 @@ func TestIntegrationBaseClient_ChainID(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BlockByHash(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -58,7 +58,7 @@ func TestIntegrationBaseClient_BlockByHash(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BlockByNumber(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -69,7 +69,7 @@ func TestIntegrationBaseClient_BlockByNumber(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BlockNumber(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -80,7 +80,7 @@ func TestIntegrationBaseClient_BlockNumber(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_PeerCount(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -91,7 +91,7 @@ func TestIntegrationBaseClient_PeerCount(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_HeaderByHash(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -105,7 +105,7 @@ func TestIntegrationBaseClient_HeaderByHash(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_HeaderByNumber(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -116,7 +116,7 @@ func TestIntegrationBaseClient_HeaderByNumber(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TransactionByHash(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -128,7 +128,7 @@ func TestIntegrationBaseClient_TransactionByHash(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TransactionSender(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -142,7 +142,7 @@ func TestIntegrationBaseClient_TransactionSender(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TransactionCount(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -156,7 +156,7 @@ func TestIntegrationBaseClient_TransactionCount(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TransactionInBlock(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -170,7 +170,7 @@ func TestIntegrationBaseClient_TransactionInBlock(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TransactionReceipt(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -181,7 +181,7 @@ func TestIntegrationBaseClient_TransactionReceipt(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_SyncProgress(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -192,7 +192,7 @@ func TestIntegrationBaseClient_SyncProgress(t *testing.T) {
 }
 
 //func TestIntegrationBaseClient_SubscribeNewHead(t *testing.T) {
-//	client, err := clients.Dial(ZkSyncEraProvider)
+//	client, err := clients.Dial(L2ChainURL)
 //	defer client.Close()
 //	assert.NoError(t, err, "clients.Dial should not return an error")
 //
@@ -215,7 +215,7 @@ func TestIntegrationBaseClient_SyncProgress(t *testing.T) {
 //}
 
 func TestIntegrationBaseClient_NetworkID(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -226,7 +226,7 @@ func TestIntegrationBaseClient_NetworkID(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BalanceAt(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -237,7 +237,7 @@ func TestIntegrationBaseClient_BalanceAt(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_StorageAt(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -248,7 +248,7 @@ func TestIntegrationBaseClient_StorageAt(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_CodeAt(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -259,7 +259,7 @@ func TestIntegrationBaseClient_CodeAt(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_NonceAt(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -270,7 +270,7 @@ func TestIntegrationBaseClient_NonceAt(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_FilterLogs(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -285,7 +285,7 @@ func TestIntegrationBaseClient_FilterLogs(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_FilterLogsL2(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -303,7 +303,7 @@ func TestIntegrationBaseClient_FilterLogsL2(t *testing.T) {
 //func TestIntegrationBaseClient_SubscribeFilterLogs(t *testing.T) {
 //	token := readToken()
 //
-//	client, err := clients.Dial(ZkSyncEraProvider)
+//	client, err := clients.Dial(L2ChainURL)
 //	defer client.Close()
 //	assert.NoError(t, err, "clients.Dial should not return an error")
 //
@@ -332,7 +332,7 @@ func TestIntegrationBaseClient_FilterLogsL2(t *testing.T) {
 //func TestIntegrationBaseClient_SubscribeFilterLogsL2(t *testing.T) {
 //	token := readToken()
 //
-//	client, err := clients.Dial(ZkSyncEraProvider)
+//	client, err := clients.Dial(L2ChainURL)
 //	defer client.Close()
 //	assert.NoError(t, err, "clients.Dial should not return an error")
 //
@@ -359,7 +359,7 @@ func TestIntegrationBaseClient_FilterLogsL2(t *testing.T) {
 //}
 
 func TestIntegrationBaseClient_PendingBalanceAt(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -370,7 +370,7 @@ func TestIntegrationBaseClient_PendingBalanceAt(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_PendingStorageAt(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -381,7 +381,7 @@ func TestIntegrationBaseClient_PendingStorageAt(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_PendingCodeAt(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -392,7 +392,7 @@ func TestIntegrationBaseClient_PendingCodeAt(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_PendingNonceAt(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -407,7 +407,7 @@ func TestIntegrationBaseClient_PendingNonceAt(t *testing.T) {
 // cannot be parsed in hex number.
 
 //func TestIntegrationBaseClient_PendingTransactionCount(t *testing.T) {
-//	client, err := clients.Dial(ZkSyncEraProvider)
+//	client, err := clients.Dial(L2ChainURL)
 //	defer client.Close()
 //	assert.NoError(t, err, "clients.Dial should not return an error")
 //
@@ -418,7 +418,7 @@ func TestIntegrationBaseClient_PendingNonceAt(t *testing.T) {
 //}
 
 func TestIntegrationBaseClient_CallContract(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -442,7 +442,7 @@ func TestIntegrationBaseClient_CallContract(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_CallContractL2(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -468,7 +468,7 @@ func TestIntegrationBaseClient_CallContractL2(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_CallContractAtHash(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -495,7 +495,7 @@ func TestIntegrationBaseClient_CallContractAtHash(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_CallContractAtHashL2(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -524,7 +524,7 @@ func TestIntegrationBaseClient_CallContractAtHashL2(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_PendingCallContract(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -548,7 +548,7 @@ func TestIntegrationBaseClient_PendingCallContract(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -574,7 +574,7 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_SuggestGasPrice(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -585,7 +585,7 @@ func TestIntegrationBaseClient_SuggestGasPrice(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_SuggestGasTipCap(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -596,7 +596,7 @@ func TestIntegrationBaseClient_SuggestGasTipCap(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_EstimateGas(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -617,7 +617,7 @@ func TestIntegrationBaseClient_EstimateGas(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_EstimateGasL2(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -640,7 +640,7 @@ func TestIntegrationBaseClient_EstimateGasL2(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -693,7 +693,7 @@ func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_SendRawTransaction(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -725,7 +725,7 @@ func TestIntegrationBaseClient_SendRawTransaction(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_WaitMined(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -746,7 +746,7 @@ func TestIntegrationBaseClient_WaitMined(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_WaitFinalized(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -767,7 +767,7 @@ func TestIntegrationBaseClient_WaitFinalized(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_MainContractAddress(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -778,7 +778,7 @@ func TestIntegrationBaseClient_MainContractAddress(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BridgehubContractAddress(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -792,7 +792,7 @@ func TestIntegrationBaseClient_BridgehubContractAddress(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TestnetPaymaster(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -802,7 +802,7 @@ func TestIntegrationBaseClient_TestnetPaymaster(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BridgeContracts(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -813,7 +813,7 @@ func TestIntegrationBaseClient_BridgeContracts(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_ContractAccountInfo(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -824,7 +824,7 @@ func TestIntegrationBaseClient_ContractAccountInfo(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_L1ChainID(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -835,7 +835,7 @@ func TestIntegrationBaseClient_L1ChainID(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_L1BatchNumber(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -846,7 +846,7 @@ func TestIntegrationBaseClient_L1BatchNumber(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_L1BatchBlockRange(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -860,7 +860,7 @@ func TestIntegrationBaseClient_L1BatchBlockRange(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_L1BatchDetails(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -874,7 +874,7 @@ func TestIntegrationBaseClient_L1BatchDetails(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BlockDetails(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -888,7 +888,7 @@ func TestIntegrationBaseClient_BlockDetails(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TransactionDetails(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -905,7 +905,7 @@ func TestIntegrationBaseClient_TransactionDetails(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BytecodeByHash(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -928,7 +928,7 @@ func TestIntegrationBaseClient_BytecodeByHash(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_RawBlockTransactions(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -945,11 +945,11 @@ func TestIntegrationBaseClient_RawBlockTransactions(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_L2TransactionFromPriorityOp(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -963,7 +963,7 @@ func TestIntegrationBaseClient_L2TransactionFromPriorityOp(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_L2TokenAddress(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -974,7 +974,7 @@ func TestIntegrationBaseClient_L2TokenAddress(t *testing.T) {
 }
 
 func TestIntegration_NonEthBasedChain_BaseClient_L2TokenAddress(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -985,7 +985,7 @@ func TestIntegration_NonEthBasedChain_BaseClient_L2TokenAddress(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_L1TokenAddress(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -996,7 +996,7 @@ func TestIntegrationBaseClient_L1TokenAddress(t *testing.T) {
 }
 
 func TestIntegration_EthBasedChain_BaseClient_AllAccountBalances(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -1007,7 +1007,7 @@ func TestIntegration_EthBasedChain_BaseClient_AllAccountBalances(t *testing.T) {
 }
 
 func TestIntegration_NonEthBasedChain_BaseClient_AllAccountBalances(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -1018,7 +1018,7 @@ func TestIntegration_NonEthBasedChain_BaseClient_AllAccountBalances(t *testing.T
 }
 
 func TestIntegrationBaseClient_EstimateFee(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -1035,7 +1035,7 @@ func TestIntegrationBaseClient_EstimateFee(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_EstimateGasL1(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -1055,7 +1055,7 @@ func TestIntegrationBaseClient_EstimateGasL1(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_EstimateGasTransfer(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -1070,7 +1070,7 @@ func TestIntegrationBaseClient_EstimateGasTransfer(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_EstimateGasWithdraw(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -1085,7 +1085,7 @@ func TestIntegrationBaseClient_EstimateGasWithdraw(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_EstimateL1ToL2Execute(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -1105,7 +1105,7 @@ func TestIntegrationBaseClient_EstimateL1ToL2Execute(t *testing.T) {
 }
 
 //func TestIntegrationBaseClient_Proof(t *testing.T) {
-//	client, err := clients.Dial(ZkSyncEraProvider)
+//	client, err := clients.Dial(L2ChainURL)
 //	defer client.Close()
 //	assert.NoError(t, err, "clients.Dial should not return an error")
 //

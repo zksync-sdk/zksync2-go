@@ -5,8 +5,12 @@ import (
 	"reflect"
 )
 
-const EthereumProvider = "http://localhost:8545"
-const ZkSyncEraProvider = "http://localhost:3050"
+var IsEthBasedChain = true
+
+const L1ChainURL = "http://localhost:15045"
+
+var L2ChainURL = "http://localhost:15100"
+
 const PrivateKey1 = "7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110"
 const PrivateKey2 = "ac1e735be8536c6534bb4f17f06f6afc73b2b5ba84ac2cfb12f7461b20c0bbe3"
 

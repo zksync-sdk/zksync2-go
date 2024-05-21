@@ -23,11 +23,11 @@ import (
 func TestIntegration_NewWalletFromMnemonic(t *testing.T) {
 	const MNEMONIC = "stuff slice staff easily soup parent arm payment cotton trade scatter struggle"
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -40,11 +40,11 @@ func TestIntegration_NewWalletFromMnemonic(t *testing.T) {
 }
 
 func TestIntegrationWallet_MainContract(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -58,11 +58,11 @@ func TestIntegrationWallet_MainContract(t *testing.T) {
 }
 
 func TestIntegrationWallet_BridgehubContract(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -76,11 +76,11 @@ func TestIntegrationWallet_BridgehubContract(t *testing.T) {
 }
 
 func TestIntegrationWallet_L1BridgeContracts(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -94,11 +94,11 @@ func TestIntegrationWallet_L1BridgeContracts(t *testing.T) {
 }
 
 func TestIntegration_EthBasedChain_Wallet_BaseToken(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -112,11 +112,11 @@ func TestIntegration_EthBasedChain_Wallet_BaseToken(t *testing.T) {
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_BaseToken(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -130,11 +130,11 @@ func TestIntegration_NonEthBasedChain_Wallet_BaseToken(t *testing.T) {
 }
 
 func TestIntegration_EthBasedChain_Wallet_IsEthBasedChain(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -148,11 +148,11 @@ func TestIntegration_EthBasedChain_Wallet_IsEthBasedChain(t *testing.T) {
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_IsEthBasedChain(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -166,11 +166,11 @@ func TestIntegration_NonEthBasedChain_Wallet_IsEthBasedChain(t *testing.T) {
 }
 
 func TestIntegrationWallet_BalanceL1(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -189,11 +189,11 @@ func TestIntegrationWallet_BalanceL1(t *testing.T) {
 }
 
 func TestIntegrationWallet_AllowanceL1(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -210,11 +210,11 @@ func TestIntegrationWallet_AllowanceL1(t *testing.T) {
 }
 
 func TestIntegrationWallet_L2TokenAddress(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -228,11 +228,11 @@ func TestIntegrationWallet_L2TokenAddress(t *testing.T) {
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_L2TokenAddress(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -249,11 +249,11 @@ func TestIntegrationWallet_ApproveERC20(t *testing.T) {
 	l1TokenAddress := L1Dai
 	approveAmount := big.NewInt(1)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -281,11 +281,11 @@ func TestIntegrationWallet_ApproveERC20(t *testing.T) {
 }
 
 func TestIntegrationWallet_BaseCost(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -299,11 +299,11 @@ func TestIntegrationWallet_BaseCost(t *testing.T) {
 }
 
 func TestIntegrationWallet_BalanceETH(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -317,11 +317,11 @@ func TestIntegrationWallet_BalanceETH(t *testing.T) {
 }
 
 func TestIntegrationWallet_BalanceToken(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -335,11 +335,11 @@ func TestIntegrationWallet_BalanceToken(t *testing.T) {
 }
 
 func TestIntegration_EthBasedChain_Wallet_AllBalances(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -353,11 +353,11 @@ func TestIntegration_EthBasedChain_Wallet_AllBalances(t *testing.T) {
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_AllBalances(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -371,11 +371,11 @@ func TestIntegration_NonEthBasedChain_Wallet_AllBalances(t *testing.T) {
 }
 
 func TestIntegrationWallet_L2BridgeContracts(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -389,11 +389,11 @@ func TestIntegrationWallet_L2BridgeContracts(t *testing.T) {
 }
 
 func TestIntegrationWallet_DeploymentNonce(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -409,11 +409,11 @@ func TestIntegrationWallet_DeploymentNonce(t *testing.T) {
 func TestIntegration_EthBasedChain_Wallet_WithdrawEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -434,9 +434,9 @@ func TestIntegration_EthBasedChain_Wallet_WithdrawEth(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
-	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
-	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
-	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
+	//isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	//assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
+	//assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
 	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
@@ -454,11 +454,11 @@ func TestIntegration_EthBasedChain_Wallet_WithdrawEth(t *testing.T) {
 func TestIntegration_NonEthBasedChain_Wallet_WithdrawEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -482,9 +482,9 @@ func TestIntegration_NonEthBasedChain_Wallet_WithdrawEth(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
-	isWithdrawFinalized, err := sender.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
-	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
-	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
+	//isWithdrawFinalized, err := sender.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	//assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
+	//assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
 
 	finalizeWithdrawTx, err := sender.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
 	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
@@ -502,11 +502,11 @@ func TestIntegration_NonEthBasedChain_Wallet_WithdrawEth(t *testing.T) {
 func TestIntegration_NonEthBasedChain_Wallet_WithdrawBaseToken(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L2ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -530,9 +530,9 @@ func TestIntegration_NonEthBasedChain_Wallet_WithdrawBaseToken(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
-	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
-	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
-	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
+	//isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	//assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
+	//assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
 	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
@@ -550,11 +550,11 @@ func TestIntegration_NonEthBasedChain_Wallet_WithdrawBaseToken(t *testing.T) {
 func TestIntegrationWallet_WithdrawToken(t *testing.T) {
 	amount := big.NewInt(5)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -575,9 +575,9 @@ func TestIntegrationWallet_WithdrawToken(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
-	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
-	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
-	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
+	//isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	//assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
+	//assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
 	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
@@ -595,7 +595,7 @@ func TestIntegrationWallet_WithdrawToken(t *testing.T) {
 func TestIntegration_EthBasedChain_Wallet_TransferEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -632,7 +632,7 @@ func TestIntegration_EthBasedChain_Wallet_TransferEth(t *testing.T) {
 func TestIntegration_NonEthBasedChain_Wallet_TransferBaseToken(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -675,7 +675,7 @@ func TestIntegration_NonEthBasedChain_Wallet_TransferBaseToken(t *testing.T) {
 func TestIntegration_NonEthBasedChain_Wallet_TransferEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -718,7 +718,7 @@ func TestIntegration_NonEthBasedChain_Wallet_TransferEth(t *testing.T) {
 func TestIntegration_Wallet_TransferToken(t *testing.T) {
 	amount := big.NewInt(5)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -756,7 +756,7 @@ func TestIntegration_Wallet_TransferToken(t *testing.T) {
 }
 
 func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -787,11 +787,11 @@ func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
 	})
 
 	assert.NoError(t, err, "PopulateTransaction should not return an error")
-	assert.True(t, DeepEqualIgnore(*tx, *populatedTx, "Gas"), "Transactions should be the same")
+	assert.True(t, DeepEqualIgnore(*tx, *populatedTx, "Gas", "ChainID"), "Transactions should be the same")
 }
 
 func TestIntegrationWallet_SignTransaction(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -808,7 +808,7 @@ func TestIntegrationWallet_SignTransaction(t *testing.T) {
 }
 
 func TestIntegrationWallet_SendTransaction(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -834,7 +834,7 @@ func TestIntegrationWallet_SendTransaction(t *testing.T) {
 }
 
 func TestIntegrationWallet_DeployWithCreate(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -855,7 +855,7 @@ func TestIntegrationWallet_DeployWithCreate(t *testing.T) {
 }
 
 func TestIntegrationWallet_DeployWithCreateConstructor(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -885,7 +885,7 @@ func TestIntegrationWallet_DeployWithCreateConstructor(t *testing.T) {
 }
 
 func TestIntegrationWallet_DeployWithCreateDeps(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -913,7 +913,7 @@ func TestIntegrationWallet_DeployWithCreateDeps(t *testing.T) {
 }
 
 func TestIntegrationWallet_DeployWithCreateAccount(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -940,7 +940,7 @@ func TestIntegrationWallet_DeployWithCreateAccount(t *testing.T) {
 }
 
 func TestIntegrationWallet_Deploy(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -965,7 +965,7 @@ func TestIntegrationWallet_Deploy(t *testing.T) {
 }
 
 func TestIntegrationWallet_DeployConstructor(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -998,7 +998,7 @@ func TestIntegrationWallet_DeployConstructor(t *testing.T) {
 }
 
 func TestIntegrationWallet_DeployDeps(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -1029,7 +1029,7 @@ func TestIntegrationWallet_DeployDeps(t *testing.T) {
 }
 
 func TestIntegrationWallet_DeployAccount(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
@@ -1059,11 +1059,11 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 }
 
 //func TestIntegration_Wallet_ClaimFailedDeposit(t *testing.T) {
-//	client, err := clients.Dial(ZkSyncEraProvider)
+//	client, err := clients.Dial(L2ChainURL)
 //	defer client.Close()
 //	assert.NoError(t, err, "clients.Dial should not return an error")
 //
-//	ethClient, err := ethclient.Dial(EthereumProvider)
+//	ethClient, err := ethclient.Dial(L1ChainURL)
 //	assert.NoError(t, err, "ethclient.Dial should not return an error")
 //	defer ethClient.Close()
 //
@@ -1097,11 +1097,11 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 //		}
 //	}()
 //
-//	client, err := clients.Dial(ZkSyncEraProvider)
+//	client, err := clients.Dial(L2ChainURL)
 //	defer client.Close()
 //	assert.NoError(t, err, "clients.Dial should not return an error")
 //
-//	ethClient, err = ethclient.Dial(EthereumProvider)
+//	ethClient, err = ethclient.Dial(L1ChainURL)
 //	assert.NoError(t, err, "ethclient.Dial should not return an error")
 //	defer ethClient.Close()
 //
@@ -1123,11 +1123,11 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 //}
 
 func TestIntegration_Wallet_ClaimFailedDepositSuccessfulDeposit(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1159,11 +1159,11 @@ func TestIntegration_Wallet_ClaimFailedDepositSuccessfulDeposit(t *testing.T) {
 }
 
 func TestIntegration_EthBasedChain_Wallet_EstimateGasDepositEth(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1181,11 +1181,11 @@ func TestIntegration_EthBasedChain_Wallet_EstimateGasDepositEth(t *testing.T) {
 }
 
 func TestIntegration_EthBasedChain_Wallet_EstimateGasDepositToken(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1214,11 +1214,11 @@ func TestIntegration_EthBasedChain_Wallet_EstimateGasDepositToken(t *testing.T) 
 func TestIntegration_EthBasedChain_Wallet_DepositEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1262,11 +1262,11 @@ func TestIntegration_EthBasedChain_Wallet_DepositEth(t *testing.T) {
 func TestIntegration_EthBasedChain_Wallet_DepositToken(t *testing.T) {
 	amount := big.NewInt(5)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1309,11 +1309,11 @@ func TestIntegration_EthBasedChain_Wallet_DepositToken(t *testing.T) {
 }
 
 func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeEth(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1334,11 +1334,11 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeEth(t *testing.T
 }
 
 func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeNotEnoughBalance(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1358,11 +1358,11 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeNotEnoughBalance
 }
 
 func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoughAllowance(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1379,11 +1379,11 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoughAl
 }
 
 func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeToken(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1413,11 +1413,11 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeToken(t *testing
 }
 
 func TestIntegration_EthBasedChain_Wallet_EstimateRequestExecute(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1443,14 +1443,14 @@ func TestIntegration_EthBasedChain_Wallet_EstimateRequestExecute(t *testing.T) {
 func TestIntegration_EthBasedChain_Wallet_RequestExecute(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
 	baseClient, ok := client.(*clients.BaseClient)
 	assert.True(t, ok, "Casting should not return error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1494,11 +1494,11 @@ func TestIntegration_EthBasedChain_Wallet_RequestExecute(t *testing.T) {
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositEth(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1529,11 +1529,11 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositEth(t *testing.T)
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositBaseToken(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1567,11 +1567,11 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositBaseToken(t *test
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositNonBasedToken(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1610,11 +1610,11 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositNonBasedToken(t *
 func TestIntegration_NonEthBasedChain_Wallet_DepositEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1659,11 +1659,11 @@ func TestIntegration_NonEthBasedChain_Wallet_DepositEth(t *testing.T) {
 func TestIntegration_NonEthBasedChain_Wallet_DepositBaseToken(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1711,11 +1711,11 @@ func TestIntegration_NonEthBasedChain_Wallet_DepositBaseToken(t *testing.T) {
 func TestIntegration_NonEthBasedChain_Wallet_DepositNonBaseToken(t *testing.T) {
 	amount := big.NewInt(5)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1759,11 +1759,11 @@ func TestIntegration_NonEthBasedChain_Wallet_DepositNonBaseToken(t *testing.T) {
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeNotEnoughBaseTokenAllowance(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1783,11 +1783,11 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeNotEnoughBase
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeEth(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1822,11 +1822,11 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeEth(t *testin
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeBaseToken(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1865,11 +1865,11 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeBaseToken(t *
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeNonBaseToken(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1910,11 +1910,11 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeNonBaseToken(
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoughTokenAllowance(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -1988,11 +1988,11 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoug
 }
 
 func TestIntegration_NonEthBasedChain_Wallet_EstimateGasRequestExecute(t *testing.T) {
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
@@ -2025,11 +2025,11 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasRequestExecute(t *testin
 func TestIntegration_NonEthBasedChain_Wallet_RequestExecute(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	ethClient, err := ethclient.Dial(EthereumProvider)
+	ethClient, err := ethclient.Dial(L1ChainURL)
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 

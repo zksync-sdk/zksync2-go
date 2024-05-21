@@ -219,6 +219,8 @@ func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (c
 			return common.Hash{}, l2TokenAddressErr
 		}
 		tx.Token = l2Address
+	} else if tx.Token == utils.EthAddressInContracts && isEthBasedChain {
+		tx.Token = utils.L2BaseTokenAddress
 	}
 
 	isBaseToken, baseTokenErr := a.isBaseToken(opts.Context, tx.Token)
@@ -226,7 +228,7 @@ func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (c
 		return common.Hash{}, baseTokenErr
 	}
 
-	if tx.Token == utils.EthAddressInContracts || isBaseToken {
+	if isBaseToken {
 		if opts.Value != nil && opts.Value != tx.Amount {
 			return common.Hash{}, errors.New("the tx.value is not equal to the value withdrawn")
 		} else {
@@ -316,9 +318,13 @@ func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (com
 			return common.Hash{}, l2TokenAddressErr
 		}
 		tx.Token = l2Address
+	} else if tx.Token == utils.EthAddressInContracts && isEthBasedChain {
+		tx.Token = utils.L2BaseTokenAddress
 	}
 
-	if isBaseToken, baseTokenErr := a.isBaseToken(opts.Context, tx.Token); tx.Token == utils.EthAddressInContracts || isBaseToken {
+	if isBaseToken, baseTokenErr := a.isBaseToken(opts.Context, tx.Token); baseTokenErr != nil {
+		return common.Hash{}, baseTokenErr
+	} else if tx.Token == utils.EthAddressInContracts || isBaseToken {
 		return a.SendTransaction(opts.Context, &zkTypes.Transaction712{
 			Nonce:     opts.Nonce,
 			GasTipCap: opts.GasTipCap,
@@ -333,8 +339,6 @@ func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (com
 				PaymasterParams: tx.PaymasterParams,
 			},
 		})
-	} else if baseTokenErr != nil {
-		return common.Hash{}, baseTokenErr
 	}
 
 	abi, err := erc20.IERC20MetaData.GetAbi()

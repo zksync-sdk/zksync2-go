@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/zksync-sdk/zksync2-go/accounts"
 	"github.com/zksync-sdk/zksync2-go/clients"
@@ -18,11 +19,15 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	MinimalAllowance := big.NewInt(1)
 	MintAmount := big.NewInt(7)
 
-	client, err := clients.Dial(ZkSyncEraProvider)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
+	ethClient, err := ethclient.Dial(L1ChainURL)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	// ====== Deploy Token ======
@@ -76,19 +81,19 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	paymasterAddress := paymasterDeployReceipt.ContractAddress
 	assert.NotNil(t, paymasterAddress, "Contract should be deployed")
 
-	// ===== Transfer some ETH to paymaster, so it can pay fee with ETH =====
+	// ===== Transfer some base token to paymaster, so it can pay fee with it =====
 	transferTx, err := wallet.Transfer(nil, accounts.TransferTransaction{
 		To:     paymasterAddress,
-		Amount: big.NewInt(2_000_000_000_000_000_000),
-		Token:  utils.LegacyEthAddress,
+		Amount: big.NewInt(1_000_000_000_000_000_000),
+		Token:  utils.L2BaseTokenAddress,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
 	_, err = client.WaitMined(context.Background(), transferTx.Hash())
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 
-	// Read token and ETH balances from user and paymaster accounts
-	balanceBefore, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	// Read token and base token balances from user and paymaster accounts
+	balanceBefore, err := wallet.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	tokenBalanceBefore, err := token.BalanceOf(nil, wallet.Address())
@@ -124,7 +129,7 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	_, err = client.WaitMined(context.Background(), hash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 
-	balanceAfter, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceAfter, err := wallet.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	tokenBalanceAfter, err := token.BalanceOf(nil, wallet.Address())

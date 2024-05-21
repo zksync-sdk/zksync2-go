@@ -103,10 +103,15 @@ func (a *WalletL2) Signer() Signer {
 	return *a.signer
 }
 
-// Balance returns the balance of the specified token that can be either ETH or any ERC20 token.
+// Balance returns the balance of the specified token that can be either base token or any ERC20 token.
 // The block number can be nil, in which case the balance is taken from the latest known block.
 func (a *WalletL2) Balance(ctx context.Context, token common.Address, at *big.Int) (*big.Int, error) {
-	if token == utils.LegacyEthAddress || token == a.baseToken {
+	isBaseToken, err := a.IsBaseToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	if isBaseToken {
 		return (*a.client).BalanceAt(ensureContext(ctx), a.Address(), at)
 	}
 	erc20Token, err := erc20.NewIERC20(token, a.client)
@@ -166,6 +171,8 @@ func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*type
 			return nil, l2TokenAddressErr
 		}
 		tx.Token = l2EthAddress
+	} else if tx.Token == utils.EthAddressInContracts && isEthBasedChain {
+		tx.Token = utils.L2BaseTokenAddress
 	}
 
 	isBaseToken, err := a.IsBaseToken(opts.Context, tx.Token)
@@ -173,7 +180,7 @@ func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*type
 		return nil, err
 	}
 
-	if tx.Token == utils.EthAddressInContracts || isBaseToken {
+	if isBaseToken {
 		if opts.Value != nil && opts.Value != tx.Amount {
 			return nil, errors.New("the tx.value is not equal to the value withdrawn")
 		} else {
@@ -210,17 +217,9 @@ func (a *WalletL2) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMs
 	return (*a.client).EstimateGasWithdraw(ensureContext(ctx), msg.ToWithdrawalCallMsg(a.Address()))
 }
 
-// Transfer moves the ETH or any ERC20 token from the associated account to the target account.
+// Transfer moves the base token or any ERC20 token from the associated account to the target account.
 func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.Transaction, error) {
 	opts := ensureTransactOpts(auth)
-	if opts.GasLimit == 0 {
-		gas, err := (*a.client).EstimateGasTransfer(opts.Context, tx.ToTransferCallMsg(a.Address(), opts))
-		if err != nil {
-			return nil, err
-		}
-		opts.GasLimit = gas
-	}
-
 	if tx.Token == utils.LegacyEthAddress {
 		tx.Token = utils.EthAddressInContracts
 	}
@@ -229,18 +228,29 @@ func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.
 	if err != nil {
 		return nil, err
 	}
+
 	if tx.Token == utils.EthAddressInContracts && !isEthBasedChain {
 		l2Address, l2TokenAddressErr := a.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
 		if l2TokenAddressErr != nil {
 			return nil, l2TokenAddressErr
 		}
 		tx.Token = l2Address
+	} else if tx.Token == utils.EthAddressInContracts && isEthBasedChain {
+		tx.Token = utils.L2BaseTokenAddress
 	}
 
-	if isBaseToken, baseTokenErr := a.IsBaseToken(opts.Context, tx.Token); tx.Token == utils.EthAddressInContracts || isBaseToken {
-		return a.transferETH(opts, tx)
-	} else if baseTokenErr != nil {
+	if opts.GasLimit == 0 {
+		gas, gasErr := (*a.client).EstimateGasTransfer(opts.Context, tx.ToTransferCallMsg(a.Address(), opts))
+		if gasErr != nil {
+			return nil, gasErr
+		}
+		opts.GasLimit = gas
+	}
+
+	if isBaseToken, baseTokenErr := a.IsBaseToken(opts.Context, tx.Token); baseTokenErr != nil {
 		return nil, baseTokenErr
+	} else if isBaseToken {
+		return a.transferBaseToken(opts, tx)
 	}
 
 	token, err := erc20.NewIERC20(tx.Token, a.client)
@@ -357,7 +367,7 @@ func (a *WalletL2) SendTransaction(ctx context.Context, tx *Transaction) (common
 	return (*a.client).SendRawTransaction(ensureContext(ctx), rawTx)
 }
 
-func (a *WalletL2) transferETH(auth *TransactOpts, tx TransferTransaction) (*types.Transaction, error) {
+func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction) (*types.Transaction, error) {
 	if auth.GasPrice != nil {
 		if auth.Nonce == nil {
 			nonce, err := (*a.client).NonceAt(auth.Context, a.Address(), nil)
