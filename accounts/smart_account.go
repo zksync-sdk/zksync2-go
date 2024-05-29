@@ -207,6 +207,26 @@ func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (c
 
 	if tx.Token == utils.LegacyEthAddress {
 		tx.Token = utils.EthAddressInContracts
+	}
+
+	isEthBasedChain, err := a.client.IsEthBasedChain(opts.Context)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	if tx.Token == utils.EthAddressInContracts && !isEthBasedChain {
+		l2Address, l2TokenAddressErr := a.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
+		if l2TokenAddressErr != nil {
+			return common.Hash{}, l2TokenAddressErr
+		}
+		tx.Token = l2Address
+	}
+
+	isBaseToken, baseTokenErr := a.isBaseToken(opts.Context, tx.Token)
+	if baseTokenErr != nil {
+		return common.Hash{}, baseTokenErr
+	}
+
+	if tx.Token == utils.EthAddressInContracts || isBaseToken {
 		if opts.Value != nil && opts.Value != tx.Amount {
 			return common.Hash{}, errors.New("the tx.value is not equal to the value withdrawn")
 		} else {
@@ -282,7 +302,23 @@ func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (com
 		return common.Hash{}, err
 	}
 
-	if isBaseToken, baseTokenErr := a.isBaseToken(opts.Context, tx.Token); tx.Token == utils.LegacyEthAddress || isBaseToken {
+	if tx.Token == utils.LegacyEthAddress {
+		tx.Token = utils.EthAddressInContracts
+	}
+
+	isEthBasedChain, err := a.client.IsEthBasedChain(opts.Context)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	if tx.Token == utils.EthAddressInContracts && !isEthBasedChain {
+		l2Address, l2TokenAddressErr := a.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
+		if l2TokenAddressErr != nil {
+			return common.Hash{}, l2TokenAddressErr
+		}
+		tx.Token = l2Address
+	}
+
+	if isBaseToken, baseTokenErr := a.isBaseToken(opts.Context, tx.Token); tx.Token == utils.EthAddressInContracts || isBaseToken {
 		return a.SendTransaction(opts.Context, &zkTypes.Transaction712{
 			Nonce:     opts.Nonce,
 			GasTipCap: opts.GasTipCap,

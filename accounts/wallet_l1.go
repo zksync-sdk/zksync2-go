@@ -406,7 +406,7 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 	}
 
 	if a.isEthBasedChain {
-		selfBalanceETH, balanceErr := a.BalanceL1(nil, utils.LegacyEthAddress)
+		selfBalanceETH, balanceErr := a.BalanceL1(nil, utils.EthAddressInContracts)
 		if balanceErr != nil {
 			return nil, balanceErr
 		}
@@ -414,7 +414,7 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 		// the account needs to have a sufficient ETH balance.
 		if baseCost.Cmp(new(big.Int).Add(selfBalanceETH, dummyAmount)) >= 0 {
 			recommendedETHBalance := utils.L1RecommendedMinEthDepositGasLimit
-			if msg.Token != utils.LegacyEthAddress {
+			if msg.Token == utils.EthAddressInContracts {
 				recommendedETHBalance = utils.L1RecommendedMinErc20DepositGasLimit
 			}
 			recommendedETHBalance.Mul(recommendedETHBalance, gasPriceForEstimation)

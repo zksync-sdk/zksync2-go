@@ -154,32 +154,52 @@ func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*type
 
 	if tx.Token == utils.LegacyEthAddress {
 		tx.Token = utils.EthAddressInContracts
+	}
+
+	isEthBasedChain, err := a.client.IsEthBasedChain(opts.Context)
+	if err != nil {
+		return nil, err
+	}
+	if tx.Token == utils.EthAddressInContracts && !isEthBasedChain {
+		l2EthAddress, l2TokenAddressErr := a.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
+		if l2TokenAddressErr != nil {
+			return nil, l2TokenAddressErr
+		}
+		tx.Token = l2EthAddress
+	}
+
+	isBaseToken, err := a.IsBaseToken(opts.Context, tx.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	if tx.Token == utils.EthAddressInContracts || isBaseToken {
 		if opts.Value != nil && opts.Value != tx.Amount {
 			return nil, errors.New("the tx.value is not equal to the value withdrawn")
 		} else {
 			opts.Value = tx.Amount
 		}
 
-		eth, err := ethtoken.NewIEthToken(utils.L2BaseTokenAddress, a.client)
-		if err != nil {
-			return nil, err
+		eth, ethTokenErr := ethtoken.NewIEthToken(utils.L2BaseTokenAddress, a.client)
+		if ethTokenErr != nil {
+			return nil, ethTokenErr
 		}
-		withdrawTx, err := eth.Withdraw(opts, tx.To)
-		if err != nil {
-			return nil, err
+		withdrawTx, withdrawErr := eth.Withdraw(opts, tx.To)
+		if withdrawErr != nil {
+			return nil, withdrawErr
 		}
 		return withdrawTx, nil
 	} else {
 		if tx.BridgeAddress == nil {
 			tx.BridgeAddress = &a.sharedL2BridgeAddress
 		}
-		bridge, err := l2bridge.NewIL2Bridge(*tx.BridgeAddress, a.client)
-		if err != nil {
-			return nil, err
+		bridge, bridgeErr := l2bridge.NewIL2Bridge(*tx.BridgeAddress, a.client)
+		if bridgeErr != nil {
+			return nil, bridgeErr
 		}
-		withdrawTx, err := bridge.Withdraw(opts, tx.To, tx.Token, tx.Amount)
-		if err != nil {
-			return nil, err
+		withdrawTx, withdrawErr := bridge.Withdraw(opts, tx.To, tx.Token, tx.Amount)
+		if withdrawErr != nil {
+			return nil, withdrawErr
 		}
 		return withdrawTx, nil
 	}
@@ -201,10 +221,26 @@ func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.
 		opts.GasLimit = gas
 	}
 
-	if isBaseToken, err := a.IsBaseToken(opts.Context, tx.Token); tx.Token == utils.LegacyEthAddress || isBaseToken {
-		return a.transferETH(opts, tx)
-	} else if err != nil {
+	if tx.Token == utils.LegacyEthAddress {
+		tx.Token = utils.EthAddressInContracts
+	}
+
+	isEthBasedChain, err := a.client.IsEthBasedChain(opts.Context)
+	if err != nil {
 		return nil, err
+	}
+	if tx.Token == utils.EthAddressInContracts && !isEthBasedChain {
+		l2Address, l2TokenAddressErr := a.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
+		if l2TokenAddressErr != nil {
+			return nil, l2TokenAddressErr
+		}
+		tx.Token = l2Address
+	}
+
+	if isBaseToken, baseTokenErr := a.IsBaseToken(opts.Context, tx.Token); tx.Token == utils.EthAddressInContracts || isBaseToken {
+		return a.transferETH(opts, tx)
+	} else if baseTokenErr != nil {
+		return nil, baseTokenErr
 	}
 
 	token, err := erc20.NewIERC20(tx.Token, a.client)
