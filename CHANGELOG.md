@@ -1,3 +1,18 @@
+# [0.5.0](https://github.com/zksync-sdk/zksync2-go/compare/v0.4.0...v0.5.0) (2024-06-09)
+
+
+### Bug Fixes
+
+* **accounts:** use correct token when trasfering and withdrawing ETH ([573779b](https://github.com/zksync-sdk/zksync2-go/commit/573779b57436fdc5a0e5777dadec4859f903f99a))
+
+
+### Features
+
+* add `SmartAccount` to provide better support for AA ([65a5686](https://github.com/zksync-sdk/zksync2-go/commit/65a56869e2c74ba48045b2d8b56223a11e65b41a))
+* add Bridgehub support ([82d6474](https://github.com/zksync-sdk/zksync2-go/commit/82d647411892496838457daa97e7584a68a33bb5))
+* **clients:** add `BaseClient.RawBlockTransactions` and `BaseClient.BytecodeByHash` ([0a41362](https://github.com/zksync-sdk/zksync2-go/commit/0a41362300e9d53051f276a34423bf736e1b8f36))
+* **types:** add `Transaction712.Decode()` for decoding serialized transactions ([9b6dbc1](https://github.com/zksync-sdk/zksync2-go/commit/9b6dbc128394fa6214d052dc5a0dfa5b0ada51bd)), closes [#49](https://github.com/zksync-sdk/zksync2-go/issues/49)
+
 # [0.4.0](https://github.com/zksync-sdk/zksync2-go/compare/v0.3.2...v0.4.0) (2024-02-23)
 
 
