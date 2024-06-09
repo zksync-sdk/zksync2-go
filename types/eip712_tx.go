@@ -37,7 +37,7 @@ type Transaction712 struct {
 
 func (tx *Transaction712) RLPValues(sig []byte) ([]byte, error) {
 	// use custom struct to get right RLP sequence and types to use default rlp encoder
-	txRLP := struct {
+	zkSyncTxRLP := struct {
 		Nonce                uint64
 		MaxPriorityFeePerGas *big.Int
 		MaxFeePerGas         *big.Int
@@ -72,15 +72,61 @@ func (tx *Transaction712) RLPValues(sig []byte) ([]byte, error) {
 		CustomSignature:      tx.Meta.CustomSignature,
 		PaymasterParams:      tx.Meta.PaymasterParams,
 	}
-	if len(txRLP.CustomSignature) == 0 {
-		txRLP.CustomSignature = sig
+	if len(zkSyncTxRLP.CustomSignature) == 0 {
+		zkSyncTxRLP.CustomSignature = sig
 	}
 
-	res, err := rlp.EncodeToBytes(txRLP)
+	res, err := rlp.EncodeToBytes(zkSyncTxRLP)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode RLP bytes: %w", err)
 	}
 	return append([]byte{0x71}, res...), nil
+}
+
+func (tx *Transaction712) Decode(input []byte) error {
+	type zkSyncTxRLP struct {
+		Nonce                uint64
+		MaxPriorityFeePerGas *big.Int
+		MaxFeePerGas         *big.Int
+		GasLimit             *big.Int
+		To                   *common.Address `rlp:"nil"` // nil means contract creation
+		Value                *big.Int
+		Data                 hexutil.Bytes
+		// zkSync part
+		ChainID1 *big.Int // legacy
+		Empty1   string   // legacy
+		Empty2   string   // legacy
+		ChainID2 *big.Int
+		From     *common.Address
+		// Meta fields   *Meta
+		GasPerPubdata   *big.Int
+		FactoryDeps     []hexutil.Bytes
+		CustomSignature hexutil.Bytes
+		PaymasterParams *PaymasterParams `rlp:"nil"`
+	}
+	var decodedTx zkSyncTxRLP
+	err := rlp.DecodeBytes(input[1:], &decodedTx)
+	if err != nil {
+		return err
+	}
+
+	tx.Nonce = new(big.Int).SetUint64(decodedTx.Nonce)
+	tx.GasTipCap = decodedTx.MaxPriorityFeePerGas
+	tx.GasFeeCap = decodedTx.MaxFeePerGas
+	tx.Gas = decodedTx.GasLimit
+	tx.To = decodedTx.To
+	tx.Value = decodedTx.Value
+	tx.Data = decodedTx.Data
+	tx.ChainID = decodedTx.ChainID2
+	tx.From = decodedTx.From
+	tx.Meta = &Eip712Meta{
+		GasPerPubdata:   (*hexutil.Big)(decodedTx.GasPerPubdata),
+		CustomSignature: decodedTx.CustomSignature,
+		FactoryDeps:     decodedTx.FactoryDeps,
+		PaymasterParams: decodedTx.PaymasterParams,
+	}
+
+	return nil
 }
 
 func (tx *Transaction712) EIP712Type() string {
