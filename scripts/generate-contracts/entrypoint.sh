@@ -56,6 +56,13 @@ abigen  \
 	--pkg l2bridge \
 	--type IL2Bridge
 
+mkdir -p /contracts/l2sharedbridge
+abigen  \
+	--abi /abi/IL2SharedBridge.json \
+	--out /contracts/l2sharedbridge/l2_shared_bridge.go \
+	--pkg l2sharedbridge \
+	--type IL2SharedBridge
+
 mkdir -p /contracts/nonceholder
 abigen  \
 	--abi /abi/INonceHolder.json \
@@ -77,12 +84,12 @@ abigen  \
 	--pkg testneterc20token \
 	--type ITestnetERC20Token
 
-mkdir -p /contracts/zksyncstatetransition
+mkdir -p /contracts/zksynchyperchain
 abigen  \
-	--abi /abi/IZkSyncStateTransition.json \
-	--out /contracts/zksyncstatetransition/zksync_state_transition.go \
-	--pkg zksyncstatetransition \
-	--type IZkSyncStateTransition
+	--abi /abi/IZkSyncHyperchain.json \
+	--out /contracts/zksynchyperchain/zksync_hyperchain.go \
+	--pkg zksynchyperchain \
+	--type IZkSyncHyperchain
 
 echo "Folder content"
 ls -alhR /contracts

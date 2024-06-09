@@ -108,6 +108,23 @@ func deployMultisigAccount(wallet *accounts.Wallet, client clients.Client) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	if !IsEthBasedChain {
+		// transfer base token to multisig account
+		transferTx, err = wallet.Transfer(nil, accounts.TransferTransaction{
+			To:     multisigAccountAddress,
+			Amount: big.NewInt(2_000_000_000_000_000_000),
+			Token:  utils.L2BaseTokenAddress,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		_, err = client.WaitMined(context.Background(), transferTx.Hash())
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
 
 func deployPaymasterAndToken(wallet *accounts.Wallet, client clients.Client) {
@@ -336,7 +353,7 @@ func prepare() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	l2BaseTokenBalance, err := wallet.Balance(context.Background(), baseToken, nil)
+	l2BaseTokenBalance, err := wallet.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -354,7 +371,7 @@ func prepare() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	l2BaseTokenBalance, err = wallet.Balance(context.Background(), baseToken, nil)
+	l2BaseTokenBalance, err = wallet.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

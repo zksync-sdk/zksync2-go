@@ -75,14 +75,22 @@ func (a *SmartAccount) Address() common.Address {
 	return a.address
 }
 
-// Balance returns the balance of the specified token that can be either ETH or any ERC20 token.
+// Balance returns the balance of the specified token that can be either base token or any ERC20 token.
 // The block number can be nil, in which case the balance is taken from the latest known block.
 func (a *SmartAccount) Balance(ctx context.Context, token common.Address, at *big.Int) (*big.Int, error) {
 	err := a.cacheData(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if token == utils.LegacyEthAddress || token == a.baseToken {
+
+	if token == utils.LegacyEthAddress || token == utils.EthAddressInContracts {
+		token, err = a.client.L2TokenAddress(ctx, token)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if token == utils.L2BaseTokenAddress {
 		return a.client.BalanceAt(ensureContext(ctx), a.Address(), at)
 	}
 	erc20Token, err := erc20.NewIERC20(token, a.client)
@@ -205,30 +213,14 @@ func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (c
 		return common.Hash{}, err
 	}
 
-	if tx.Token == utils.LegacyEthAddress {
-		tx.Token = utils.EthAddressInContracts
-	}
-
-	isEthBasedChain, err := a.client.IsEthBasedChain(opts.Context)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	if tx.Token == utils.EthAddressInContracts && !isEthBasedChain {
-		l2Address, l2TokenAddressErr := a.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
-		if l2TokenAddressErr != nil {
-			return common.Hash{}, l2TokenAddressErr
+	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
+		tx.Token, err = a.client.L2TokenAddress(opts.Context, tx.Token)
+		if err != nil {
+			return common.Hash{}, err
 		}
-		tx.Token = l2Address
-	} else if tx.Token == utils.EthAddressInContracts && isEthBasedChain {
-		tx.Token = utils.L2BaseTokenAddress
 	}
 
-	isBaseToken, baseTokenErr := a.isBaseToken(opts.Context, tx.Token)
-	if baseTokenErr != nil {
-		return common.Hash{}, baseTokenErr
-	}
-
-	if isBaseToken {
+	if tx.Token == utils.L2BaseTokenAddress {
 		if opts.Value != nil && opts.Value != tx.Amount {
 			return common.Hash{}, errors.New("the tx.value is not equal to the value withdrawn")
 		} else {
@@ -304,27 +296,14 @@ func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (com
 		return common.Hash{}, err
 	}
 
-	if tx.Token == utils.LegacyEthAddress {
-		tx.Token = utils.EthAddressInContracts
-	}
-
-	isEthBasedChain, err := a.client.IsEthBasedChain(opts.Context)
-	if err != nil {
-		return common.Hash{}, err
-	}
-	if tx.Token == utils.EthAddressInContracts && !isEthBasedChain {
-		l2Address, l2TokenAddressErr := a.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
-		if l2TokenAddressErr != nil {
-			return common.Hash{}, l2TokenAddressErr
+	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
+		tx.Token, err = a.client.L2TokenAddress(opts.Context, tx.Token)
+		if err != nil {
+			return common.Hash{}, err
 		}
-		tx.Token = l2Address
-	} else if tx.Token == utils.EthAddressInContracts && isEthBasedChain {
-		tx.Token = utils.L2BaseTokenAddress
 	}
 
-	if isBaseToken, baseTokenErr := a.isBaseToken(opts.Context, tx.Token); baseTokenErr != nil {
-		return common.Hash{}, baseTokenErr
-	} else if tx.Token == utils.EthAddressInContracts || isBaseToken {
+	if tx.Token == utils.L2BaseTokenAddress {
 		return a.SendTransaction(opts.Context, &zkTypes.Transaction712{
 			Nonce:     opts.Nonce,
 			GasTipCap: opts.GasTipCap,

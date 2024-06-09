@@ -5,6 +5,7 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/l1bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
 )
 
 // BridgeContracts represents the addresses of default bridge contracts for both L1 and L2.
@@ -25,8 +26,8 @@ type L1BridgeContracts struct {
 
 // L2BridgeContracts represents the L2 bridge contracts.
 type L2BridgeContracts struct {
-	Erc20  *l2bridge.IL2Bridge // Default L2Bridge contract.
-	Shared *l2bridge.IL2Bridge // Shared L2Bridge contract.
+	Erc20  *l2bridge.IL2Bridge             // Default L2Bridge contract.
+	Shared *l2sharedbridge.IL2SharedBridge // Shared L2Bridge contract.
 }
 
 // AccountAbstractionVersion represents an enumeration of account abstraction versions.
