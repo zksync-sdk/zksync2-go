@@ -40,7 +40,7 @@ type L2TransactionRequestTwoBridgesInner struct {
 
 // IL1SharedBridgeMetaData contains all meta data concerning the IL1SharedBridge contract.
 var IL1SharedBridgeMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BridgehubDepositBaseTokenInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"txDataHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"l2DepositTxHash\",\"type\":\"bytes32\"}],\"name\":\"BridgehubDepositFinalized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"txDataHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BridgehubDepositInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"ClaimedFailedDepositSharedBridge\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"l2DepositTxHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"LegacyDepositInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"WithdrawalFinalizedSharedBridge\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"bridgehub\",\"outputs\":[{\"internalType\":\"contractIBridgehub\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_txDataHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_txHash\",\"type\":\"bytes32\"}],\"name\":\"bridgehubConfirmL2Transaction\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_prevMsgSender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_l2Value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"bridgehubDeposit\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"magicValue\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"l2Contract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"l2Calldata\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"factoryDeps\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes32\",\"name\":\"txDataHash\",\"type\":\"bytes32\"}],\"internalType\":\"structL2TransactionRequestTwoBridgesInner\",\"name\":\"request\",\"type\":\"tuple\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_prevMsgSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"bridgehubDepositBaseToken\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_depositSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBatch\",\"type\":\"uint16\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claimFailedDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_depositSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBatch\",\"type\":\"uint16\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claimFailedDepositLegacyErc20Bridge\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"}],\"name\":\"depositHappened\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_msgSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l2Receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasPerPubdataByte\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_refundRecipient\",\"type\":\"address\"}],\"name\":\"depositLegacyErc20Bridge\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"txHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBatch\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"finalizeWithdrawal\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBatch\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"finalizeWithdrawalLegacyErc20Bridge\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"l1Receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"}],\"name\":\"isWithdrawalFinalized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"l1WethAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"}],\"name\":\"l2BridgeAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"legacyBridge\",\"outputs\":[{\"internalType\":\"contractIL1ERC20Bridge\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"}],\"name\":\"receiveEth\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_eraFirstPostUpgradeBatch\",\"type\":\"uint256\"}],\"name\":\"setEraFirstPostUpgradeBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BridgehubDepositBaseTokenInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"txDataHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"l2DepositTxHash\",\"type\":\"bytes32\"}],\"name\":\"BridgehubDepositFinalized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"txDataHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"BridgehubDepositInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"ClaimedFailedDepositSharedBridge\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"l2DepositTxHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"LegacyDepositInitiated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"WithdrawalFinalizedSharedBridge\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"BRIDGE_HUB\",\"outputs\":[{\"internalType\":\"contractIBridgehub\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"L1_WETH_TOKEN\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_txDataHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"_txHash\",\"type\":\"bytes32\"}],\"name\":\"bridgehubConfirmL2Transaction\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_prevMsgSender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_l2Value\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"bridgehubDeposit\",\"outputs\":[{\"components\":[{\"internalType\":\"bytes32\",\"name\":\"magicValue\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"l2Contract\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"l2Calldata\",\"type\":\"bytes\"},{\"internalType\":\"bytes[]\",\"name\":\"factoryDeps\",\"type\":\"bytes[]\"},{\"internalType\":\"bytes32\",\"name\":\"txDataHash\",\"type\":\"bytes32\"}],\"internalType\":\"structL2TransactionRequestTwoBridgesInner\",\"name\":\"request\",\"type\":\"tuple\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_prevMsgSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"bridgehubDepositBaseToken\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_depositSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBatch\",\"type\":\"uint16\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claimFailedDeposit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_depositSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBatch\",\"type\":\"uint16\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claimFailedDepositLegacyErc20Bridge\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"_l2TxHash\",\"type\":\"bytes32\"}],\"name\":\"depositHappened\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_msgSender\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l2Receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2TxGasPerPubdataByte\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"_refundRecipient\",\"type\":\"address\"}],\"name\":\"depositLegacyErc20Bridge\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"txHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBatch\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"finalizeWithdrawal\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint16\",\"name\":\"_l2TxNumberInBatch\",\"type\":\"uint16\"},{\"internalType\":\"bytes\",\"name\":\"_message\",\"type\":\"bytes\"},{\"internalType\":\"bytes32[]\",\"name\":\"_merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"finalizeWithdrawalLegacyErc20Bridge\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"l1Receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"l1Token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2BatchNumber\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_l2MessageIndex\",\"type\":\"uint256\"}],\"name\":\"isWithdrawalFinalized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"}],\"name\":\"l2BridgeAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"legacyBridge\",\"outputs\":[{\"internalType\":\"contractIL1ERC20Bridge\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_chainId\",\"type\":\"uint256\"}],\"name\":\"receiveEth\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_eraLegacyBridgeLastDepositBatch\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_eraLegacyBridgeLastDepositTxNumber\",\"type\":\"uint256\"}],\"name\":\"setEraLegacyBridgeLastDepositTime\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_eraPostDiamondUpgradeFirstBatch\",\"type\":\"uint256\"}],\"name\":\"setEraPostDiamondUpgradeFirstBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_eraPostLegacyBridgeUpgradeFirstBatch\",\"type\":\"uint256\"}],\"name\":\"setEraPostLegacyBridgeUpgradeFirstBatch\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
 }
 
 // IL1SharedBridgeABI is the input ABI used to generate the binding from.
@@ -189,12 +189,12 @@ func (_IL1SharedBridge *IL1SharedBridgeTransactorRaw) Transact(opts *bind.Transa
 	return _IL1SharedBridge.Contract.contract.Transact(opts, method, params...)
 }
 
-// Bridgehub is a free data retrieval call binding the contract method 0x5d38962d.
+// BRIDGEHUB is a free data retrieval call binding the contract method 0x5d4edca7.
 //
-// Solidity: function bridgehub() view returns(address)
-func (_IL1SharedBridge *IL1SharedBridgeCaller) Bridgehub(opts *bind.CallOpts) (common.Address, error) {
+// Solidity: function BRIDGE_HUB() view returns(address)
+func (_IL1SharedBridge *IL1SharedBridgeCaller) BRIDGEHUB(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _IL1SharedBridge.contract.Call(opts, &out, "bridgehub")
+	err := _IL1SharedBridge.contract.Call(opts, &out, "BRIDGE_HUB")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -206,18 +206,49 @@ func (_IL1SharedBridge *IL1SharedBridgeCaller) Bridgehub(opts *bind.CallOpts) (c
 
 }
 
-// Bridgehub is a free data retrieval call binding the contract method 0x5d38962d.
+// BRIDGEHUB is a free data retrieval call binding the contract method 0x5d4edca7.
 //
-// Solidity: function bridgehub() view returns(address)
-func (_IL1SharedBridge *IL1SharedBridgeSession) Bridgehub() (common.Address, error) {
-	return _IL1SharedBridge.Contract.Bridgehub(&_IL1SharedBridge.CallOpts)
+// Solidity: function BRIDGE_HUB() view returns(address)
+func (_IL1SharedBridge *IL1SharedBridgeSession) BRIDGEHUB() (common.Address, error) {
+	return _IL1SharedBridge.Contract.BRIDGEHUB(&_IL1SharedBridge.CallOpts)
 }
 
-// Bridgehub is a free data retrieval call binding the contract method 0x5d38962d.
+// BRIDGEHUB is a free data retrieval call binding the contract method 0x5d4edca7.
 //
-// Solidity: function bridgehub() view returns(address)
-func (_IL1SharedBridge *IL1SharedBridgeCallerSession) Bridgehub() (common.Address, error) {
-	return _IL1SharedBridge.Contract.Bridgehub(&_IL1SharedBridge.CallOpts)
+// Solidity: function BRIDGE_HUB() view returns(address)
+func (_IL1SharedBridge *IL1SharedBridgeCallerSession) BRIDGEHUB() (common.Address, error) {
+	return _IL1SharedBridge.Contract.BRIDGEHUB(&_IL1SharedBridge.CallOpts)
+}
+
+// L1WETHTOKEN is a free data retrieval call binding the contract method 0x41c841c3.
+//
+// Solidity: function L1_WETH_TOKEN() view returns(address)
+func (_IL1SharedBridge *IL1SharedBridgeCaller) L1WETHTOKEN(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _IL1SharedBridge.contract.Call(opts, &out, "L1_WETH_TOKEN")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// L1WETHTOKEN is a free data retrieval call binding the contract method 0x41c841c3.
+//
+// Solidity: function L1_WETH_TOKEN() view returns(address)
+func (_IL1SharedBridge *IL1SharedBridgeSession) L1WETHTOKEN() (common.Address, error) {
+	return _IL1SharedBridge.Contract.L1WETHTOKEN(&_IL1SharedBridge.CallOpts)
+}
+
+// L1WETHTOKEN is a free data retrieval call binding the contract method 0x41c841c3.
+//
+// Solidity: function L1_WETH_TOKEN() view returns(address)
+func (_IL1SharedBridge *IL1SharedBridgeCallerSession) L1WETHTOKEN() (common.Address, error) {
+	return _IL1SharedBridge.Contract.L1WETHTOKEN(&_IL1SharedBridge.CallOpts)
 }
 
 // DepositHappened is a free data retrieval call binding the contract method 0x9fa8826b.
@@ -280,37 +311,6 @@ func (_IL1SharedBridge *IL1SharedBridgeSession) IsWithdrawalFinalized(_chainId *
 // Solidity: function isWithdrawalFinalized(uint256 _chainId, uint256 _l2BatchNumber, uint256 _l2MessageIndex) view returns(bool)
 func (_IL1SharedBridge *IL1SharedBridgeCallerSession) IsWithdrawalFinalized(_chainId *big.Int, _l2BatchNumber *big.Int, _l2MessageIndex *big.Int) (bool, error) {
 	return _IL1SharedBridge.Contract.IsWithdrawalFinalized(&_IL1SharedBridge.CallOpts, _chainId, _l2BatchNumber, _l2MessageIndex)
-}
-
-// L1WethAddress is a free data retrieval call binding the contract method 0x6ace8bbb.
-//
-// Solidity: function l1WethAddress() view returns(address)
-func (_IL1SharedBridge *IL1SharedBridgeCaller) L1WethAddress(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _IL1SharedBridge.contract.Call(opts, &out, "l1WethAddress")
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// L1WethAddress is a free data retrieval call binding the contract method 0x6ace8bbb.
-//
-// Solidity: function l1WethAddress() view returns(address)
-func (_IL1SharedBridge *IL1SharedBridgeSession) L1WethAddress() (common.Address, error) {
-	return _IL1SharedBridge.Contract.L1WethAddress(&_IL1SharedBridge.CallOpts)
-}
-
-// L1WethAddress is a free data retrieval call binding the contract method 0x6ace8bbb.
-//
-// Solidity: function l1WethAddress() view returns(address)
-func (_IL1SharedBridge *IL1SharedBridgeCallerSession) L1WethAddress() (common.Address, error) {
-	return _IL1SharedBridge.Contract.L1WethAddress(&_IL1SharedBridge.CallOpts)
 }
 
 // L2BridgeAddress is a free data retrieval call binding the contract method 0x07ee9355.
@@ -564,25 +564,67 @@ func (_IL1SharedBridge *IL1SharedBridgeTransactorSession) ReceiveEth(_chainId *b
 	return _IL1SharedBridge.Contract.ReceiveEth(&_IL1SharedBridge.TransactOpts, _chainId)
 }
 
-// SetEraFirstPostUpgradeBatch is a paid mutator transaction binding the contract method 0x22d1c19b.
+// SetEraLegacyBridgeLastDepositTime is a paid mutator transaction binding the contract method 0xdd85df2d.
 //
-// Solidity: function setEraFirstPostUpgradeBatch(uint256 _eraFirstPostUpgradeBatch) returns()
-func (_IL1SharedBridge *IL1SharedBridgeTransactor) SetEraFirstPostUpgradeBatch(opts *bind.TransactOpts, _eraFirstPostUpgradeBatch *big.Int) (*types.Transaction, error) {
-	return _IL1SharedBridge.contract.Transact(opts, "setEraFirstPostUpgradeBatch", _eraFirstPostUpgradeBatch)
+// Solidity: function setEraLegacyBridgeLastDepositTime(uint256 _eraLegacyBridgeLastDepositBatch, uint256 _eraLegacyBridgeLastDepositTxNumber) returns()
+func (_IL1SharedBridge *IL1SharedBridgeTransactor) SetEraLegacyBridgeLastDepositTime(opts *bind.TransactOpts, _eraLegacyBridgeLastDepositBatch *big.Int, _eraLegacyBridgeLastDepositTxNumber *big.Int) (*types.Transaction, error) {
+	return _IL1SharedBridge.contract.Transact(opts, "setEraLegacyBridgeLastDepositTime", _eraLegacyBridgeLastDepositBatch, _eraLegacyBridgeLastDepositTxNumber)
 }
 
-// SetEraFirstPostUpgradeBatch is a paid mutator transaction binding the contract method 0x22d1c19b.
+// SetEraLegacyBridgeLastDepositTime is a paid mutator transaction binding the contract method 0xdd85df2d.
 //
-// Solidity: function setEraFirstPostUpgradeBatch(uint256 _eraFirstPostUpgradeBatch) returns()
-func (_IL1SharedBridge *IL1SharedBridgeSession) SetEraFirstPostUpgradeBatch(_eraFirstPostUpgradeBatch *big.Int) (*types.Transaction, error) {
-	return _IL1SharedBridge.Contract.SetEraFirstPostUpgradeBatch(&_IL1SharedBridge.TransactOpts, _eraFirstPostUpgradeBatch)
+// Solidity: function setEraLegacyBridgeLastDepositTime(uint256 _eraLegacyBridgeLastDepositBatch, uint256 _eraLegacyBridgeLastDepositTxNumber) returns()
+func (_IL1SharedBridge *IL1SharedBridgeSession) SetEraLegacyBridgeLastDepositTime(_eraLegacyBridgeLastDepositBatch *big.Int, _eraLegacyBridgeLastDepositTxNumber *big.Int) (*types.Transaction, error) {
+	return _IL1SharedBridge.Contract.SetEraLegacyBridgeLastDepositTime(&_IL1SharedBridge.TransactOpts, _eraLegacyBridgeLastDepositBatch, _eraLegacyBridgeLastDepositTxNumber)
 }
 
-// SetEraFirstPostUpgradeBatch is a paid mutator transaction binding the contract method 0x22d1c19b.
+// SetEraLegacyBridgeLastDepositTime is a paid mutator transaction binding the contract method 0xdd85df2d.
 //
-// Solidity: function setEraFirstPostUpgradeBatch(uint256 _eraFirstPostUpgradeBatch) returns()
-func (_IL1SharedBridge *IL1SharedBridgeTransactorSession) SetEraFirstPostUpgradeBatch(_eraFirstPostUpgradeBatch *big.Int) (*types.Transaction, error) {
-	return _IL1SharedBridge.Contract.SetEraFirstPostUpgradeBatch(&_IL1SharedBridge.TransactOpts, _eraFirstPostUpgradeBatch)
+// Solidity: function setEraLegacyBridgeLastDepositTime(uint256 _eraLegacyBridgeLastDepositBatch, uint256 _eraLegacyBridgeLastDepositTxNumber) returns()
+func (_IL1SharedBridge *IL1SharedBridgeTransactorSession) SetEraLegacyBridgeLastDepositTime(_eraLegacyBridgeLastDepositBatch *big.Int, _eraLegacyBridgeLastDepositTxNumber *big.Int) (*types.Transaction, error) {
+	return _IL1SharedBridge.Contract.SetEraLegacyBridgeLastDepositTime(&_IL1SharedBridge.TransactOpts, _eraLegacyBridgeLastDepositBatch, _eraLegacyBridgeLastDepositTxNumber)
+}
+
+// SetEraPostDiamondUpgradeFirstBatch is a paid mutator transaction binding the contract method 0xcc3fbc63.
+//
+// Solidity: function setEraPostDiamondUpgradeFirstBatch(uint256 _eraPostDiamondUpgradeFirstBatch) returns()
+func (_IL1SharedBridge *IL1SharedBridgeTransactor) SetEraPostDiamondUpgradeFirstBatch(opts *bind.TransactOpts, _eraPostDiamondUpgradeFirstBatch *big.Int) (*types.Transaction, error) {
+	return _IL1SharedBridge.contract.Transact(opts, "setEraPostDiamondUpgradeFirstBatch", _eraPostDiamondUpgradeFirstBatch)
+}
+
+// SetEraPostDiamondUpgradeFirstBatch is a paid mutator transaction binding the contract method 0xcc3fbc63.
+//
+// Solidity: function setEraPostDiamondUpgradeFirstBatch(uint256 _eraPostDiamondUpgradeFirstBatch) returns()
+func (_IL1SharedBridge *IL1SharedBridgeSession) SetEraPostDiamondUpgradeFirstBatch(_eraPostDiamondUpgradeFirstBatch *big.Int) (*types.Transaction, error) {
+	return _IL1SharedBridge.Contract.SetEraPostDiamondUpgradeFirstBatch(&_IL1SharedBridge.TransactOpts, _eraPostDiamondUpgradeFirstBatch)
+}
+
+// SetEraPostDiamondUpgradeFirstBatch is a paid mutator transaction binding the contract method 0xcc3fbc63.
+//
+// Solidity: function setEraPostDiamondUpgradeFirstBatch(uint256 _eraPostDiamondUpgradeFirstBatch) returns()
+func (_IL1SharedBridge *IL1SharedBridgeTransactorSession) SetEraPostDiamondUpgradeFirstBatch(_eraPostDiamondUpgradeFirstBatch *big.Int) (*types.Transaction, error) {
+	return _IL1SharedBridge.Contract.SetEraPostDiamondUpgradeFirstBatch(&_IL1SharedBridge.TransactOpts, _eraPostDiamondUpgradeFirstBatch)
+}
+
+// SetEraPostLegacyBridgeUpgradeFirstBatch is a paid mutator transaction binding the contract method 0xbe65940a.
+//
+// Solidity: function setEraPostLegacyBridgeUpgradeFirstBatch(uint256 _eraPostLegacyBridgeUpgradeFirstBatch) returns()
+func (_IL1SharedBridge *IL1SharedBridgeTransactor) SetEraPostLegacyBridgeUpgradeFirstBatch(opts *bind.TransactOpts, _eraPostLegacyBridgeUpgradeFirstBatch *big.Int) (*types.Transaction, error) {
+	return _IL1SharedBridge.contract.Transact(opts, "setEraPostLegacyBridgeUpgradeFirstBatch", _eraPostLegacyBridgeUpgradeFirstBatch)
+}
+
+// SetEraPostLegacyBridgeUpgradeFirstBatch is a paid mutator transaction binding the contract method 0xbe65940a.
+//
+// Solidity: function setEraPostLegacyBridgeUpgradeFirstBatch(uint256 _eraPostLegacyBridgeUpgradeFirstBatch) returns()
+func (_IL1SharedBridge *IL1SharedBridgeSession) SetEraPostLegacyBridgeUpgradeFirstBatch(_eraPostLegacyBridgeUpgradeFirstBatch *big.Int) (*types.Transaction, error) {
+	return _IL1SharedBridge.Contract.SetEraPostLegacyBridgeUpgradeFirstBatch(&_IL1SharedBridge.TransactOpts, _eraPostLegacyBridgeUpgradeFirstBatch)
+}
+
+// SetEraPostLegacyBridgeUpgradeFirstBatch is a paid mutator transaction binding the contract method 0xbe65940a.
+//
+// Solidity: function setEraPostLegacyBridgeUpgradeFirstBatch(uint256 _eraPostLegacyBridgeUpgradeFirstBatch) returns()
+func (_IL1SharedBridge *IL1SharedBridgeTransactorSession) SetEraPostLegacyBridgeUpgradeFirstBatch(_eraPostLegacyBridgeUpgradeFirstBatch *big.Int) (*types.Transaction, error) {
+	return _IL1SharedBridge.Contract.SetEraPostLegacyBridgeUpgradeFirstBatch(&_IL1SharedBridge.TransactOpts, _eraPostLegacyBridgeUpgradeFirstBatch)
 }
 
 // IL1SharedBridgeBridgehubDepositBaseTokenInitiatedIterator is returned from FilterBridgehubDepositBaseTokenInitiated and is used to iterate over the raw logs and unpacked data for BridgehubDepositBaseTokenInitiated events raised by the IL1SharedBridge contract.

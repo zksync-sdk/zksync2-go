@@ -12,6 +12,7 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
 	"github.com/zksync-sdk/zksync2-go/contracts/ethtoken"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/nonceholder"
 	zkTypes "github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
@@ -26,7 +27,7 @@ type WalletL2 struct {
 	baseToken common.Address
 
 	sharedL2BridgeAddress common.Address
-	sharedL2Bridge        *l2bridge.IL2Bridge
+	sharedL2Bridge        *l2sharedbridge.IL2SharedBridge
 
 	defaultL2BridgeAddress common.Address
 	defaultL2Bridge        *l2bridge.IL2Bridge
@@ -63,7 +64,7 @@ func NewWalletL2FromSigner(signer *Signer, client *clients.Client) (*WalletL2, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
 	}
-	sharedL2Bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2SharedBridge, *client)
+	sharedL2Bridge, err := l2sharedbridge.NewIL2SharedBridge(bridgeContracts.L2SharedBridge, *client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
 	}
@@ -106,12 +107,15 @@ func (a *WalletL2) Signer() Signer {
 // Balance returns the balance of the specified token that can be either base token or any ERC20 token.
 // The block number can be nil, in which case the balance is taken from the latest known block.
 func (a *WalletL2) Balance(ctx context.Context, token common.Address, at *big.Int) (*big.Int, error) {
-	isBaseToken, err := a.IsBaseToken(ctx, token)
-	if err != nil {
-		return nil, err
+	if token == utils.LegacyEthAddress || token == utils.EthAddressInContracts {
+		var err error
+		token, err = a.client.L2TokenAddress(ctx, token)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if isBaseToken {
+	if token == utils.L2BaseTokenAddress {
 		return (*a.client).BalanceAt(ensureContext(ctx), a.Address(), at)
 	}
 	erc20Token, err := erc20.NewIERC20(token, a.client)
@@ -123,7 +127,6 @@ func (a *WalletL2) Balance(ctx context.Context, token common.Address, at *big.In
 		BlockNumber: at,
 		Context:     ensureContext(ctx),
 	}, a.Address())
-
 }
 
 // AllBalances returns all balances for confirmed tokens given by an associated account.
@@ -157,30 +160,15 @@ func (a *WalletL2) IsBaseToken(ctx context.Context, token common.Address) (bool,
 func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*types.Transaction, error) {
 	opts := ensureTransactOpts(auth).ToTransactOpts(a.Address(), a.auth.Signer)
 
-	if tx.Token == utils.LegacyEthAddress {
-		tx.Token = utils.EthAddressInContracts
-	}
-
-	isEthBasedChain, err := a.client.IsEthBasedChain(opts.Context)
-	if err != nil {
-		return nil, err
-	}
-	if tx.Token == utils.EthAddressInContracts && !isEthBasedChain {
-		l2EthAddress, l2TokenAddressErr := a.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
-		if l2TokenAddressErr != nil {
-			return nil, l2TokenAddressErr
+	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
+		var err error
+		tx.Token, err = a.client.L2TokenAddress(opts.Context, tx.Token)
+		if err != nil {
+			return nil, err
 		}
-		tx.Token = l2EthAddress
-	} else if tx.Token == utils.EthAddressInContracts && isEthBasedChain {
-		tx.Token = utils.L2BaseTokenAddress
 	}
 
-	isBaseToken, err := a.IsBaseToken(opts.Context, tx.Token)
-	if err != nil {
-		return nil, err
-	}
-
-	if isBaseToken {
+	if tx.Token == utils.L2BaseTokenAddress {
 		if opts.Value != nil && opts.Value != tx.Amount {
 			return nil, errors.New("the tx.value is not equal to the value withdrawn")
 		} else {
@@ -220,23 +208,13 @@ func (a *WalletL2) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMs
 // Transfer moves the base token or any ERC20 token from the associated account to the target account.
 func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.Transaction, error) {
 	opts := ensureTransactOpts(auth)
-	if tx.Token == utils.LegacyEthAddress {
-		tx.Token = utils.EthAddressInContracts
-	}
 
-	isEthBasedChain, err := a.client.IsEthBasedChain(opts.Context)
-	if err != nil {
-		return nil, err
-	}
-
-	if tx.Token == utils.EthAddressInContracts && !isEthBasedChain {
-		l2Address, l2TokenAddressErr := a.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
-		if l2TokenAddressErr != nil {
-			return nil, l2TokenAddressErr
+	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
+		var err error
+		tx.Token, err = a.client.L2TokenAddress(opts.Context, tx.Token)
+		if err != nil {
+			return nil, err
 		}
-		tx.Token = l2Address
-	} else if tx.Token == utils.EthAddressInContracts && isEthBasedChain {
-		tx.Token = utils.L2BaseTokenAddress
 	}
 
 	if opts.GasLimit == 0 {
@@ -247,12 +225,9 @@ func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.
 		opts.GasLimit = gas
 	}
 
-	if isBaseToken, baseTokenErr := a.IsBaseToken(opts.Context, tx.Token); baseTokenErr != nil {
-		return nil, baseTokenErr
-	} else if isBaseToken {
+	if tx.Token == utils.L2BaseTokenAddress {
 		return a.transferBaseToken(opts, tx)
 	}
-
 	token, err := erc20.NewIERC20(tx.Token, a.client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load erc20 contract: %w", err)

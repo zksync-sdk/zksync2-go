@@ -20,7 +20,8 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/l1messenger"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
-	"github.com/zksync-sdk/zksync2-go/contracts/zksyncstatetransition"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/zksynchyperchain"
 	zkTypes "github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
@@ -38,7 +39,7 @@ type WalletL1 struct {
 	isEthBasedChain bool
 
 	mainContractAddress common.Address
-	mainContract        *zksyncstatetransition.IZkSyncStateTransition
+	mainContract        *zksynchyperchain.IZkSyncHyperchain
 
 	bridgehubAddress common.Address
 	bridgehub        *bridgehub.IBridgehub
@@ -83,7 +84,7 @@ func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 
 	if err != nil {
 		return nil, err
 	}
-	iZkSync, err := zksyncstatetransition.NewIZkSyncStateTransition(mainContractAddress, clientL1)
+	iZkSync, err := zksynchyperchain.NewIZkSyncHyperchain(mainContractAddress, clientL1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IZkSync: %w", err)
 	}
@@ -155,7 +156,7 @@ func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 
 }
 
 // MainContract returns the zkSync L1 smart contract.
-func (a *WalletL1) MainContract(_ context.Context) (*zksyncstatetransition.IZkSyncStateTransition, error) {
+func (a *WalletL1) MainContract(_ context.Context) (*zksynchyperchain.IZkSyncHyperchain, error) {
 	return a.mainContract, nil
 }
 
@@ -181,10 +182,10 @@ func (a *WalletL1) IsEthBasedChain(ctx context.Context) (bool, error) {
 }
 
 // BalanceL1 returns the balance of the specified token on L1 that can be
-// either ETH or any ERC20 token.
+// either base token or any ERC20 token.
 func (a *WalletL1) BalanceL1(opts *CallOpts, token common.Address) (*big.Int, error) {
 	callOpts := ensureCallOpts(opts).ToCallOpts(a.auth.From)
-	if token == utils.LegacyEthAddress || token == utils.L2BaseTokenAddress || token == utils.EthAddressInContracts {
+	if token == utils.LegacyEthAddress || token == utils.EthAddressInContracts {
 		return a.clientL1.BalanceAt(callOpts.Context, a.auth.From, callOpts.BlockNumber)
 	} else {
 		erc20Contract, err := erc20.NewIERC20(token, a.clientL1)
@@ -593,11 +594,11 @@ func (a *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Has
 		return false, err
 	}
 	if !isBaseToken {
-		l2Bridge, bridgeErr := l2bridge.NewIL2Bridge(sender, a.clientL2)
+		l2Bridge, bridgeErr := l2sharedbridge.NewIL2SharedBridge(sender, a.clientL2)
 		if bridgeErr != nil {
 			return false, fmt.Errorf("failed to init l2Bridge: %w", err)
 		}
-		l1BridgeAddress, bridgeErr = l2Bridge.L1Bridge(callOpts)
+		l1BridgeAddress, bridgeErr = l2Bridge.L1SharedBridge(callOpts)
 		if bridgeErr != nil {
 			return false, fmt.Errorf("failed to get l1BridgeAddress: %w", err)
 		}

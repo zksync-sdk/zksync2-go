@@ -217,7 +217,7 @@ func (c *BaseClient) NetworkID(ctx context.Context) (*big.Int, error) {
 	return c.ethClient.NetworkID(ctx)
 }
 
-// BalanceAt returns the wei balance of the given account.
+// BalanceAt returns the base token balance of the given account.
 // The block number can be nil, in which case the balance is taken from the latest known block.
 func (c *BaseClient) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
 	return c.ethClient.BalanceAt(ctx, account, blockNumber)
@@ -919,17 +919,12 @@ func (c *BaseClient) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCall
 		callMsg *zkTypes.CallMsg
 		err     error
 	)
-	if msg.Token == utils.LegacyEthAddress {
-		msg.Token = utils.EthAddressInContracts
-	}
 
-	isEthBasedChain, err := c.IsEthBasedChain(ctx)
-	if err != nil {
-		return 0, err
-	}
-
-	if msg.Token == utils.EthAddressInContracts && isEthBasedChain {
-		msg.Token = utils.L2BaseTokenAddress
+	if msg.Token == utils.LegacyEthAddress || msg.Token == utils.EthAddressInContracts {
+		msg.Token, err = c.L2TokenAddress(ctx, msg.Token)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	if msg.BridgeAddress == nil {
