@@ -171,3 +171,25 @@ type TransactionDetails struct {
 	ReceivedAt       time.Time      `json:"receivedAt"`       // Timestamp when the transaction was received.
 	Status           string         `json:"status"`           // Current status of the transaction (e.g., verified).
 }
+
+// ProtocolVersion represents the protocol version.
+type ProtocolVersion struct {
+	VersionId uint `json:"version_id"` // Protocol version ID.
+	Timestamp uint `json:"timestamp"`  // Unix timestamp of the version's activation.
+	// Contains the hashes of various verification keys used in the protocol.
+	VerificationKeysHashes struct {
+		Params struct {
+			RecursionNodeLevelVkHash    common.Hash `json:"recursion_node_level_vk_hash"`
+			RecursionLeafLevelVkHash    common.Hash `json:"recursion_leaf_level_vk_hash"`
+			RecursionCircuitsSetVksHash common.Hash `json:"recursion_circuits_set_vks_hash"`
+		} `json:"params"`
+		RecursionSchedulerLevelVkHash common.Hash `json:"recursion_scheduler_level_vk_hash"`
+	} `json:"verification_keys_hashes"`
+	// Hashes of the base system contracts.
+	BaseSystemContracts struct {
+		Bootloader common.Hash `json:"bootloader"`
+		DefaultAa  common.Hash `json:"default_aa"`
+	} `json:"base_system_contracts"`
+	// Hash of the transaction used for the system upgrade, if any.
+	L2SystemUpgradeTxHash *common.Hash `json:"l2_system_upgrade_tx_hash"`
+}
