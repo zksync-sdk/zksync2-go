@@ -548,7 +548,6 @@ func (c *BaseClient) BaseTokenContractAddress(ctx context.Context) (common.Addre
 		c.baseTokenAddress = common.HexToAddress(res)
 	}
 	return c.baseTokenAddress, nil
-
 }
 
 // IsEthBasedChain returns whether the chain is ETH-based.
@@ -690,8 +689,8 @@ func (c *BaseClient) RawBlockTransactions(ctx context.Context, number uint64) ([
 }
 
 // LogProof returns the proof for a transaction's L2 to L1 log sent via the L1Messenger system contract.
-func (c *BaseClient) LogProof(ctx context.Context, txHash common.Hash, logIndex int) (*zkTypes.MessageProof, error) {
-	var resp *zkTypes.MessageProof
+func (c *BaseClient) LogProof(ctx context.Context, txHash common.Hash, logIndex int) (*zkTypes.LogProof, error) {
+	var resp *zkTypes.LogProof
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getL2ToL1LogProof", txHash, logIndex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getL2ToL1LogProof: %w", err)
@@ -793,7 +792,7 @@ func (c *BaseClient) PriorityOpConfirmation(ctx context.Context, txHash common.H
 	}, nil
 }
 
-// Deprecated: Method is deprecated and will be removed in the near future.
+// ConfirmedTokens returns confirmed tokens. Confirmed token is any token bridged to ZKsync Era via the official bridge.
 func (c *BaseClient) ConfirmedTokens(ctx context.Context, from uint32, limit uint8) ([]*zkTypes.Token, error) {
 	res := make([]*zkTypes.Token, 0)
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getConfirmedTokens", from, limit)
