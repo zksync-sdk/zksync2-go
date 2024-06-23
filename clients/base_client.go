@@ -16,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/contracts/contractdeployer"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/zksync"
 	zkTypes "github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
@@ -1002,6 +1003,19 @@ func (c *BaseClient) EstimateL1ToL2Execute(ctx context.Context, msg zkTypes.Call
 	}
 
 	return c.EstimateGasL1(ctx, msg)
+}
+
+// IsL2BridgeLegacy returns true if passed bridge address is legacy and false if its shared bridge.
+func (c *BaseClient) IsL2BridgeLegacy(ctx context.Context, address common.Address) (bool, error) {
+	bridge, err := l2sharedbridge.NewIL2SharedBridge(address, c)
+	if err != nil {
+		return false, err
+	}
+	_, err = bridge.L1SharedBridge(&bind.CallOpts{Context: ctx})
+	if err != nil {
+		return true, nil
+	}
+	return false, nil
 }
 
 func (c *BaseClient) cacheMainContract(ctx context.Context) error {
