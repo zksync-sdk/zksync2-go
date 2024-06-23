@@ -1034,6 +1034,17 @@ func TestIntegrationBaseClient_EstimateFee(t *testing.T) {
 	assert.NotNil(t, fee, "EstimateFee should return a non-nil fee")
 }
 
+func TestIntegrationBaseClient_FeeParams(t *testing.T) {
+	client, err := clients.DialBase(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.DialBase should not return an error")
+
+	feeParams, err := client.FeeParams(context.Background())
+
+	assert.NoError(t, err, "FeeParams should not return an error")
+	assert.NotNil(t, feeParams, "FeeParams should return a non-nil fee")
+}
+
 func TestIntegrationBaseClient_EstimateGasL1(t *testing.T) {
 	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()

@@ -883,12 +883,22 @@ func (c *BaseClient) AllAccountBalances(ctx context.Context, address common.Addr
 	return resp, nil
 }
 
-// EstimateFee Returns the fee for the transaction.
+// EstimateFee returns the fee for the transaction.
 func (c *BaseClient) EstimateFee(ctx context.Context, msg zkTypes.CallMsg) (*zkTypes.Fee, error) {
 	var res zkTypes.Fee
 	err := c.rpcClient.CallContext(ctx, &res, "zks_estimateFee", msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_estimateFee: %w", err)
+	}
+	return &res, nil
+}
+
+// FeeParams returns the current fee parameters.
+func (c *BaseClient) FeeParams(ctx context.Context) (*zkTypes.FeeParams, error) {
+	var res zkTypes.FeeParams
+	err := c.rpcClient.CallContext(ctx, &res, "zks_getFeeParams")
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getFeeParams: %w", err)
 	}
 	return &res, nil
 }
