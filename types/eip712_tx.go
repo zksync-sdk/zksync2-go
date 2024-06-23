@@ -17,7 +17,7 @@ import (
 const EIP712TxType = `0x71`
 
 // Transaction712 represents an EIP-712 compliant transaction.
-// It shares similarities with regular transactions but also includes zkSync-specific features such as account
+// It shares similarities with regular transactions but also includes ZKsync Era-specific features such as account
 // abstraction and paymasters.
 // Smart contracts must be deployed with support for the EIP-712 transaction type.
 type Transaction712 struct {

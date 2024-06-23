@@ -496,7 +496,7 @@ func (c *BaseClient) BridgehubContractAddress(ctx context.Context) (common.Addre
 	return c.bridgehubAddress, nil
 }
 
-// MainContractAddress returns the address of the zkSync Era contract.
+// MainContractAddress returns the address of the ZKsync Era contract.
 func (c *BaseClient) MainContractAddress(ctx context.Context) (common.Address, error) {
 	if c.mainContractAddress == (common.Address{}) {
 		var res string
@@ -523,7 +523,7 @@ func (c *BaseClient) TestnetPaymaster(ctx context.Context) (common.Address, erro
 	return c.testnetPaymasterAddress, nil
 }
 
-// BridgeContracts returns the addresses of the default zkSync Era bridge
+// BridgeContracts returns the addresses of the default ZKsync Era bridge
 // contracts on both L1 and L2.
 func (c *BaseClient) BridgeContracts(ctx context.Context) (*zkTypes.BridgeContracts, error) {
 	if c.bridgeContracts == nil {
@@ -641,7 +641,7 @@ func (c *BaseClient) L1BatchDetails(ctx context.Context, l1BatchNumber *big.Int)
 	return resp, nil
 }
 
-// BlockDetails returns additional zkSync Era-specific information about the L2 block.
+// BlockDetails returns additional ZKsync Era-specific information about the L2 block.
 func (c *BaseClient) BlockDetails(ctx context.Context, block uint32) (*zkTypes.BlockDetails, error) {
 	var resp *zkTypes.BlockDetails
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getBlockDetails", block)

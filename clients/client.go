@@ -10,13 +10,13 @@ import (
 	"math/big"
 )
 
-// EthereumClient provides Ethereum RPC methods on  zkSync Era node, ones that has `eth_` prefix.
+// EthereumClient provides Ethereum RPC methods on  ZKsync Era node, ones that has `eth_` prefix.
 // Interface contains same methods as ethclient.Client except for FeeHistory method.
 // Additionally, it has extra methods capable of working with EIP-712 transactions.
 // It is designed to be compatible with bind.ContractBackend interface, enabling support for
 // smart contracts generated using the abigen tool.
 // Some types of function parameters and return values are different from original geth library
-// because are not compatible with zkSync Era node and are adjusted accordingly.
+// because are not compatible with ZKsync Era node and are adjusted accordingly.
 type EthereumClient interface {
 	// Client gets the underlying RPC client.
 	Client() *rpc.Client
@@ -156,14 +156,14 @@ type EthereumClient interface {
 	WaitFinalized(ctx context.Context, txHash common.Hash) (*zkTypes.Receipt, error)
 }
 
-// ZkSyncEraClient provides the API to zkSync Era features and
+// ZkSyncEraClient provides the API to ZKsync Era features and
 // specific RPC methods, ones that that has `zks_` prefix.
 type ZkSyncEraClient interface {
-	// MainContractAddress returns the address of the zkSync Era contract.
+	// MainContractAddress returns the address of the ZKsync Era contract.
 	MainContractAddress(ctx context.Context) (common.Address, error)
 	// TestnetPaymaster returns the testnet paymaster address if available, or nil.
 	TestnetPaymaster(ctx context.Context) (common.Address, error)
-	// BridgeContracts returns the addresses of the default zkSync Era bridge
+	// BridgeContracts returns the addresses of the default ZKsync Era bridge
 	// contracts on both L1 and L2.
 	BridgeContracts(ctx context.Context) (*zkTypes.BridgeContracts, error)
 	// ContractAccountInfo returns the version of the supported account abstraction
@@ -179,7 +179,7 @@ type ZkSyncEraClient interface {
 	L1BatchBlockRange(ctx context.Context, l1BatchNumber *big.Int) (*BlockRange, error)
 	// L1BatchDetails returns data pertaining to a given batch.
 	L1BatchDetails(ctx context.Context, l1BatchNumber *big.Int) (*zkTypes.BatchDetails, error)
-	// BlockDetails returns additional zkSync Era-specific information about the L2
+	// BlockDetails returns additional ZKsync Era-specific information about the L2
 	// block.
 	BlockDetails(ctx context.Context, block uint32) (*zkTypes.BlockDetails, error)
 	// TransactionDetails returns data from a specific transaction given by the
@@ -224,7 +224,7 @@ type ZkSyncEraClient interface {
 	EstimateL1ToL2Execute(ctx context.Context, msg zkTypes.CallMsg) (uint64, error)
 }
 
-// Client defines both ethereum and zkSync Era RPC methods and common features.
+// Client defines both ethereum and ZKsync Era RPC methods and common features.
 type Client interface {
 	EthereumClient
 	ZkSyncEraClient

@@ -140,7 +140,7 @@ type DepositCallMsg struct {
 	// of the transaction.
 	OperatorTip *big.Int
 
-	// The address of the bridge contract to be used. Defaults to the default zkSync bridge
+	// The address of the bridge contract to be used. Defaults to the default ZKsync bridge
 	// (either L1EthBridge or L1Erc20Bridge).
 	BridgeAddress *common.Address
 
@@ -487,7 +487,7 @@ type WithdrawalTransaction struct {
 	Amount          *big.Int                 // The amount of the token to withdraw.
 	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
 
-	// The address of the bridge contract to be used. Defaults to the default zkSync bridge
+	// The address of the bridge contract to be used. Defaults to the default ZKsync bridge
 	// (either L2EthBridge or L2Erc20Bridge).
 	BridgeAddress *common.Address
 }
