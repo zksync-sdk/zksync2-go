@@ -866,6 +866,16 @@ func (c *BaseClient) L1TokenAddress(ctx context.Context, token common.Address) (
 	}
 }
 
+// ProtocolVersion return the protocol version
+func (c *BaseClient) ProtocolVersion(ctx context.Context) (*zkTypes.ProtocolVersion, error) {
+	var res zkTypes.ProtocolVersion
+	err := c.rpcClient.CallContext(ctx, &res, "zks_getProtocolVersion")
+	if err != nil {
+		return nil, fmt.Errorf("failed to query zks_getProtocolVersion: %w", err)
+	}
+	return &res, nil
+}
+
 // AllAccountBalances returns all balances for confirmed tokens given by an account address.
 func (c *BaseClient) AllAccountBalances(ctx context.Context, address common.Address) (map[common.Address]*big.Int, error) {
 	res := make(map[common.Address]string)

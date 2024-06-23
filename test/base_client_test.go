@@ -995,6 +995,17 @@ func TestIntegrationBaseClient_L1TokenAddress(t *testing.T) {
 	assert.Equal(t, L1Dai, l1Address, "L1 token addresses should be the same")
 }
 
+func TestIntegrationBaseClient_ProtocolVersion(t *testing.T) {
+	client, err := clients.DialBase(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.DialBase should not return an error")
+
+	protocolVersion, err := client.ProtocolVersion(context.Background())
+
+	assert.NoError(t, err, "ProtocolVersion should not return an error")
+	assert.NotNil(t, protocolVersion, "ProtocolVersion should return a non-nil fee")
+}
+
 func TestIntegration_EthBasedChain_BaseClient_AllAccountBalances(t *testing.T) {
 	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
