@@ -12,7 +12,7 @@ import (
 // AdapterL1 is associated with an account and provides common operations on the
 // L1 network for the associated account.
 type AdapterL1 interface {
-	// MainContract returns the zkSync L1 smart contract.
+	// MainContract returns the ZKsync L1 smart contract.
 	MainContract(ctx context.Context) (*zksync.IZkSync, error)
 	// L1BridgeContracts returns L1 bridge contracts.
 	L1BridgeContracts(ctx context.Context) (*zkTypes.L1BridgeContracts, error)

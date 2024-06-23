@@ -155,7 +155,7 @@ func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 
 	}, nil
 }
 
-// MainContract returns the zkSync L1 smart contract.
+// MainContract returns the ZKsync L1 smart contract.
 func (a *WalletL1) MainContract(_ context.Context) (*zksynchyperchain.IZkSyncHyperchain, error) {
 	return a.mainContract, nil
 }
