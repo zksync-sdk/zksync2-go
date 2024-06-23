@@ -34,19 +34,24 @@ type L2BridgeContracts struct {
 type AccountAbstractionVersion uint8
 
 const (
-	None AccountAbstractionVersion = iota
-	Version1
+	None     AccountAbstractionVersion = iota // Used for contracts that are not accounts.
+	Version1                                  // Used for contracts that are accounts.
 )
 
 // AccountNonceOrdering represents an enumeration of account nonce ordering formats.
 type AccountNonceOrdering uint8
 
 const (
+	// Sequential nonces should be ordered in the same way as in externally owned accounts (EOAs).
+	// This means, for instance, that the operator will always wait for a transaction with nonce `X`
+	// before processing a transaction with nonce `X+1`.
 	Sequential AccountNonceOrdering = iota
-	Arbitrary
+	Arbitrary                       // Nonces can be ordered in arbitrary order.
 )
 
+// ContractAccountInfo represent contract account information containing details on the supported account
+// abstraction version and nonce ordering format.
 type ContractAccountInfo struct {
-	SupportedAAVersion AccountAbstractionVersion
-	NonceOrdering      AccountNonceOrdering
+	SupportedAAVersion AccountAbstractionVersion // The supported account abstraction version.
+	NonceOrdering      AccountNonceOrdering      // The nonce ordering format.
 }

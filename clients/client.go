@@ -187,7 +187,7 @@ type ZkSyncEraClient interface {
 	TransactionDetails(ctx context.Context, txHash common.Hash) (*zkTypes.TransactionDetails, error)
 	// LogProof returns the proof for a transaction's L2 to L1 log sent via the
 	// L1Messenger system contract.
-	LogProof(ctx context.Context, txHash common.Hash, logIndex int) (*zkTypes.MessageProof, error)
+	LogProof(ctx context.Context, txHash common.Hash, logIndex int) (*zkTypes.LogProof, error)
 	// Deprecated: Deprecated in favor of LogProof.
 	MsgProof(ctx context.Context, block uint32, sender common.Address, msg common.Hash) (*zkTypes.MessageProof, error)
 	// L2TransactionFromPriorityOp returns transaction on L2 network from transaction

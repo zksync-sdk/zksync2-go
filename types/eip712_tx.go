@@ -236,8 +236,8 @@ func (m *Eip712Meta) MarshalJSON() ([]byte, error) {
 
 // PaymasterParams contains parameters for configuring the custom paymaster for the transaction.
 type PaymasterParams struct {
-	Paymaster      common.Address `json:"paymaster"`      // address of the paymaster
-	PaymasterInput []byte         `json:"paymasterInput"` // encoded input
+	Paymaster      common.Address `json:"paymaster"`      // Address of the paymaster.
+	PaymasterInput []byte         `json:"paymasterInput"` // Encoded input.
 }
 
 func (p *PaymasterParams) MarshalJSON() ([]byte, error) {

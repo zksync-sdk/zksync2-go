@@ -78,10 +78,10 @@ type Receipt struct {
 	From              common.Address `json:"from"`
 	To                common.Address `json:"to"`
 	EffectiveGasPrice *hexutil.Big   `json:"effectiveGasPrice"`
-	L1BatchNumber     *hexutil.Big   `json:"l1BatchNumber"`
-	L1BatchTxIndex    *hexutil.Big   `json:"l1BatchTxIndex"`
+	L1BatchNumber     *hexutil.Big   `json:"l1BatchNumber"`  // The batch number on the L1 network.
+	L1BatchTxIndex    *hexutil.Big   `json:"l1BatchTxIndex"` // The transaction index within the batch on the L1 network.
 	Logs              []*Log         `json:"logs"`
-	L2ToL1Logs        []*L2ToL1Log   `json:"l2ToL1Logs"`
+	L2ToL1Logs        []*L2ToL1Log   `json:"l2ToL1Logs"` // The logs of L2 to L1 messages.
 }
 
 func (r *Receipt) MarshalJSON() ([]byte, error) {
@@ -145,8 +145,8 @@ type TransactionResponse struct {
 	GasPrice             hexutil.Big    `json:"gasPrice"`
 	Hash                 common.Hash    `json:"hash"`
 	Data                 hexutil.Bytes  `json:"input"`
-	L1BatchNumber        hexutil.Big    `json:"l1BatchNumber"`
-	L1BatchTxIndex       hexutil.Big    `json:"l1BatchTxIndex"`
+	L1BatchNumber        hexutil.Big    `json:"l1BatchNumber"`  // The batch number on the L1 network.
+	L1BatchTxIndex       hexutil.Big    `json:"l1BatchTxIndex"` // The transaction index within the batch on the L1 network.
 	MaxFeePerGas         hexutil.Big    `json:"maxFeePerGas"`
 	MaxPriorityFeePerGas hexutil.Big    `json:"maxPriorityFeePerGas"`
 	Nonce                hexutil.Uint64 `json:"nonce"`
@@ -161,13 +161,13 @@ type TransactionResponse struct {
 
 // TransactionDetails contains transaction details.
 type TransactionDetails struct {
-	EthCommitTxHash  *common.Hash   `json:"ethCommitTxHash"`
-	EthExecuteTxHash *common.Hash   `json:"ethExecuteTxHash"`
-	EthProveTxHash   *common.Hash   `json:"ethProveTxHash"`
-	Fee              hexutil.Big    `json:"fee"`
-	GasPerPubdata    hexutil.Big    `json:"gasPerPubdata"`
-	InitiatorAddress common.Address `json:"initiatorAddress"`
-	IsL1Originated   bool           `json:"isL1Originated"`
-	ReceivedAt       time.Time      `json:"receivedAt"`
-	Status           string         `json:"status"`
+	EthCommitTxHash  *common.Hash   `json:"ethCommitTxHash"`  // The transaction hash of the commit operation.
+	EthExecuteTxHash *common.Hash   `json:"ethExecuteTxHash"` // The transaction hash of the execution.
+	EthProveTxHash   *common.Hash   `json:"ethProveTxHash"`   // The transaction hash of the proof submission.
+	Fee              hexutil.Big    `json:"fee"`              // The transaction fee.
+	GasPerPubdata    hexutil.Big    `json:"gasPerPubdata"`    // Gas amount per unit of public data for this transaction.
+	InitiatorAddress common.Address `json:"initiatorAddress"` // Address of the transaction initiator.
+	IsL1Originated   bool           `json:"isL1Originated"`   // Indicates whether the transaction originated on Layer 1.
+	ReceivedAt       time.Time      `json:"receivedAt"`       // Timestamp when the transaction was received.
+	Status           string         `json:"status"`           // Current status of the transaction (e.g., verified).
 }
