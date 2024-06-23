@@ -193,3 +193,29 @@ type ProtocolVersion struct {
 	// Hash of the transaction used for the system upgrade, if any.
 	L2SystemUpgradeTxHash *common.Hash `json:"l2_system_upgrade_tx_hash"`
 }
+
+// TransactionWithDetailedOutput represents the transaction with detailed output.
+type TransactionWithDetailedOutput struct {
+	TransactionHash common.Hash `json:"transactionHash"` // The transaction hash.
+	// Storage slots.
+	StorageLogs []struct {
+		Address      common.Address `json:"address"`
+		Key          string         `json:"key"`
+		WrittenValue string         `json:"writtenValue"`
+	} `json:"storageLogs"`
+	// Generated events.
+	Events []struct {
+		Address             common.Address `json:"address"`
+		Topics              []common.Hash  `json:"topics"`
+		Data                hexutil.Bytes  `json:"data"`
+		BlockHash           *common.Hash   `json:"blockHash"`
+		BlockNumber         *hexutil.Big   `json:"blockNumber"`
+		L1BatchNumber       *hexutil.Big   `json:"l1BatchNumber"`
+		TransactionHash     common.Hash    `json:"transactionHash"`
+		TransactionIndex    hexutil.Uint   `json:"transactionIndex"`
+		LogIndex            *hexutil.Uint  `json:"logIndex"`
+		TransactionLogIndex *hexutil.Uint  `json:"transactionLogIndex"`
+		LogType             *hexutil.Bytes `json:"logType"`
+		Removed             bool           `json:"removed"`
+	} `json:"events"`
+}
