@@ -722,6 +722,24 @@ func (c *BaseClient) Proof(ctx context.Context, address common.Address, keys []c
 	return &res, nil
 }
 
+// SendRawTransactionWithDetailedOutput executes a transaction and returns its hash, storage logs, and events that would
+// have been generated if the transaction had already been included in the block. The API has a similar behaviour to
+// `eth_sendRawTransaction` but with some extra data returned from it.
+//
+// With this API Consumer apps can apply "optimistic" events in their applications instantly without having to
+// wait for ZKsync block confirmation time.
+//
+// It’s expected that the optimistic logs of two uncommitted transactions that modify the same state will not
+// have causal relationships between each other.
+func (c *BaseClient) SendRawTransactionWithDetailedOutput(ctx context.Context, tx []byte) (*zkTypes.TransactionWithDetailedOutput, error) {
+	var res zkTypes.TransactionWithDetailedOutput
+	err := c.rpcClient.CallContext(ctx, &res, "zks_sendRawTransactionWithDetailedOutput", hexutil.Encode(tx))
+	if err != nil {
+		return nil, fmt.Errorf("failed to call zks_sendRawTransactionWithDetailedOutput: %w", err)
+	}
+	return &res, nil
+}
+
 // L2TransactionFromPriorityOp returns transaction on L2 network from transaction
 // receipt on L1 network.
 func (c *BaseClient) L2TransactionFromPriorityOp(ctx context.Context, l1TxReceipt *types.Receipt) (*zkTypes.TransactionResponse, error) {
