@@ -863,6 +863,30 @@ func (c *BaseClient) L2TokenAddress(ctx context.Context, token common.Address) (
 	return tokenAddress, nil
 }
 
+// L2TokenAddressFromCustomBridge returns the L2 token address equivalent for a L1 token address
+// using custom bridge. ETH address is set to zero address.
+func (c *BaseClient) L2TokenAddressFromCustomBridge(ctx context.Context, token, bridge common.Address) (common.Address, error) {
+	if token == utils.LegacyEthAddress {
+		token = utils.EthAddressInContracts
+	}
+
+	if baseToken, err := c.BaseTokenContractAddress(ctx); err == nil && token == baseToken {
+		return utils.L2BaseTokenAddress, nil
+	} else if err != nil {
+		return common.Address{}, err
+	}
+
+	bridgeContract, err := l2bridge.NewIL2Bridge(bridge, c)
+	if err != nil {
+		return common.Address{}, err
+	}
+	tokenAddress, err := bridgeContract.L2TokenAddress(&bind.CallOpts{Context: ctx}, token)
+	if err != nil {
+		return common.Address{}, err
+	}
+	return tokenAddress, nil
+}
+
 // L1TokenAddress returns the L1 token address equivalent for a L2 token address
 // as they are not equal. ETH address is set to zero address.
 func (c *BaseClient) L1TokenAddress(ctx context.Context, token common.Address) (common.Address, error) {
