@@ -8,13 +8,13 @@
 
 ![Era Logo](https://github.com/matter-labs/era-contracts/raw/main/eraLogo.svg)
 
-In order to provide easy access to all the features of zkSync Era, the `zksync2-go` Golang SDK was created,
+In order to provide easy access to all the features of ZKsync Era, the `zksync2-go` Golang SDK was created,
 which is made in a way that has an interface very similar to those of [geth](https://geth.ethereum.org/). In
 fact, `geth` is a dependency of our library and most of the objects exported by `zksync2-go` (
 e.g. `Wallet`, `Client` etc.) inherit from the corresponding `geth` objects and override only the fields that need
 to be changed.
 
-While most of the existing SDKs should work out of the box, deploying smart contracts or using unique zkSync features,
+While most of the existing SDKs should work out of the box, deploying smart contracts or using unique ZKsync Era features,
 like account abstraction, requires providing additional fields to those that Ethereum transactions have by default.
 
 The library is made in such a way that after replacing `geth` with `zksync2-go` most client apps will work out of
@@ -26,7 +26,7 @@ box.
 
 To begin, it is useful to have a basic understanding of the types of objects available and what they are responsible for, at a high level:
 
--   `Client` provides connection to the zkSync Era blockchain, which allows querying the blockchain state, such as account, block or transaction details,
+-   `Client` provides connection to the ZKsync Era blockchain, which allows querying the blockchain state, such as account, block or transaction details,
     querying event logs or evaluating read-only code using call. Additionally, the client facilitates writing to the blockchain by sending
     transactions.
 -   `Wallet` wraps all operations that interact with an account. An account generally has a private key, which can be used to sign a variety of
@@ -46,7 +46,7 @@ go get github.com/zksync-sdk/zksync2-go
 
 The complete examples with various use cases are available [here](https://github.com/zksync-sdk/zksync2-examples/tree/main/go).
 
-### Connect to the zkSync Era network:
+### Connect to the ZKsync Era network:
 
 ```go
 import (
@@ -60,7 +60,7 @@ var (
     ZkSyncProvider   = "https://sepolia.era.zksync.dev" // zkSync Era testnet  
     EthereumProvider = "https://rpc.ankr.com/eth_sepolia" // Sepolia testnet
 )
-// Connect to zkSync network
+// Connect to ZKsync network
 client, err := clients.Dial(ZkSyncProvider)
 if err != nil {
     log.Panic(err)
@@ -108,7 +108,7 @@ if err != nil {
 ### Check account balances
 
 ```go
-balance, err := w.Balance(context.Background(), utils.EthAddress, nil) // balance on zkSync Era network
+balance, err := w.Balance(context.Background(), utils.EthAddress, nil) // balance on ZKsync Era network
 if err != nil {
     log.Panic(err)
 }
