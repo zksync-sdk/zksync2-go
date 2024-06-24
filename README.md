@@ -1,5 +1,11 @@
 # 🚀 zksync2-go Golang SDK 🚀
 
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE-MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-orange)](LICENSE-APACHE)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](https://www.contributor-covenant.org/)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-orange)](.github/CONTRIBUTING.md)
+[![X (formerly Twitter) Follow](https://badgen.net/badge/twitter/@zksyncDevs/1DA1F2?icon&label)](https://x.com/zksyncDevs)
+
 In order to provide easy access to all the features of zkSync Era, the `zksync2-go` Golang SDK was created,
 which is made in a way that has an interface very similar to those of [geth](https://geth.ethereum.org/). In
 fact, `geth` is a dependency of our library and most of the objects exported by `zksync2-go` (
