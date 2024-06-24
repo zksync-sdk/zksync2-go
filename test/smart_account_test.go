@@ -150,7 +150,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -197,7 +197,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -264,7 +264,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *tes
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -347,7 +347,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -404,7 +404,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseToken(t *testing.
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -471,7 +471,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseTokenUsingPaymast
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -528,7 +528,7 @@ func TestIntegrationSmartAccount_WithdrawToken(t *testing.T) {
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -595,7 +595,7 @@ func TestIntegrationSmartAccount_WithdrawTokenUsingPaymaster(t *testing.T) {
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -1229,7 +1229,7 @@ func TestIntegrationMultisigSmartAccount_Withdraw(t *testing.T) {
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -1296,7 +1296,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawUsingPaymaster(t *testing.T) {
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -1353,7 +1353,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawToken(t *testing.T) {
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)
@@ -1420,7 +1420,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawTokenUsingPaymaster(t *testing.
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawHash)
-	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NoError(t, err, "client.WaitFinalized should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
 	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawHash, 0)

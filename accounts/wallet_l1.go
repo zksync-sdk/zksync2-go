@@ -554,8 +554,48 @@ func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Ha
 	for i, pr := range proof.Proof {
 		proof32[i] = pr
 	}
+	sender := common.BytesToAddress(log.Topics[1].Bytes()[12:])
 
-	return a.sharedL1Bridge.FinalizeWithdrawal(
+	if sender == utils.L2BaseTokenAddress {
+		return a.sharedL1Bridge.FinalizeWithdrawal(
+			opts,
+			a.l2ChainId,
+			log.L1BatchNumber.ToInt(),
+			big.NewInt(int64(proof.Id)),
+			uint16(l1BatchTxId.Uint64()),
+			message,
+			proof32)
+	}
+
+	var l1Bridge *l1sharedbridge.IL1SharedBridge
+	isLegacyBridge, err := a.clientL2.IsL2BridgeLegacy(opts.Context, sender)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if L2 bridge is legacy: %w", err)
+	}
+
+	if isLegacyBridge {
+		l2Bridge, errL2Bridge := l2bridge.NewIL2Bridge(sender, a.clientL2)
+		if errL2Bridge != nil {
+			return nil, fmt.Errorf("failed to connect to legacy L2 bridge: %w", errL2Bridge)
+		}
+		l1BridgeAddress, errL1Bridge := l2Bridge.L1Bridge(&bind.CallOpts{Context: opts.Context})
+		if errL1Bridge != nil {
+			return nil, errL1Bridge
+		}
+		l1Bridge, errL1Bridge = l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, a.clientL1)
+	} else {
+		l2Bridge, errL2Bridge := l2sharedbridge.NewIL2SharedBridge(sender, a.clientL2)
+		if errL2Bridge != nil {
+			return nil, fmt.Errorf("failed to connect to legacy L2 bridge: %w", errL2Bridge)
+		}
+		l1BridgeAddress, errL1Bridge := l2Bridge.L1SharedBridge(&bind.CallOpts{Context: opts.Context})
+		if errL1Bridge != nil {
+			return nil, errL1Bridge
+		}
+		l1Bridge, errL1Bridge = l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, a.clientL1)
+	}
+
+	return l1Bridge.FinalizeWithdrawal(
 		opts,
 		a.l2ChainId,
 		log.L1BatchNumber.ToInt(),
@@ -918,24 +958,15 @@ func (a *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOpts, tx *De
 	if opts.Value == nil {
 		opts.Value = mintValue
 	}
-	var (
-		secondBridgeAddress  common.Address
-		secondBridgeCalldata []byte
-		err                  error
-	)
 
+	secondBridgeAddress := a.sharedL1BridgeAddress
 	if tx.BridgeAddress != nil {
 		secondBridgeAddress = *tx.BridgeAddress
-		secondBridgeCalldata, err = utils.Erc20DefaultBridgeData(tx.Token, a.clientL1)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		secondBridgeAddress = a.sharedL1BridgeAddress
-		secondBridgeCalldata, err = a.secondBridgeCalldata(tx.Token, tx.To, tx.Amount)
-		if err != nil {
-			return nil, err
-		}
+	}
+
+	secondBridgeCalldata, err := a.secondBridgeCalldata(tx.Token, tx.To, tx.Amount)
+	if err != nil {
+		return nil, err
 	}
 
 	noSendOpts := opts.ToTransactOpts(a.auth.From, a.auth.Signer)
@@ -1004,6 +1035,11 @@ func (a *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOpts, tx *D
 		return nil, err
 	}
 
+	secondBridgeAddress := a.sharedL1BridgeAddress
+	if tx.BridgeAddress != nil {
+		secondBridgeAddress = *tx.BridgeAddress
+	}
+
 	noSendOpts := opts.ToTransactOpts(a.auth.From, a.auth.Signer)
 	noSendOpts.NoSend = true
 	depositTx, err := a.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
@@ -1013,7 +1049,7 @@ func (a *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOpts, tx *D
 		L2GasLimit:               tx.L2GasLimit,
 		L2GasPerPubdataByteLimit: tx.GasPerPubdataByte,
 		RefundRecipient:          tx.RefundRecipient,
-		SecondBridgeAddress:      a.sharedL1BridgeAddress,
+		SecondBridgeAddress:      secondBridgeAddress,
 		SecondBridgeValue:        tx.Amount,
 		SecondBridgeCalldata:     secondBridgeCalldata,
 	})
@@ -1126,6 +1162,11 @@ func (a *WalletL1) prepareDepositNonBasedTokenToNonEthBasedChain(opts *TransactO
 		return nil, err
 	}
 
+	secondBridgeAddress := a.sharedL1BridgeAddress
+	if tx.BridgeAddress != nil {
+		secondBridgeAddress = *tx.BridgeAddress
+	}
+
 	noSendOpts := opts.ToTransactOpts(a.auth.From, a.auth.Signer)
 	noSendOpts.NoSend = true
 	depositTx, err := a.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
@@ -1135,7 +1176,7 @@ func (a *WalletL1) prepareDepositNonBasedTokenToNonEthBasedChain(opts *TransactO
 		L2GasLimit:               tx.L2GasLimit,
 		L2GasPerPubdataByteLimit: tx.GasPerPubdataByte,
 		RefundRecipient:          tx.RefundRecipient,
-		SecondBridgeAddress:      a.sharedL1BridgeAddress,
+		SecondBridgeAddress:      secondBridgeAddress,
 		SecondBridgeValue:        big.NewInt(0),
 		SecondBridgeCalldata:     secondBridgeCalldata,
 	})
