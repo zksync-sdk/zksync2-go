@@ -1,3 +1,22 @@
+# [0.6.0](https://github.com/zksync-sdk/zksync2-go/compare/v0.5.0...v0.6.0) (2024-06-24)
+
+
+### Features
+
+* align types and RPC endpoints with version `v24.7.0` of a node ([a411218](https://github.com/zksync-sdk/zksync2-go/commit/a41121803b02d455e3040d62b177db422ce167ce))
+* **clients,types:** add support for `zks_getFeeParams` RPC method ([b6bce81](https://github.com/zksync-sdk/zksync2-go/commit/b6bce81215662ea691619a7b22c578678717eb9c))
+* **clients,types:** add support for `zks_getProtocolVersion` RPC method ([72f2247](https://github.com/zksync-sdk/zksync2-go/commit/72f22473ebe4543094ba5c232b2918212cad66e2))
+* **clients,types:** add support for `zks_sendRawTransactionWithDetailedOutput` RPC method ([fa9c571](https://github.com/zksync-sdk/zksync2-go/commit/fa9c571722ad92f099f8ce54e5ba7c326efd27a8))
+* **clients:** add `BaseClient.IsL2BridgeLegacy` method ([8209dc3](https://github.com/zksync-sdk/zksync2-go/commit/8209dc3e380fbd93ce6584f7f85f45239ce0dd15))
+* **clients:** add `BaseClient.L2TokenAddressFromCustomBridge()` method ([ec03104](https://github.com/zksync-sdk/zksync2-go/commit/ec031047d572ae404c468b2f232c64dc079e2c22))
+* provider support for custom shared bridge ([cfdd543](https://github.com/zksync-sdk/zksync2-go/commit/cfdd54382261bb065991ed437d9281546409ec3b))
+
+
+### BREAKING CHANGES
+
+* Types and RPC endpoints are aligned with version
+`v24.7.0` of a node.
+
 # [0.5.0](https://github.com/zksync-sdk/zksync2-go/compare/v0.4.0...v0.5.0) (2024-06-09)
 
 
