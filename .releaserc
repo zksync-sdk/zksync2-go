@@ -3,6 +3,9 @@
   "debug": true,
   "addReleases": "top",
   "npmPublish": false,
+  "releaseRules": [
+      {"breaking": true, "release": "minor"}
+  ],
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
