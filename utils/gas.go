@@ -24,6 +24,7 @@ var (
 	L1RecommendedMinEthDepositGasLimit = big.NewInt(200_000)
 )
 
+// ScaleGasLimit scales the provided gas limit using a coefficient to ensure acceptance of L1->L2 transactions.
 func ScaleGasLimit(gasLimit *big.Int) *big.Int {
 	// Currently, for some reason the SDK may return slightly smaller L1 gas limit than required for initiating L1->L2
 	// transaction. We use a coefficient to ensure that the transaction will be accepted.
