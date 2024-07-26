@@ -15,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/zksync-sdk/zksync2-go/contracts/contractdeployer"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc1271"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
@@ -1055,6 +1056,23 @@ func (c *BaseClient) IsMessageSignatureCorrect(ctx context.Context, address comm
 		return c.isEIP1271SignatureCorrect(ctx, address, common.Hash(accounts.TextHash(msg)), sig)
 	}
 	return utils.IsMessageSignatureCorrect(address, msg, sig)
+}
+
+// IsTypedDataSignatureCorrect checks whether the account abstraction typed data signature is correct.
+// Signature can be created using EIP1271 or ECDSA.
+func (c *BaseClient) IsTypedDataSignatureCorrect(ctx context.Context, address common.Address, typedData apitypes.TypedData, sig []byte) (bool, error) {
+	code, err := c.CodeAt(ctx, address, nil)
+	if err != nil {
+		return false, err
+	}
+	if len(code) > 0 {
+		hash, _, errHash := apitypes.TypedDataAndHash(typedData)
+		if errHash != nil {
+			return false, errHash
+		}
+		return c.isEIP1271SignatureCorrect(ctx, address, common.Hash(hash), sig)
+	}
+	return utils.IsTypedDataSignatureCorrect(address, typedData, sig)
 }
 
 func (c *BaseClient) cacheMainContract(ctx context.Context) error {
