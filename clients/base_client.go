@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -15,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/contracts/contractdeployer"
+	"github.com/zksync-sdk/zksync2-go/contracts/erc1271"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/zksync"
@@ -1042,6 +1044,19 @@ func (c *BaseClient) IsL2BridgeLegacy(ctx context.Context, address common.Addres
 	return false, nil
 }
 
+// IsMessageSignatureCorrect checks whether the account abstraction message signature is correct.
+// Signature can be created using EIP1271 or ECDSA.
+func (c *BaseClient) IsMessageSignatureCorrect(ctx context.Context, address common.Address, msg, sig []byte) (bool, error) {
+	code, err := c.CodeAt(ctx, address, nil)
+	if err != nil {
+		return false, err
+	}
+	if len(code) > 0 {
+		return c.isEIP1271SignatureCorrect(ctx, address, common.Hash(accounts.TextHash(msg)), sig)
+	}
+	return utils.IsMessageSignatureCorrect(address, msg, sig)
+}
+
 func (c *BaseClient) cacheMainContract(ctx context.Context) error {
 	mainContractAddress, err := c.MainContractAddress(ctx)
 	if err != nil {
@@ -1055,6 +1070,18 @@ func (c *BaseClient) cacheMainContract(ctx context.Context) error {
 	c.mainContract = mainContract
 	c.mainContractAddress = mainContractAddress
 	return nil
+}
+
+func (c *BaseClient) isEIP1271SignatureCorrect(ctx context.Context, address common.Address, hash common.Hash, sig []byte) (bool, error) {
+	account, err := erc1271.NewIERC1271(address, c)
+	if err != nil {
+		return false, err
+	}
+	value, err := account.IsValidSignature(&bind.CallOpts{Context: ctx}, hash, sig)
+	if err != nil {
+		return false, err
+	}
+	return value == utils.Eip1271MagicValue, nil
 }
 
 func (c *BaseClient) getBlock(ctx context.Context, method string, args ...interface{}) (*zkTypes.Block, error) {
