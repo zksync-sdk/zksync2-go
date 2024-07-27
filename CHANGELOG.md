@@ -1,3 +1,22 @@
+# [0.7.0](https://github.com/zksync-sdk/zksync2-go/compare/v0.6.0...v0.7.0) (2024-07-27)
+
+
+### Features
+
+* **clients:** add `BaseClient.BalanceAtByTag` method ([abff602](https://github.com/zksync-sdk/zksync2-go/commit/abff602206fdab12bddff57710b63da3e5be7691))
+* **clients:** add `BaseClient.BlockByTag` method ([d86c806](https://github.com/zksync-sdk/zksync2-go/commit/d86c806ccb5054c9c1305b0b66cf676fe0bb68f7))
+* **clients:** add `BaseClient.CallContractByTag` method ([1d64eab](https://github.com/zksync-sdk/zksync2-go/commit/1d64eab4fe672021b999d85b4bf47a1146161611))
+* **clients:** add `BaseClient.CodeAtByTag` method ([b8ab9e4](https://github.com/zksync-sdk/zksync2-go/commit/b8ab9e4acb14f397b019b2e52e5ab4bbce2f5ca3))
+* **clients:** add `BaseClient.HeaderByTag` method ([12cddcd](https://github.com/zksync-sdk/zksync2-go/commit/12cddcda8fe0434cb45a3533ff88bdf69c8c9489))
+* **clients:** add `BaseClient.IsMessageSignatureCorrect` ([e2d1312](https://github.com/zksync-sdk/zksync2-go/commit/e2d131291b0431af9b48bedcbfdd75d095fbe030))
+* **clients:** add `BaseClient.IsTypedDataSignatureCorrect` ([f95918a](https://github.com/zksync-sdk/zksync2-go/commit/f95918a412db44035932cfba6bcb3172dd064d37))
+* **clients:** add `BaseClient.NonceAtByTag` method ([1dc6a59](https://github.com/zksync-sdk/zksync2-go/commit/1dc6a59cc213cdf9ba9d34dc237a31da3769b565))
+* **clients:** add `BaseClient.StorageAtByTag` method ([24c3361](https://github.com/zksync-sdk/zksync2-go/commit/24c3361e5e447e5a2136cc87cc291e6c4ff76958))
+* **clients:** add `BaseClient.TransactionCountByTag` method ([b01170e](https://github.com/zksync-sdk/zksync2-go/commit/b01170eb3a76b4e014beb2e7439917263d4028bd))
+* **utils:** add `HashedL2ToL1Msg` method ([98e7825](https://github.com/zksync-sdk/zksync2-go/commit/98e7825b9cc63c7798a245bc83abf51d61950fbb))
+* **utils:** add `IsMessageSignatureCorrect` ([001cfef](https://github.com/zksync-sdk/zksync2-go/commit/001cfef3705ef5f7d71c6de0d4871c13e198264a))
+* **utils:** add `IsTypedDataSignatureCorrect` function ([09d9b5d](https://github.com/zksync-sdk/zksync2-go/commit/09d9b5d3916a62aa8563d246c68f0019c00eacec))
+
 # [0.6.0](https://github.com/zksync-sdk/zksync2-go/compare/v0.5.0...v0.6.0) (2024-06-24)
 
 
