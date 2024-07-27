@@ -382,6 +382,17 @@ func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.Call
 	return hex, nil
 }
 
+// CallContractByTag executes a message call for EIP-712 transaction using the EVM.
+// The state seen by the contract call is defined by blockTag.
+func (c *BaseClient) CallContractByTag(ctx context.Context, msg zkTypes.CallMsg, blockTag string) ([]byte, error) {
+	var hex hexutil.Bytes
+	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, blockTag)
+	if err != nil {
+		return nil, err
+	}
+	return hex, nil
+}
+
 // SuggestGasPrice retrieves the currently suggested gas price to allow a timely
 // execution of a transaction.
 func (c *BaseClient) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
