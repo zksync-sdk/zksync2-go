@@ -573,6 +573,17 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 	assert.Equal(t, "DAI", symbol, "Symbols should be the same")
 }
 
+func TestIntegrationBaseClient_StorageAtByTag(t *testing.T) {
+	client, err := clients.DialBase(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.DialBase should not return an error")
+
+	storage, err := client.StorageAtByTag(context.Background(), L2Dai, common.HexToHash("0"), "committed")
+
+	assert.NoError(t, err, "StorageAtByTag should not return an error")
+	assert.NotNil(t, storage, "StorageAtByTag should return a non-nil storage slot")
+}
+
 func TestIntegrationBaseClient_CodeAtByTag(t *testing.T) {
 	client, err := clients.DialBase(L2ChainURL)
 	defer client.Close()
