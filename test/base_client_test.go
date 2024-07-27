@@ -573,6 +573,32 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 	assert.Equal(t, "DAI", symbol, "Symbols should be the same")
 }
 
+func TestIntegrationBaseClient_CallContractByTag(t *testing.T) {
+	client, err := clients.DialBase(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
+	assert.NoError(t, err, "bind.GetAbi should not return an error")
+
+	symbolCalldata, err := tokenAbi.Pack("symbol")
+	assert.NoError(t, err, "abi.Pack should not return an error")
+
+	result, err := client.CallContractByTag(context.Background(), zkTypes.CallMsg{
+		CallMsg: ethereum.CallMsg{
+			To:   &L2Dai,
+			Data: symbolCalldata,
+		},
+	}, "committed")
+	assert.NoError(t, err, "CallContractByTag should not return an error")
+
+	unpack, err := tokenAbi.Unpack("symbol", result)
+	assert.NoError(t, err, "abi.Unpack should not return an error")
+
+	symbol := *abi.ConvertType(unpack[0], new(string)).(*string)
+	assert.Equal(t, "DAI", symbol, "Symbols should be the same")
+}
+
 func TestIntegrationBaseClient_SuggestGasPrice(t *testing.T) {
 	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
