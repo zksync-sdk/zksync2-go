@@ -382,6 +382,14 @@ func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.Call
 	return hex, nil
 }
 
+// BlockByTag returns a block by blockTag.
+//
+// Note that loading full blocks requires two requests. Use HeaderByTag
+// if you don't need all transactions or uncle headers.
+func (c *BaseClient) BlockByTag(ctx context.Context, blockTag string) (*zkTypes.Block, error) {
+	return c.getBlock(ctx, "eth_getBlockByNumber", blockTag, true)
+}
+
 // HeaderByTag returns a block header by blockTag
 func (c *BaseClient) HeaderByTag(ctx context.Context, blockTag string) (*types.Header, error) {
 	var head *types.Header
