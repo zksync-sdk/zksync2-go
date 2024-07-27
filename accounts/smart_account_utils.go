@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/zksync-sdk/zksync2-go/clients"
@@ -71,9 +72,9 @@ var SignPayloadWithMultipleECDSA PayloadSigner = func(ctx context.Context, paylo
 //
 //   - Populates tx.From using the address derived from the ECDSA private key.
 //   - Populates tx.Nonce via client.NonceAt().
-//   - Populates tx.Gas via client.EstimateGasL2(). If tx.From is not EOA, the estimation is done with address
+//   - Populates tx.Gas via client.EstimateFee().GasLimit. If tx.From is not EOA, the estimation is done with address
 //     derived from the ECDSA private key.
-//   - Populates tx.GasFeeCap via client.SuggestGasPrice().
+//   - Populates tx.GasFeeCap via client.EstimateFee().MaxFeePerGas.
 //   - Populates tx.GasTipCap with 0 if is not set.
 //   - Populates tx.ChainID via client.ChainID().
 //   - Populates tx.Data with "0x".
@@ -98,20 +99,15 @@ var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *
 		}
 		tx.Nonce = new(big.Int).SetUint64(nonce)
 	}
-	if tx.GasFeeCap == nil {
-		if tx.GasFeeCap, err = client.SuggestGasPrice(ensureContext(ctx)); err != nil {
-			return fmt.Errorf("failed to SuggestGasPrice: %w", err)
-		}
-	}
 	if tx.GasTipCap == nil {
-		tx.GasTipCap = big.NewInt(0)
+		tx.GasTipCap = common.Big0
 	}
 	if tx.Meta == nil {
 		tx.Meta = &zkTypes.Eip712Meta{GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())}
 	} else if tx.Meta.GasPerPubdata == nil {
 		tx.Meta.GasPerPubdata = utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())
 	}
-	if tx.Gas == nil || tx.Gas.Uint64() == 0 {
+	if (tx.Gas == nil || tx.Gas.Uint64() == 0) || (tx.GasFeeCap == nil) {
 		from := *tx.From
 		// Gas estimation does not work when initiator is contract account (works only with EOA).
 		// In order to estimation gas, the transaction's from value is replaced with signer's address.
@@ -130,7 +126,7 @@ var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *
 			return err
 		}
 
-		gas, err := client.EstimateGasL2(ensureContext(ctx), zkTypes.CallMsg{
+		fee, err := client.EstimateFee(ensureContext(ctx), zkTypes.CallMsg{
 			CallMsg: ethereum.CallMsg{
 				From:      from,
 				To:        tx.To,
@@ -142,10 +138,15 @@ var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *
 			Meta: tx.Meta,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to EstimateGasL2: %w", err)
+			return fmt.Errorf("failed to EstimateFee: %w", err)
 		}
-		tx.Gas = new(big.Int).SetUint64(gas)
 
+		if tx.Gas == nil || tx.Gas.Uint64() == 0 {
+			tx.Gas = fee.GasLimit.ToInt()
+		}
+		if tx.GasFeeCap == nil || tx.GasFeeCap.Uint64() == 0 {
+			tx.GasFeeCap = fee.MaxFeePerGas.ToInt()
+		}
 	}
 	if tx.Data == nil {
 		tx.Data = hexutil.Bytes{}

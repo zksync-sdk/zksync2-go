@@ -14,6 +14,7 @@ type CallMsg struct {
 
 func (m CallMsg) MarshalJSON() ([]byte, error) {
 	arg := map[string]interface{}{
+		"type": "0x71",
 		"from": m.From,
 		"to":   m.To,
 	}

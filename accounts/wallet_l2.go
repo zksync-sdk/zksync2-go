@@ -282,12 +282,17 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zk
 	} else if tx.Meta.GasPerPubdata == nil {
 		tx.Meta.GasPerPubdata = utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())
 	}
-	if tx.Gas == 0 {
-		gas, err := (*a.client).EstimateGasL2(ensureContext(ctx), tx.ToCallMsg(a.Address()))
+	if tx.Gas == 0 || tx.GasFeeCap == nil {
+		fee, err := (*a.client).EstimateFee(ensureContext(ctx), tx.ToCallMsg(a.Address()))
 		if err != nil {
-			return nil, fmt.Errorf("failed to EstimateGasL2: %w", err)
+			return nil, fmt.Errorf("failed to EstimateFee: %w", err)
 		}
-		tx.Gas = gas
+		if tx.Gas == 0 {
+			tx.Gas = fee.GasLimit.ToInt().Uint64()
+		}
+		if tx.GasFeeCap == nil || tx.GasFeeCap.Uint64() == 0 {
+			tx.GasFeeCap = fee.MaxFeePerGas.ToInt()
+		}
 
 	}
 	if tx.Data == nil {
