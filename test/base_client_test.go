@@ -151,8 +151,8 @@ func TestIntegrationBaseClient_TransactionCount(t *testing.T) {
 
 	txCount, err := client.TransactionCount(context.Background(), block.Hash)
 
-	assert.NoError(t, err, "HeaderByNumber should not return an error")
-	assert.NotNil(t, txCount, "HeaderByNumber should return a non-nil transaction count")
+	assert.NoError(t, err, "TransactionCount should not return an error")
+	assert.NotNil(t, txCount, "TransactionCount should return a non-nil transaction count")
 }
 
 func TestIntegrationBaseClient_TransactionInBlock(t *testing.T) {
@@ -573,10 +573,19 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 	assert.Equal(t, "DAI", symbol, "Symbols should be the same")
 }
 
+func TestIntegrationBaseClient_TransactionCountByTag(t *testing.T) {
+	client, err := clients.DialBase(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.DialBase should not return an error")
+
+	txCount, err := client.TransactionCountByTag(context.Background(), "committed")
+	assert.NotNil(t, txCount, "TransactionCountByTag should return a non-nil transaction count")
+}
+
 func TestIntegrationBaseClient_CallContractByTag(t *testing.T) {
 	client, err := clients.DialBase(L2ChainURL)
 	defer client.Close()
-	assert.NoError(t, err, "clients.Dial should not return an error")
+	assert.NoError(t, err, "clients.DialBase should not return an error")
 
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
 	assert.NoError(t, err, "bind.GetAbi should not return an error")
