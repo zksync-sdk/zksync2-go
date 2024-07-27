@@ -382,6 +382,13 @@ func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.Call
 	return hex, nil
 }
 
+// TransactionCountByTag returns the total number of transactions in the state defined by blockTag.
+func (c *BaseClient) TransactionCountByTag(ctx context.Context, blockTag string) (uint, error) {
+	var num hexutil.Uint
+	err := c.rpcClient.CallContext(ctx, &num, "eth_getBlockTransactionCountByNumber", blockTag)
+	return uint(num), err
+}
+
 // CallContractByTag executes a message call for EIP-712 transaction using the EVM.
 // The state seen by the contract call is defined by blockTag.
 func (c *BaseClient) CallContractByTag(ctx context.Context, msg zkTypes.CallMsg, blockTag string) ([]byte, error) {
