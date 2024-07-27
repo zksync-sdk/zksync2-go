@@ -1058,7 +1058,7 @@ func TestIntegrationBaseClient_L2TransactionFromPriorityOp(t *testing.T) {
 	l2Tx, err := client.L2TransactionFromPriorityOp(context.Background(), l1Receipt)
 
 	assert.NoError(t, err, "ethclient.TransactionReceipt should not return an error")
-	assert.NotNil(t, l2Tx, "EstimateFee should return a non-nil transaction")
+	assert.NotNil(t, l2Tx, "L2TransactionFromPriorityOp should return a non-nil transaction")
 }
 
 func TestIntegrationBaseClient_L2TokenAddress(t *testing.T) {
