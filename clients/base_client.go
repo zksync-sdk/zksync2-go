@@ -382,6 +382,13 @@ func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.Call
 	return hex, nil
 }
 
+// CodeAtByTag returns the contract code of the given account in the state defined by blockTag.
+func (c *BaseClient) CodeAtByTag(ctx context.Context, account common.Address, blockTag string) ([]byte, error) {
+	var result hexutil.Bytes
+	err := c.rpcClient.CallContext(ctx, &result, "eth_getCode", account, blockTag)
+	return result, err
+}
+
 // NonceAtByTag returns the account nonce of the given account in the state defined by blockTag.
 func (c *BaseClient) NonceAtByTag(ctx context.Context, account common.Address, blockTag string) (uint64, error) {
 	var result hexutil.Uint64
