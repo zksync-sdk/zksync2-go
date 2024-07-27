@@ -573,6 +573,15 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 	assert.Equal(t, "DAI", symbol, "Symbols should be the same")
 }
 
+func TestIntegrationBaseClient_NonceAtByTag(t *testing.T) {
+	client, err := clients.DialBase(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.DialBase should not return an error")
+
+	nonce, err := client.NonceAtByTag(context.Background(), Address1, "committed")
+	assert.NotNil(t, nonce, "NonceAtByTag should return a non-nil nonce")
+}
+
 func TestIntegrationBaseClient_TransactionCountByTag(t *testing.T) {
 	client, err := clients.DialBase(L2ChainURL)
 	defer client.Close()
