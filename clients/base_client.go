@@ -382,6 +382,13 @@ func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.Call
 	return hex, nil
 }
 
+// NonceAtByTag returns the account nonce of the given account in the state defined by blockTag.
+func (c *BaseClient) NonceAtByTag(ctx context.Context, account common.Address, blockTag string) (uint64, error) {
+	var result hexutil.Uint64
+	err := c.rpcClient.CallContext(ctx, &result, "eth_getTransactionCount", account, blockTag)
+	return uint64(result), err
+}
+
 // TransactionCountByTag returns the total number of transactions in the state defined by blockTag.
 func (c *BaseClient) TransactionCountByTag(ctx context.Context, blockTag string) (uint, error) {
 	var num hexutil.Uint
