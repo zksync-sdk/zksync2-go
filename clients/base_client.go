@@ -382,6 +382,13 @@ func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.Call
 	return hex, nil
 }
 
+// StorageAtByTag returns the value of key in the contract storage of the given account in the state defined by blockTag.
+func (c *BaseClient) StorageAtByTag(ctx context.Context, account common.Address, key common.Hash, blockTag string) ([]byte, error) {
+	var result hexutil.Bytes
+	err := c.rpcClient.CallContext(ctx, &result, "eth_getStorageAt", account, key, blockTag)
+	return result, err
+}
+
 // CodeAtByTag returns the contract code of the given account in the state defined by blockTag.
 func (c *BaseClient) CodeAtByTag(ctx context.Context, account common.Address, blockTag string) ([]byte, error) {
 	var result hexutil.Bytes
