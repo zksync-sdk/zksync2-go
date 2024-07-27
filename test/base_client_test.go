@@ -573,6 +573,17 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 	assert.Equal(t, "DAI", symbol, "Symbols should be the same")
 }
 
+func TestIntegrationBaseClient_HeaderByTag(t *testing.T) {
+	client, err := clients.DialBase(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.DialBase should not return an error")
+
+	header, err := client.HeaderByTag(context.Background(), "committed")
+
+	assert.NoError(t, err, "HeaderByTag should not return an error")
+	assert.NotNil(t, header, "HeaderByTag should return a non-nil header")
+}
+
 func TestIntegrationBaseClient_BalanceAtByTag(t *testing.T) {
 	client, err := clients.DialBase(L2ChainURL)
 	defer client.Close()

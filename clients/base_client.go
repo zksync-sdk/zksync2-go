@@ -382,6 +382,16 @@ func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.Call
 	return hex, nil
 }
 
+// HeaderByTag returns a block header by blockTag
+func (c *BaseClient) HeaderByTag(ctx context.Context, blockTag string) (*types.Header, error) {
+	var head *types.Header
+	err := c.rpcClient.CallContext(ctx, &head, "eth_getBlockByNumber", blockTag, false)
+	if err == nil && head == nil {
+		err = ethereum.NotFound
+	}
+	return head, err
+}
+
 // BalanceAtByTag returns the wei balance of the given account in the state defined by blockTag.
 func (c *BaseClient) BalanceAtByTag(ctx context.Context, account common.Address, blockTag string) (*big.Int, error) {
 	var result hexutil.Big
