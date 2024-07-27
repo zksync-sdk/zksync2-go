@@ -382,6 +382,13 @@ func (c *BaseClient) PendingCallContractL2(ctx context.Context, msg zkTypes.Call
 	return hex, nil
 }
 
+// BalanceAtByTag returns the wei balance of the given account in the state defined by blockTag.
+func (c *BaseClient) BalanceAtByTag(ctx context.Context, account common.Address, blockTag string) (*big.Int, error) {
+	var result hexutil.Big
+	err := c.rpcClient.CallContext(ctx, &result, "eth_getBalance", account, blockTag)
+	return (*big.Int)(&result), err
+}
+
 // StorageAtByTag returns the value of key in the contract storage of the given account in the state defined by blockTag.
 func (c *BaseClient) StorageAtByTag(ctx context.Context, account common.Address, key common.Hash, blockTag string) ([]byte, error) {
 	var result hexutil.Bytes
