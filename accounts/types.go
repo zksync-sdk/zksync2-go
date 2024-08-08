@@ -10,7 +10,7 @@ import (
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/bridgehub"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1bridge"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 )
@@ -39,18 +39,18 @@ func (o *CallOpts) ToCallOpts(from common.Address) *bind.CallOpts {
 // Its primary purpose is to be transformed into types.CallMsg, wherein the 'From'
 // field represents the associated account.
 type CallMsg struct {
-	To        *common.Address     // The address of the recipient.
-	Gas       uint64              // If 0, the call executes with near-infinite gas.
-	GasPrice  *big.Int            // Wei <-> gas exchange ratio.
-	GasFeeCap *big.Int            // EIP-1559 fee cap per gas.
-	GasTipCap *big.Int            // EIP-1559 tip per gas.
-	Value     *big.Int            // Amount of wei sent along with the call.
-	Data      []byte              // Input data, usually an ABI-encoded contract method invocation
-	Meta      *zkTypes.Eip712Meta // EIP-712 metadata.
+	To        *common.Address   // The address of the recipient.
+	Gas       uint64            // If 0, the call executes with near-infinite gas.
+	GasPrice  *big.Int          // Wei <-> gas exchange ratio.
+	GasFeeCap *big.Int          // EIP-1559 fee cap per gas.
+	GasTipCap *big.Int          // EIP-1559 tip per gas.
+	Value     *big.Int          // Amount of wei sent along with the call.
+	Data      []byte            // Input data, usually an ABI-encoded contract method invocation
+	Meta      *types.Eip712Meta // EIP-712 metadata.
 }
 
-func (m *CallMsg) ToCallMsg(from common.Address) zkTypes.CallMsg {
-	return zkTypes.CallMsg{
+func (m *CallMsg) ToCallMsg(from common.Address) types.CallMsg {
+	return types.CallMsg{
 		From:      from,
 		To:        m.To,
 		Gas:       m.Gas,
@@ -359,12 +359,12 @@ type Transaction struct {
 	GasFeeCap *big.Int        // EIP-1559 fee cap per gas.
 	Gas       uint64          // Gas limit to set for the transaction execution.
 
-	ChainID *big.Int            // Chain ID of the network.
-	Meta    *zkTypes.Eip712Meta // EIP-712 metadata.
+	ChainID *big.Int          // Chain ID of the network.
+	Meta    *types.Eip712Meta // EIP-712 metadata.
 }
 
-func (t *Transaction) ToTransaction712(from common.Address) *zkTypes.Transaction712 {
-	return &zkTypes.Transaction712{
+func (t *Transaction) ToTransaction712(from common.Address) *types.Transaction712 {
+	return &types.Transaction712{
 		Nonce:     t.Nonce,
 		GasTipCap: t.GasTipCap,
 		GasFeeCap: t.GasFeeCap,
@@ -378,8 +378,8 @@ func (t *Transaction) ToTransaction712(from common.Address) *zkTypes.Transaction
 	}
 }
 
-func (t *Transaction) ToCallMsg(from common.Address) zkTypes.CallMsg {
-	return zkTypes.CallMsg{
+func (t *Transaction) ToCallMsg(from common.Address) types.CallMsg {
+	return types.CallMsg{
 		From:      from,
 		To:        t.To,
 		Gas:       t.Gas,
@@ -394,10 +394,10 @@ func (t *Transaction) ToCallMsg(from common.Address) zkTypes.CallMsg {
 // TransferTransaction represents a transfer transaction on L2
 // initiated by the account associated with AdapterL2.
 type TransferTransaction struct {
-	To              common.Address           // The address of the recipient.
-	Amount          *big.Int                 // The amount of the token to transfer.
-	Token           common.Address           // The address of the token. ETH by default.
-	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
+	To              common.Address         // The address of the recipient.
+	Amount          *big.Int               // The amount of the token to transfer.
+	Token           common.Address         // The address of the token. ETH by default.
+	PaymasterParams *types.PaymasterParams // The paymaster parameters.
 }
 
 func (t *TransferTransaction) ToTransaction(opts *TransactOpts) *Transaction {
@@ -427,10 +427,10 @@ func (t *TransferTransaction) ToTransferCallMsg(from common.Address, opts *Trans
 // WithdrawalTransaction represents a withdrawal transaction on L1 from L2
 // initiated by the account associated with AdapterL2.
 type WithdrawalTransaction struct {
-	To              common.Address           // The address that will receive the withdrawn tokens on L1.
-	Token           common.Address           // The address of the token to withdraw.
-	Amount          *big.Int                 // The amount of the token to withdraw.
-	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
+	To              common.Address         // The address that will receive the withdrawn tokens on L1.
+	Token           common.Address         // The address of the token to withdraw.
+	Amount          *big.Int               // The amount of the token to withdraw.
+	PaymasterParams *types.PaymasterParams // The paymaster parameters.
 
 	// The address of the bridge contract to be used. Defaults to the default ZKsync bridge
 	// (either L2EthBridge or L2Erc20Bridge).
@@ -492,21 +492,21 @@ func (t *RequestExecuteTransaction) ToRequestExecuteCallMsg(opts *TransactOpts) 
 	}
 }
 
-func (t *RequestExecuteTransaction) ToCallMsg(from common.Address, opts *TransactOpts) zkTypes.CallMsg {
+func (t *RequestExecuteTransaction) ToCallMsg(from common.Address, opts *TransactOpts) types.CallMsg {
 	factoryDeps := make([]hexutil.Bytes, len(t.FactoryDeps))
 	if len(t.FactoryDeps) > 0 {
 		for i, d := range t.FactoryDeps {
 			factoryDeps[i] = d
 		}
 	}
-	return zkTypes.CallMsg{
+	return types.CallMsg{
 		From:     from,
 		To:       &t.ContractAddress,
 		Gas:      opts.GasLimit,
 		GasPrice: opts.GasPrice,
 		Value:    opts.Value,
 		Data:     t.Calldata,
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata: utils.NewBig(t.GasPerPubdataByte.Int64()),
 			FactoryDeps:   factoryDeps,
 		},
@@ -629,7 +629,7 @@ func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *T
 			return nil, fmt.Errorf("failed to encode create call: %w", err)
 		}
 	} else {
-		data, err = utils.EncodeCreateAccount(t.Bytecode, t.Calldata, zkTypes.Version1)
+		data, err = utils.EncodeCreateAccount(t.Bytecode, t.Calldata, types.Version1)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode createAccount call: %w", err)
 		}
@@ -659,7 +659,7 @@ func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *T
 		GasFeeCap: auth.GasFeeCap,
 		GasTipCap: auth.GasTipCap,
 		Gas:       auth.GasLimit,
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 			FactoryDeps:   factoryDeps,
 		},
@@ -687,7 +687,7 @@ func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *
 			return nil, fmt.Errorf("failed to encode create2 call: %w", err)
 		}
 	} else {
-		data, err = utils.EncodeCreate2Account(t.Bytecode, t.Calldata, t.Salt, zkTypes.Version1)
+		data, err = utils.EncodeCreate2Account(t.Bytecode, t.Calldata, t.Salt, types.Version1)
 		if err != nil {
 			return nil, fmt.Errorf("failed to encode create2Account call: %w", err)
 		}
@@ -716,7 +716,7 @@ func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *
 		GasFeeCap: auth.GasFeeCap,
 		GasTipCap: auth.GasTipCap,
 		Gas:       auth.GasLimit,
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 			FactoryDeps:   factoryDeps,
 		},
@@ -747,4 +747,4 @@ type PayloadSigner func(ctx context.Context, payload []byte, secret interface{},
 
 // TransactionBuilder populates missing fields in a tx with default values.
 // The client is used to fetch data from the network if it is required.
-type TransactionBuilder func(ctx context.Context, tx *zkTypes.Transaction712, secret interface{}, client *clients.Client) error
+type TransactionBuilder func(ctx context.Context, tx *types.Transaction712, secret interface{}, client *clients.Client) error

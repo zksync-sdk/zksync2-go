@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/assert"
 	"github.com/zksync-sdk/zksync2-go/eip712"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 	"testing"
@@ -24,7 +24,7 @@ var Address2 = common.HexToAddress("0xa61464658AfeAf65CccaaFD3a512b69A83B77618")
 func TestSignPayloadWithECDSASignTransaction(t *testing.T) {
 	signature := "0x475e207d1e5da85721e37118cea54b2a3ac8e5dcd79cd7935c59bdd5cbc71e9824d4ab9dbaa5f8542e51588f4187c406fc4311c2ce9a9aa2a269f14298e5777d1b"
 
-	tx := zkTypes.Transaction712{
+	tx := types.Transaction712{
 		Nonce:     big.NewInt(0),
 		GasTipCap: big.NewInt(0),
 		GasFeeCap: big.NewInt(1_000_000_000),
@@ -34,7 +34,7 @@ func TestSignPayloadWithECDSASignTransaction(t *testing.T) {
 		Data:      hexutil.Bytes{},
 		ChainID:   big.NewInt(270),
 		From:      &Address1,
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 		},
 	}
@@ -104,7 +104,7 @@ func TestSignPayloadWithECDSASignTypedData(t *testing.T) {
 func TestSignPayloadWithMultipleECDSASignTransaction(t *testing.T) {
 	signature := "0x475e207d1e5da85721e37118cea54b2a3ac8e5dcd79cd7935c59bdd5cbc71e9824d4ab9dbaa5f8542e51588f4187c406fc4311c2ce9a9aa2a269f14298e5777d1b4ff4f280885d2dd0b2234d82cacec8ba94bd6659b64b1d516668b4ca79faf58a58c469fd95590e2541ca01866e312e56c7e38a74b4a8b72fdb07a69a3b34c19f1c"
 
-	tx := zkTypes.Transaction712{
+	tx := types.Transaction712{
 		Nonce:     big.NewInt(0),
 		GasTipCap: big.NewInt(0),
 		GasFeeCap: big.NewInt(1_000_000_000),
@@ -114,7 +114,7 @@ func TestSignPayloadWithMultipleECDSASignTransaction(t *testing.T) {
 		Data:      hexutil.Bytes{},
 		ChainID:   big.NewInt(270),
 		From:      &Address1,
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 		},
 	}

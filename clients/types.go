@@ -6,11 +6,11 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
 	"github.com/zksync-sdk/zksync2-go/contracts/ethtoken"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 )
@@ -27,7 +27,7 @@ type TransferCallMsg struct {
 	GasFeeCap *big.Int // EIP-1559 fee cap per gas.
 	GasTipCap *big.Int // EIP-1559 tip per gas.
 
-	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
+	PaymasterParams *types.PaymasterParams // The paymaster parameters.
 }
 
 func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
@@ -66,12 +66,12 @@ func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
 	}, nil
 }
 
-func (m *TransferCallMsg) ToZkCallMsg() (*zkTypes.CallMsg, error) {
+func (m *TransferCallMsg) ToZkCallMsg() (*types.CallMsg, error) {
 	var (
 		value *big.Int
 		data  []byte
 		to    *common.Address
-		meta  *zkTypes.Eip712Meta
+		meta  *types.Eip712Meta
 	)
 
 	if m.Token == utils.L2BaseTokenAddress {
@@ -91,13 +91,13 @@ func (m *TransferCallMsg) ToZkCallMsg() (*zkTypes.CallMsg, error) {
 		}
 	}
 	if m.PaymasterParams != nil {
-		meta = &zkTypes.Eip712Meta{
+		meta = &types.Eip712Meta{
 			GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 			PaymasterParams: m.PaymasterParams,
 		}
 	}
 
-	return &zkTypes.CallMsg{
+	return &types.CallMsg{
 		From:      m.From,
 		To:        to,
 		Gas:       m.Gas,
@@ -123,7 +123,7 @@ type WithdrawalCallMsg struct {
 	GasFeeCap *big.Int // EIP-1559 fee cap per gas.
 	GasTipCap *big.Int // EIP-1559 tip per gas.
 
-	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
+	PaymasterParams *types.PaymasterParams // The paymaster parameters.
 }
 
 func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereum.CallMsg, error) {
@@ -174,21 +174,21 @@ func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereu
 	}
 }
 
-func (m *WithdrawalCallMsg) ToZkCallMsg(defaultL2Bridge *common.Address) (*zkTypes.CallMsg, error) {
-	var meta *zkTypes.Eip712Meta
+func (m *WithdrawalCallMsg) ToZkCallMsg(defaultL2Bridge *common.Address) (*types.CallMsg, error) {
+	var meta *types.Eip712Meta
 
 	msg, err := m.ToCallMsg(defaultL2Bridge)
 	if err != nil {
 		return nil, err
 	}
 	if m.PaymasterParams != nil {
-		meta = &zkTypes.Eip712Meta{
+		meta = &types.Eip712Meta{
 			GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 			PaymasterParams: m.PaymasterParams,
 		}
 	}
 
-	return &zkTypes.CallMsg{
+	return &types.CallMsg{
 		From:      msg.From,
 		To:        msg.To,
 		Gas:       msg.Gas,
@@ -202,23 +202,23 @@ func (m *WithdrawalCallMsg) ToZkCallMsg(defaultL2Bridge *common.Address) (*zkTyp
 }
 
 type blockMarshaling struct {
-	ParentHash    common.Hash      `json:"parentHash"       gencodec:"required"`
-	UncleHash     common.Hash      `json:"sha3Uncles"       gencodec:"required"`
-	Coinbase      common.Address   `json:"miner"`
-	Root          common.Hash      `json:"stateRoot"        gencodec:"required"`
-	TxHash        common.Hash      `json:"transactionsRoot" gencodec:"required"`
-	ReceiptHash   common.Hash      `json:"receiptsRoot"     gencodec:"required"`
-	Bloom         types.Bloom      `json:"logsBloom"        gencodec:"required"`
-	Difficulty    *hexutil.Big     `json:"difficulty"       gencodec:"required"`
-	Number        *hexutil.Big     `json:"number"           gencodec:"required"`
-	GasLimit      hexutil.Uint64   `json:"gasLimit"         gencodec:"required"`
-	GasUsed       hexutil.Uint64   `json:"gasUsed"          gencodec:"required"`
-	Time          hexutil.Uint64   `json:"timestamp"        gencodec:"required"`
-	Extra         hexutil.Bytes    `json:"extraData"        gencodec:"required"`
-	MixDigest     common.Hash      `json:"mixHash"`
-	Nonce         types.BlockNonce `json:"nonce"`
-	BaseFee       *hexutil.Big     `json:"baseFeePerGas" rlp:"optional"`
-	ExcessDataGas *hexutil.Big     `json:"excessDataGas" rlp:"optional"`
+	ParentHash    common.Hash         `json:"parentHash"       gencodec:"required"`
+	UncleHash     common.Hash         `json:"sha3Uncles"       gencodec:"required"`
+	Coinbase      common.Address      `json:"miner"`
+	Root          common.Hash         `json:"stateRoot"        gencodec:"required"`
+	TxHash        common.Hash         `json:"transactionsRoot" gencodec:"required"`
+	ReceiptHash   common.Hash         `json:"receiptsRoot"     gencodec:"required"`
+	Bloom         ethTypes.Bloom      `json:"logsBloom"        gencodec:"required"`
+	Difficulty    *hexutil.Big        `json:"difficulty"       gencodec:"required"`
+	Number        *hexutil.Big        `json:"number"           gencodec:"required"`
+	GasLimit      hexutil.Uint64      `json:"gasLimit"         gencodec:"required"`
+	GasUsed       hexutil.Uint64      `json:"gasUsed"          gencodec:"required"`
+	Time          hexutil.Uint64      `json:"timestamp"        gencodec:"required"`
+	Extra         hexutil.Bytes       `json:"extraData"        gencodec:"required"`
+	MixDigest     common.Hash         `json:"mixHash"`
+	Nonce         ethTypes.BlockNonce `json:"nonce"`
+	BaseFee       *hexutil.Big        `json:"baseFeePerGas" rlp:"optional"`
+	ExcessDataGas *hexutil.Big        `json:"excessDataGas" rlp:"optional"`
 
 	Uncles           []*common.Hash `json:"uncles"`
 	Hash             *common.Hash   `json:"hash"`
@@ -228,7 +228,7 @@ type blockMarshaling struct {
 	Size             *hexutil.Big   `json:"size"`
 	SealFields       []interface{}  `json:"sealFields"`
 
-	Transactions []*zkTypes.TransactionResponse `json:"transactions"`
+	Transactions []*types.TransactionResponse `json:"transactions"`
 }
 
 // BlockRange represents a range of blocks with the starting and ending block numbers.

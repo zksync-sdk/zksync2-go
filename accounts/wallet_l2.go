@@ -7,14 +7,14 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
 	"github.com/zksync-sdk/zksync2-go/contracts/ethtoken"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/nonceholder"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 )
@@ -131,8 +131,8 @@ func (a *WalletL2) AllBalances(ctx context.Context) (map[common.Address]*big.Int
 }
 
 // L2BridgeContracts returns L2 bridge contracts.
-func (a *WalletL2) L2BridgeContracts(_ context.Context) (*zkTypes.L2BridgeContracts, error) {
-	return &zkTypes.L2BridgeContracts{Erc20: a.defaultL2Bridge, Shared: a.sharedL2Bridge}, nil
+func (a *WalletL2) L2BridgeContracts(_ context.Context) (*types.L2BridgeContracts, error) {
+	return &types.L2BridgeContracts{Erc20: a.defaultL2Bridge, Shared: a.sharedL2Bridge}, nil
 }
 
 // DeploymentNonce returns the deployment nonce of the account.
@@ -153,7 +153,7 @@ func (a *WalletL2) IsBaseToken(ctx context.Context, token common.Address) (bool,
 // Withdraw initiates the withdrawal process which withdraws ETH or any ERC20
 // token from the associated account on L2 network to the target account on L1
 // network.
-func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*types.Transaction, error) {
+func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*ethTypes.Transaction, error) {
 	opts := ensureTransactOpts(auth).ToTransactOpts(a.Address(), a.auth.Signer)
 
 	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
@@ -202,7 +202,7 @@ func (a *WalletL2) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMs
 }
 
 // Transfer moves the base token or any ERC20 token from the associated account to the target account.
-func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.Transaction, error) {
+func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*ethTypes.Transaction, error) {
 	opts := ensureTransactOpts(auth)
 
 	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
@@ -252,7 +252,7 @@ func (a *WalletL2) CallContract(ctx context.Context, msg CallMsg, blockNumber *b
 // required fields are Transaction.To and either Transaction.Data or
 // Transaction.Value (or both, if the method is payable). Any other fields that
 // are not set will be prepared by this method.
-func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zkTypes.Transaction712, error) {
+func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*types.Transaction712, error) {
 	if tx.ChainID == nil {
 		tx.ChainID = (*a.signer).Domain().ChainId
 	}
@@ -274,7 +274,7 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zk
 		tx.GasTipCap = big.NewInt(0)
 	}
 	if tx.Meta == nil {
-		tx.Meta = &zkTypes.Eip712Meta{GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())}
+		tx.Meta = &types.Eip712Meta{GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())}
 	} else if tx.Meta.GasPerPubdata == nil {
 		tx.Meta.GasPerPubdata = utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())
 	}
@@ -301,7 +301,7 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zk
 // the network. The input transaction must be a valid transaction with all fields
 // having appropriate values. To obtain a valid transaction, you can use the
 // PopulateTransaction method.
-func (a *WalletL2) SignTransaction(tx *zkTypes.Transaction712) ([]byte, error) {
+func (a *WalletL2) SignTransaction(tx *types.Transaction712) ([]byte, error) {
 	var gas uint64 = 0
 	if tx.Gas != nil {
 		gas = tx.Gas.Uint64()
@@ -342,7 +342,7 @@ func (a *WalletL2) SendTransaction(ctx context.Context, tx *Transaction) (common
 	return a.client.SendRawTransaction(ensureContext(ctx), rawTx)
 }
 
-func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction) (*types.Transaction, error) {
+func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction) (*ethTypes.Transaction, error) {
 	if auth.GasPrice != nil {
 		if auth.Nonce == nil {
 			nonce, err := a.client.NonceAt(auth.Context, a.Address(), nil)
@@ -352,8 +352,8 @@ func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction)
 			auth.Nonce = new(big.Int).SetUint64(nonce)
 		}
 
-		transaction := types.NewTx(
-			&types.LegacyTx{
+		transaction := ethTypes.NewTx(
+			&ethTypes.LegacyTx{
 				Nonce:    auth.Nonce.Uint64(),
 				GasPrice: auth.GasPrice,
 				Gas:      auth.GasLimit,
@@ -361,7 +361,7 @@ func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction)
 				Value:    tx.Amount,
 			})
 
-		signedTx, _ := types.SignTx(transaction, types.NewLondonSigner((*a.signer).Domain().ChainId), (*a.signer).PrivateKey())
+		signedTx, _ := ethTypes.SignTx(transaction, ethTypes.NewLondonSigner((*a.signer).Domain().ChainId), (*a.signer).PrivateKey())
 		err := a.client.SendTransaction(auth.Context, signedTx)
 		if err != nil {
 			return nil, err
@@ -372,8 +372,8 @@ func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction)
 		if err != nil {
 			return nil, err
 		}
-		transaction := types.NewTx(
-			&types.DynamicFeeTx{
+		transaction := ethTypes.NewTx(
+			&ethTypes.DynamicFeeTx{
 				ChainID:   (*a.signer).Domain().ChainId,
 				Nonce:     preparedTx.Nonce.Uint64(),
 				GasTipCap: preparedTx.GasTipCap,
@@ -382,7 +382,7 @@ func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction)
 				To:        preparedTx.To,
 				Value:     preparedTx.Value,
 			})
-		signedTx, _ := types.SignTx(transaction, types.NewLondonSigner((*a.signer).Domain().ChainId), (*a.signer).PrivateKey())
+		signedTx, _ := ethTypes.SignTx(transaction, ethTypes.NewLondonSigner((*a.signer).Domain().ChainId), (*a.signer).PrivateKey())
 		err = a.client.SendTransaction(auth.Context, signedTx)
 		if err != nil {
 			return nil, err

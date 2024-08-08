@@ -5,7 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zksync-sdk/zksync2-go/accounts"
 	"github.com/zksync-sdk/zksync2-go/clients"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"math/big"
 	"testing"
 )
@@ -15,7 +15,7 @@ func TestIntegration_PopulateTransactionECDSA(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
-	tx := zkTypes.Transaction712{
+	tx := types.Transaction712{
 		To:      &Address2,
 		Value:   big.NewInt(7_000_000_000),
 		ChainID: big.NewInt(270),
@@ -37,7 +37,7 @@ func TestIntegration_PopulateTransactionECDSA(t *testing.T) {
 }
 
 func TestIntegration_PopulateTransactionECDSA_ErrorNoClientProvided(t *testing.T) {
-	tx := zkTypes.Transaction712{
+	tx := types.Transaction712{
 		To:      &Address2,
 		Value:   big.NewInt(7_000_000_000),
 		ChainID: big.NewInt(270),
@@ -53,6 +53,6 @@ func TestIntegration_PopulateTransactionMultipleECDSA_ErrorNoMultipleKeysProvide
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
-	err = accounts.PopulateTransactionMultipleECDSA(context.Background(), &zkTypes.Transaction712{}, [1]string{PrivateKey1}, client)
+	err = accounts.PopulateTransactionMultipleECDSA(context.Background(), &types.Transaction712{}, [1]string{PrivateKey1}, client)
 	assert.Error(t, err, "PopulateTransactionMultipleECDSA should return an error when only one private key is provided")
 }

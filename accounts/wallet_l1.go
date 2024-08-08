@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/zksync-sdk/zksync2-go/clients"
@@ -21,7 +21,7 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/zksynchyperchain"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 	"strings"
@@ -160,8 +160,8 @@ func (a *WalletL1) BridgehubContract(_ context.Context) (*bridgehub.IBridgehub, 
 }
 
 // L1BridgeContracts returns L1 bridge contracts.
-func (a *WalletL1) L1BridgeContracts(_ context.Context) (*zkTypes.L1BridgeContracts, error) {
-	return &zkTypes.L1BridgeContracts{Erc20: a.defaultL1Bridge, Shared: a.sharedL1Bridge}, nil
+func (a *WalletL1) L1BridgeContracts(_ context.Context) (*types.L1BridgeContracts, error) {
+	return &types.L1BridgeContracts{Erc20: a.defaultL1Bridge, Shared: a.sharedL1Bridge}, nil
 }
 
 // BaseToken returns the address of the base token on L1.
@@ -213,7 +213,7 @@ func (a *WalletL1) L2TokenAddress(ctx context.Context, token common.Address) (co
 
 // ApproveERC20 approves the specified amount of tokens for the specified L1 bridge.
 func (a *WalletL1) ApproveERC20(auth *TransactOpts, token common.Address, amount *big.Int,
-	bridgeAddress common.Address) (*types.Transaction, error) {
+	bridgeAddress common.Address) (*ethTypes.Transaction, error) {
 	if token == (common.Address{}) {
 		return nil, errors.New("token L1 address must be provided")
 	}
@@ -303,7 +303,7 @@ func (a *WalletL1) DepositAllowanceParams(opts *CallOpts, msg DepositCallMsg) ([
 // DepositTransaction.ApproveBaseERC20 can be enabled to perform token approval.
 // If there are already enough approved tokens for the L1 bridge, token approval will be skipped.
 // To check the amount of approved tokens for a specific bridge, use the AdapterL1.AllowanceL1 method.
-func (a *WalletL1) Deposit(auth *TransactOpts, tx DepositTransaction) (*types.Transaction, error) {
+func (a *WalletL1) Deposit(auth *TransactOpts, tx DepositTransaction) (*ethTypes.Transaction, error) {
 	opts := ensureTransactOpts(auth)
 	if tx.Token == utils.LegacyEthAddress {
 		tx.Token = utils.EthAddressInContracts
@@ -495,7 +495,7 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 }
 
 // FinalizeWithdraw proves the inclusion of the L2 -> L1 withdrawal message.
-func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Hash, index int) (*types.Transaction, error) {
+func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Hash, index int) (*ethTypes.Transaction, error) {
 	if a.clientL1 == nil {
 		return nil, errors.New("ethereum provider is not initialized")
 	}
@@ -648,7 +648,7 @@ func (a *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Has
 // ClaimFailedDeposit withdraws funds from the initiated deposit, which failed when finalizing on L2.
 // If the deposit L2 transaction has failed, it sends an L1 transaction calling ClaimFailedDeposit method
 // of the L1 bridge, which results in returning L1 tokens back to the depositor, otherwise throws the error.
-func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Hash) (*types.Transaction, error) {
+func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Hash) (*ethTypes.Transaction, error) {
 	opts := ensureTransactOpts(auth)
 	receipt, err := a.clientL2.TransactionReceipt(opts.Context, depositHash)
 	if err != nil {
@@ -657,7 +657,7 @@ func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Has
 	if receipt == nil {
 		return nil, errors.New("transaction receipt not found")
 	}
-	var successL2ToL1Log *zkTypes.L2ToL1Log
+	var successL2ToL1Log *types.L2ToL1Log
 	var successL2ToL1LogIndex int
 	for i, l := range receipt.L2ToL1Logs {
 		if l.Sender == utils.BootloaderFormalAddress && l.Key == depositHash.String() {
@@ -728,7 +728,7 @@ func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Has
 }
 
 // RequestExecute request execution of L2 transaction from L1.
-func (a *WalletL1) RequestExecute(auth *TransactOpts, tx RequestExecuteTransaction) (*types.Transaction, error) {
+func (a *WalletL1) RequestExecute(auth *TransactOpts, tx RequestExecuteTransaction) (*ethTypes.Transaction, error) {
 	opts := ensureTransactOpts(auth)
 	err := a.prepareRequestExecuteTx(opts, &tx)
 	if err != nil {
@@ -790,7 +790,7 @@ func (a *WalletL1) RequestExecuteAllowanceParams(opts *CallOpts, msg RequestExec
 // The txHash is the  hash of the L2 transaction where the message was initiated.
 // The index is used in case there were multiple transactions in one message, you may pass an index of the
 // transaction which confirmation data should be fetched.
-func (a *WalletL1) PriorityOpConfirmation(ctx context.Context, txHash common.Hash, index int) (*zkTypes.PriorityOpConfirmation, error) {
+func (a *WalletL1) PriorityOpConfirmation(ctx context.Context, txHash common.Hash, index int) (*types.PriorityOpConfirmation, error) {
 	return a.clientL2.PriorityOpConfirmation(ctx, txHash, index)
 }
 
@@ -803,11 +803,11 @@ func (a *WalletL1) EstimateCustomBridgeDepositL2Gas(ctx context.Context, l1Bridg
 		return 0, err
 	}
 
-	return a.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), zkTypes.CallMsg{
+	return a.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), types.CallMsg{
 		From: utils.ApplyL1ToL2Alias(l1BridgeAddress),
 		To:   &l2BridgeAddress,
 		Data: calldata,
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata: utils.NewBig(gasPerPubdataByte.Int64()),
 		},
 	})
@@ -835,11 +835,11 @@ func (a *WalletL1) EstimateDefaultBridgeDepositL2Gas(ctx context.Context, token 
 	}
 
 	if token == a.baseToken {
-		return a.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), zkTypes.CallMsg{
+		return a.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), types.CallMsg{
 			From:  from,
 			To:    &to,
 			Value: amount,
-			Meta: &zkTypes.Eip712Meta{
+			Meta: &types.Eip712Meta{
 				GasPerPubdata: utils.NewBig(gasPerPubdataByte.Int64()),
 			},
 		})
@@ -868,7 +868,7 @@ func (a *WalletL1) EstimateDefaultBridgeDepositL2Gas(ctx context.Context, token 
 	}
 }
 
-func (a *WalletL1) depositEthToEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*types.Transaction, error) {
+func (a *WalletL1) depositEthToEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
 	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
@@ -903,7 +903,7 @@ func (a *WalletL1) prepareDepositEthToEthBasedChain(opts *TransactOpts, tx *Depo
 	}, nil
 }
 
-func (a *WalletL1) depositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*types.Transaction, error) {
+func (a *WalletL1) depositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
 	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
@@ -941,7 +941,7 @@ func (a *WalletL1) depositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTr
 	return preparedTx, nil
 }
 
-func (a *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*types.Transaction, error) {
+func (a *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*ethTypes.Transaction, error) {
 	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
@@ -978,7 +978,7 @@ func (a *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOpts, tx *De
 	return depositTx, nil
 }
 
-func (a *WalletL1) depositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*types.Transaction, error) {
+func (a *WalletL1) depositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
 	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
@@ -1013,7 +1013,7 @@ func (a *WalletL1) depositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositT
 	return preparedTx, nil
 }
 
-func (a *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*types.Transaction, error) {
+func (a *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*ethTypes.Transaction, error) {
 	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
@@ -1049,7 +1049,7 @@ func (a *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOpts, tx *D
 	return depositTx, nil
 }
 
-func (a *WalletL1) depositBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*types.Transaction, error) {
+func (a *WalletL1) depositBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
 	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
@@ -1094,7 +1094,7 @@ func (a *WalletL1) prepareDepositBaseTokenToNonEthBasedChain(opts *TransactOpts,
 	}, nil
 }
 
-func (a *WalletL1) depositNonBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*types.Transaction, error) {
+func (a *WalletL1) depositNonBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
 	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
@@ -1140,7 +1140,7 @@ func (a *WalletL1) depositNonBaseTokenToNonEthBasedChain(opts *TransactOpts, tx 
 	return preparedTx, nil
 }
 
-func (a *WalletL1) prepareDepositNonBasedTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*types.Transaction, error) {
+func (a *WalletL1) prepareDepositNonBasedTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*ethTypes.Transaction, error) {
 	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
@@ -1451,7 +1451,7 @@ func (a *WalletL1) insertGasPriceInDepositMsg(ctx context.Context, msg *DepositC
 	return nil
 }
 
-func (a *WalletL1) getWithdrawalLog(ctx context.Context, withdrawalHash common.Hash, index int) (*zkTypes.Log, *big.Int, error) {
+func (a *WalletL1) getWithdrawalLog(ctx context.Context, withdrawalHash common.Hash, index int) (*types.Log, *big.Int, error) {
 	receipt, err := a.clientL2.TransactionReceipt(ctx, withdrawalHash)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
@@ -1459,7 +1459,7 @@ func (a *WalletL1) getWithdrawalLog(ctx context.Context, withdrawalHash common.H
 	if receipt == nil {
 		return nil, nil, errors.New("transaction receipt not found")
 	}
-	fLogs := make([]*zkTypes.Log, 0)
+	fLogs := make([]*types.Log, 0)
 	for _, l := range receipt.Logs {
 		if l.Address == utils.L1MessengerAddress && len(l.Topics) > 0 &&
 			bytes.Equal(l.Topics[0].Bytes(), crypto.Keccak256([]byte("L1MessageSent(address,bytes32,bytes)"))) {
@@ -1472,7 +1472,7 @@ func (a *WalletL1) getWithdrawalLog(ctx context.Context, withdrawalHash common.H
 	return fLogs[index], receipt.L1BatchTxIndex.ToInt(), nil
 }
 
-func (a *WalletL1) getWithdrawalL2ToL1Log(ctx context.Context, withdrawalHash common.Hash, index int) (int, *zkTypes.L2ToL1Log, error) {
+func (a *WalletL1) getWithdrawalL2ToL1Log(ctx context.Context, withdrawalHash common.Hash, index int) (int, *types.L2ToL1Log, error) {
 	receipt, err := a.clientL2.TransactionReceipt(ctx, withdrawalHash)
 	if err != nil {
 		return 0, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
@@ -1482,13 +1482,13 @@ func (a *WalletL1) getWithdrawalL2ToL1Log(ctx context.Context, withdrawalHash co
 	}
 	fLogs := make([]struct {
 		i int
-		l *zkTypes.L2ToL1Log
+		l *types.L2ToL1Log
 	}, 0)
 	for i, l := range receipt.L2ToL1Logs {
 		if l.Sender == utils.L1MessengerAddress {
 			fLogs = append(fLogs, struct {
 				i int
-				l *zkTypes.L2ToL1Log
+				l *types.L2ToL1Log
 			}{i, l})
 		}
 	}
@@ -1498,7 +1498,7 @@ func (a *WalletL1) getWithdrawalL2ToL1Log(ctx context.Context, withdrawalHash co
 	return fLogs[index].i, fLogs[index].l, nil
 }
 
-func (a *WalletL1) checkIfL1ChainIsLondonReady(ctx context.Context) (bool, *types.Header, error) {
+func (a *WalletL1) checkIfL1ChainIsLondonReady(ctx context.Context) (bool, *ethTypes.Header, error) {
 	// Only query for block header not whole block with transactions
 	if head, err := a.clientL1.HeaderByNumber(ensureContext(ctx), nil); err != nil {
 		return false, nil, err

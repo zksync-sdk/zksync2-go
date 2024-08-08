@@ -5,14 +5,14 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/zksync-sdk/zksync2-go/accounts"
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 	"testing"
@@ -196,7 +196,7 @@ func TestIntegrationBaseClient_SyncProgress(t *testing.T) {
 //	defer client.Close()
 //	assert.NoError(t, err, "clients.Dial should not return an error")
 //
-//	headers := make(chan *types.Header)
+//	headers := make(chan *ethTypes.Header)
 //	sub, err := client.SubscribeNewHead(context.Background(), headers)
 //	if err != nil {
 //		log.Panic(err)
@@ -452,7 +452,7 @@ func TestIntegrationBaseClient_CallContractL2(t *testing.T) {
 	symbolCalldata, err := tokenAbi.Pack("symbol")
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	result, err := client.CallContractL2(context.Background(), zkTypes.CallMsg{
+	result, err := client.CallContractL2(context.Background(), types.CallMsg{
 		To:   &L2Dai,
 		Data: symbolCalldata,
 	}, nil)
@@ -506,7 +506,7 @@ func TestIntegrationBaseClient_CallContractAtHashL2(t *testing.T) {
 	block, err := client.BlockByNumber(context.Background(), nil)
 	assert.NoError(t, err, "BlockByNumber should not return an error")
 
-	result, err := client.CallContractAtHashL2(context.Background(), zkTypes.CallMsg{
+	result, err := client.CallContractAtHashL2(context.Background(), types.CallMsg{
 		To:   &L2Dai,
 		Data: symbolCalldata,
 	}, block.Hash)
@@ -554,7 +554,7 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 	symbolCalldata, err := tokenAbi.Pack("symbol")
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	result, err := client.PendingCallContractL2(context.Background(), zkTypes.CallMsg{
+	result, err := client.PendingCallContractL2(context.Background(), types.CallMsg{
 		To:   &L2Dai,
 		Data: symbolCalldata,
 	})
@@ -651,7 +651,7 @@ func TestIntegrationBaseClient_CallContractByTag(t *testing.T) {
 	symbolCalldata, err := tokenAbi.Pack("symbol")
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	result, err := client.CallContractByTag(context.Background(), zkTypes.CallMsg{
+	result, err := client.CallContractByTag(context.Background(), types.CallMsg{
 		To:   &L2Dai,
 		Data: symbolCalldata,
 	}, "committed")
@@ -718,7 +718,7 @@ func TestIntegrationBaseClient_EstimateGasL2(t *testing.T) {
 	approveTokenCalldata, err := tokenAbi.Pack("approve", Address2, big.NewInt(1))
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	gas, err := client.EstimateGasL2(context.Background(), zkTypes.CallMsg{
+	gas, err := client.EstimateGasL2(context.Background(), types.CallMsg{
 		From: Address1,
 		To:   &L2Dai,
 		Data: approveTokenCalldata,
@@ -748,7 +748,7 @@ func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
 	nonce, err := client.NonceAt(context.Background(), Address1, nil)
 	assert.NoError(t, err, "NonceAt should not return an error")
 
-	gas, err := client.EstimateGasL2(context.Background(), zkTypes.CallMsg{
+	gas, err := client.EstimateGasL2(context.Background(), types.CallMsg{
 		From: Address1,
 		To:   &L2Dai,
 		Data: approveTokenCalldata,
@@ -758,8 +758,8 @@ func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	assert.NoError(t, err, "SuggestGasPrice should not return an error")
 
-	transaction := types.NewTx(
-		&types.DynamicFeeTx{
+	transaction := ethTypes.NewTx(
+		&ethTypes.DynamicFeeTx{
 			To:        &L2Dai,
 			Nonce:     nonce,
 			Gas:       gas,
@@ -767,8 +767,8 @@ func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
 			Data:      approveTokenCalldata,
 		})
 
-	signedTx, err := types.SignTx(transaction, types.NewLondonSigner(chainID), privateKey)
-	assert.NoError(t, err, "types.SignTx should not return an error")
+	signedTx, err := ethTypes.SignTx(transaction, ethTypes.NewLondonSigner(chainID), privateKey)
+	assert.NoError(t, err, "ethTypes.SignTx should not return an error")
 
 	err = client.SendTransaction(context.Background(), signedTx)
 	assert.NoError(t, err, "SendTransaction should not return an error")
@@ -1111,7 +1111,7 @@ func TestIntegrationBaseClient_EstimateFee(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	fee, err := client.EstimateFee(context.Background(), zkTypes.CallMsg{
+	fee, err := client.EstimateFee(context.Background(), types.CallMsg{
 		From:  Address1,
 		To:    &Address2,
 		Value: big.NewInt(7_000_000_000),
@@ -1137,11 +1137,11 @@ func TestIntegrationBaseClient_EstimateGasL1(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	gas, err := client.EstimateGasL1(context.Background(), zkTypes.CallMsg{
+	gas, err := client.EstimateGasL1(context.Background(), types.CallMsg{
 		From:  Address1,
 		To:    &Address2,
 		Value: big.NewInt(7_000_000_000),
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata: utils.NewBig(utils.RequiredL1ToL2GasPerPubdataLimit.Int64()),
 		},
 	})
@@ -1188,7 +1188,7 @@ func TestIntegrationBaseClient_EstimateL1ToL2Execute(t *testing.T) {
 	mainContractAddress, err := client.MainContractAddress(context.Background())
 	assert.NoError(t, err, "MainContractAddress should not return an error")
 
-	gas, err := client.EstimateL1ToL2Execute(context.Background(), zkTypes.CallMsg{
+	gas, err := client.EstimateL1ToL2Execute(context.Background(), types.CallMsg{
 		From:  Address1,
 		To:    &mainContractAddress,
 		Value: big.NewInt(7_000_000_000),

@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/zksync-sdk/zksync2-go/clients"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 )
@@ -80,7 +80,7 @@ var SignPayloadWithMultipleECDSA PayloadSigner = func(ctx context.Context, paylo
 //   - Populates tx.Meta.GasPerPubdata with utils.DefaultGasPerPubdataLimit.
 //
 // Expects the secret to be ECDSA private in hex format.
-var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *zkTypes.Transaction712, secret interface{}, client *clients.Client) error {
+var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *types.Transaction712, secret interface{}, client *clients.Client) error {
 	var err error
 	if client == nil {
 		return errors.New("client is required but is not provided")
@@ -102,7 +102,7 @@ var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *
 		tx.GasTipCap = common.Big0
 	}
 	if tx.Meta == nil {
-		tx.Meta = &zkTypes.Eip712Meta{GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())}
+		tx.Meta = &types.Eip712Meta{GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())}
 	} else if tx.Meta.GasPerPubdata == nil {
 		tx.Meta.GasPerPubdata = utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())
 	}
@@ -125,7 +125,7 @@ var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *
 			return err
 		}
 
-		fee, err := client.EstimateFee(ensureContext(ctx), zkTypes.CallMsg{
+		fee, err := client.EstimateFee(ensureContext(ctx), types.CallMsg{
 			From:      from,
 			To:        tx.To,
 			GasFeeCap: tx.GasFeeCap,
@@ -154,7 +154,7 @@ var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *
 // PopulateTransactionMultipleECDSA populates missing properties meant for signing using multiple ECDSA private keys.
 // It uses PopulateTransactionECDSA, where the address of the first ECDSA key is set as the secret argument.
 // Expects the secret to be a slice of ECDSA private in hex format.
-var PopulateTransactionMultipleECDSA TransactionBuilder = func(ctx context.Context, tx *zkTypes.Transaction712, secret interface{}, client *clients.Client) error {
+var PopulateTransactionMultipleECDSA TransactionBuilder = func(ctx context.Context, tx *types.Transaction712, secret interface{}, client *clients.Client) error {
 	privateKeys, ok := (secret).([]string)
 	if !ok {
 		return errors.New("secret should be a slice of ECDSA private keys")
