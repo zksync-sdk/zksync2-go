@@ -568,7 +568,7 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BlockByTag(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -579,7 +579,7 @@ func TestIntegrationBaseClient_BlockByTag(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_HeaderByTag(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -590,7 +590,7 @@ func TestIntegrationBaseClient_HeaderByTag(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_BalanceAtByTag(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -601,7 +601,7 @@ func TestIntegrationBaseClient_BalanceAtByTag(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_StorageAtByTag(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -612,7 +612,7 @@ func TestIntegrationBaseClient_StorageAtByTag(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_CodeAtByTag(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -623,7 +623,7 @@ func TestIntegrationBaseClient_CodeAtByTag(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_NonceAtByTag(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -632,7 +632,7 @@ func TestIntegrationBaseClient_NonceAtByTag(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_TransactionCountByTag(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -641,7 +641,7 @@ func TestIntegrationBaseClient_TransactionCountByTag(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_CallContractByTag(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -784,7 +784,7 @@ func TestIntegrationBaseClient_SendRawTransaction(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	w, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
+	w, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	tokenAbi, err := erc20.IERC20MetaData.GetAbi()
@@ -816,7 +816,7 @@ func TestIntegrationBaseClient_WaitMined(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	w, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
+	w, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	tx, err := w.Transfer(nil, accounts.TransferTransaction{
@@ -837,7 +837,7 @@ func TestIntegrationBaseClient_WaitFinalized(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	w, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, nil)
+	w, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	tx, err := w.Transfer(nil, accounts.TransferTransaction{
@@ -869,10 +869,7 @@ func TestIntegrationBaseClient_BridgehubContractAddress(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	baseClient, ok := (client).(*clients.BaseClient)
-	assert.True(t, ok, "Casting to BaseClient should not return an error")
-
-	bridgehubContractAddress, err := baseClient.BridgehubContractAddress(context.Background())
+	bridgehubContractAddress, err := client.BridgehubContractAddress(context.Background())
 
 	assert.NoError(t, err, "BridgehubContractAddress should not return an error")
 	assert.NotNil(t, bridgehubContractAddress, "BridgehubContractAddress should return a non-nil address")
@@ -996,19 +993,16 @@ func TestIntegrationBaseClient_BytecodeByHash(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	baseClient, ok := (client).(*clients.BaseClient)
-	assert.True(t, ok, "Casting to BaseClient should not return an error")
-
-	testnetPaymaster, err := baseClient.TestnetPaymaster(context.Background())
+	testnetPaymaster, err := client.TestnetPaymaster(context.Background())
 	assert.NoError(t, err, "TestnetPaymaster should not return an error")
 
-	testnetPaymasterBytecode, err := baseClient.CodeAt(context.Background(), testnetPaymaster, nil)
+	testnetPaymasterBytecode, err := client.CodeAt(context.Background(), testnetPaymaster, nil)
 	assert.NoError(t, err, "CodeAt should not return an error")
 
 	testnetPaymasterBytecodeHash, err := utils.HashBytecode(testnetPaymasterBytecode)
 	assert.NoError(t, err, "HashBytecode should not return an error")
 
-	bytecode, err := baseClient.BytecodeByHash(context.Background(), common.BytesToHash(testnetPaymasterBytecodeHash))
+	bytecode, err := client.BytecodeByHash(context.Background(), common.BytesToHash(testnetPaymasterBytecodeHash))
 
 	assert.NoError(t, err, "BytecodeByHash should not return an error")
 	assert.Equal(t, testnetPaymasterBytecode, bytecode, "Bytecodes should be the same")
@@ -1019,13 +1013,10 @@ func TestIntegrationBaseClient_RawBlockTransactions(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
-	baseClient, ok := (client).(*clients.BaseClient)
-	assert.True(t, ok, "Casting to BaseClient should not return an error")
-
-	blockNumber, err := baseClient.BlockNumber(context.Background())
+	blockNumber, err := client.BlockNumber(context.Background())
 	assert.NoError(t, err, "BlockNumber should not return an error")
 
-	rawBlockTransactions, err := baseClient.RawBlockTransactions(context.Background(), blockNumber)
+	rawBlockTransactions, err := client.RawBlockTransactions(context.Background(), blockNumber)
 
 	assert.NoError(t, err, "BytecodeByHash should not return an error")
 	assert.NotNil(t, rawBlockTransactions, "Raw block transactions should not be nil")
@@ -1083,7 +1074,7 @@ func TestIntegrationBaseClient_L1TokenAddress(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_ProtocolVersion(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1131,7 +1122,7 @@ func TestIntegrationBaseClient_EstimateFee(t *testing.T) {
 }
 
 func TestIntegrationBaseClient_FeeParams(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 

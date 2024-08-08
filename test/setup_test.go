@@ -35,7 +35,7 @@ func readTokens() []TokenData {
 	return tokens
 }
 
-func deployMultisigAccount(wallet *accounts.Wallet, client clients.Client) {
+func deployMultisigAccount(wallet *accounts.Wallet, client *clients.Client) {
 	_, abi, bytecode, err := utils.ReadStandardJson("./testdata/TwoUserMultisig.json")
 	if err != nil {
 		log.Fatal(err)
@@ -127,7 +127,7 @@ func deployMultisigAccount(wallet *accounts.Wallet, client clients.Client) {
 	}
 }
 
-func deployPaymasterAndToken(wallet *accounts.Wallet, client clients.Client) {
+func deployPaymasterAndToken(wallet *accounts.Wallet, client *clients.Client) {
 	tokenAbi, err := TokenMetaData.GetAbi()
 	if err != nil {
 		log.Fatal(err)
@@ -256,7 +256,7 @@ func mintTokenOnL1(wallet *accounts.Wallet, ethClient *ethclient.Client, l1Token
 	}
 }
 
-func sendTokenToL2(wallet *accounts.Wallet, client clients.Client, ethClient *ethclient.Client, l1Token common.Address) (common.Address, common.Hash, common.Hash) {
+func sendTokenToL2(wallet *accounts.Wallet, client *clients.Client, ethClient *ethclient.Client, l1Token common.Address) (common.Address, common.Hash, common.Hash) {
 	amount, ok := new(big.Int).SetString("10000000000000000000000", 10)
 	if !ok {
 		log.Fatal("failed to convert string to big.Int")
@@ -340,7 +340,7 @@ func prepare() {
 		log.Fatal(err)
 	}
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	if err != nil {
 		log.Fatal(err)
 	}
