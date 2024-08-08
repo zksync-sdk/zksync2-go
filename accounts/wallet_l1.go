@@ -30,7 +30,7 @@ import (
 // WalletL1 implements the AdapterL1 interface.
 type WalletL1 struct {
 	clientL1        *ethclient.Client
-	clientL2        *clients.BaseClient
+	clientL2        *clients.Client
 	auth            *bind.TransactOpts
 	l1ChainId       *big.Int
 	l2ChainId       *big.Int
@@ -74,12 +74,7 @@ func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 
 		return nil, errors.New("clientL2 is not provided")
 	}
 
-	baseClient, ok := (*clientL2).(*clients.BaseClient)
-	if !ok {
-		fmt.Println("The client should be type of clients.BaseClient")
-	}
-
-	mainContractAddress, err := baseClient.MainContractAddress(context.Background())
+	mainContractAddress, err := clientL2.MainContractAddress(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +83,7 @@ func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 
 		return nil, fmt.Errorf("failed to load IZkSync: %w", err)
 	}
 
-	bridgehubContractAddress, err := baseClient.BridgehubContractAddress(context.Background())
+	bridgehubContractAddress, err := clientL2.BridgehubContractAddress(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +111,7 @@ func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 
 		return nil, err
 	}
 
-	l2ChainId, err := baseClient.ChainID(context.Background())
+	l2ChainId, err := clientL2.ChainID(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -126,18 +121,18 @@ func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 
 		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
 	}
 
-	baseToken, err := baseClient.BaseTokenContractAddress(context.Background())
+	baseToken, err := clientL2.BaseTokenContractAddress(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	isEthBasedChain, err := baseClient.IsEthBasedChain(context.Background())
+	isEthBasedChain, err := clientL2.IsEthBasedChain(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
 	return &WalletL1{
 		clientL1:               clientL1,
-		clientL2:               baseClient,
+		clientL2:               clientL2,
 		auth:                   auth,
 		l1ChainId:              l1ChainId,
 		l2ChainId:              l2ChainId,

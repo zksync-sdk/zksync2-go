@@ -11,7 +11,7 @@ import (
 )
 
 func TestIntegration_PopulateTransactionECDSA(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -49,7 +49,7 @@ func TestIntegration_PopulateTransactionECDSA_ErrorNoClientProvided(t *testing.T
 }
 
 func TestIntegration_PopulateTransactionMultipleECDSA_ErrorNoMultipleKeysProvided(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 

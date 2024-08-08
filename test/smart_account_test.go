@@ -29,7 +29,7 @@ func TestIntegration_NewSmartAccount(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_Connect(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -45,7 +45,7 @@ func TestIntegrationSmartAccount_Address(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_BalanceETH(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -58,7 +58,7 @@ func TestIntegrationSmartAccount_BalanceETH(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_BalanceToken(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -71,7 +71,7 @@ func TestIntegrationSmartAccount_BalanceToken(t *testing.T) {
 }
 
 func TestIntegration_EthBasedChain_SmartAccount_AllBalances(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -84,7 +84,7 @@ func TestIntegration_EthBasedChain_SmartAccount_AllBalances(t *testing.T) {
 }
 
 func TestIntegration_NonEthBasedChain_SmartAccount_AllBalances(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -97,7 +97,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_AllBalances(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_Nonce(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -110,7 +110,7 @@ func TestIntegrationSmartAccount_Nonce(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_DeploymentNonce(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -125,7 +125,7 @@ func TestIntegrationSmartAccount_DeploymentNonce(t *testing.T) {
 func TestIntegration_EthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -133,8 +133,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
@@ -169,7 +168,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -177,8 +176,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
@@ -217,7 +215,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *tes
 	amount := big.NewInt(7_000_000_000)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -225,8 +223,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *tes
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
@@ -297,7 +294,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *
 	amount := big.NewInt(7_000_000_000)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -305,8 +302,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
@@ -379,7 +375,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *
 func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseToken(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -387,8 +383,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseToken(t *testing.
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
@@ -424,7 +419,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseTokenUsingPaymast
 	amount := big.NewInt(7_000_000_000)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -432,8 +427,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseTokenUsingPaymast
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
@@ -503,7 +497,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseTokenUsingPaymast
 func TestIntegrationSmartAccount_WithdrawToken(t *testing.T) {
 	amount := big.NewInt(5)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -511,8 +505,7 @@ func TestIntegrationSmartAccount_WithdrawToken(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
@@ -548,7 +541,7 @@ func TestIntegrationSmartAccount_WithdrawTokenUsingPaymaster(t *testing.T) {
 	amount := big.NewInt(5)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -556,8 +549,7 @@ func TestIntegrationSmartAccount_WithdrawTokenUsingPaymaster(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
@@ -627,7 +619,7 @@ func TestIntegrationSmartAccount_WithdrawTokenUsingPaymaster(t *testing.T) {
 func TestIntegration_EthBasedChain_SmartAccount_TransferEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -663,7 +655,7 @@ func TestIntegration_EthBasedChain_SmartAccount_TransferEth(t *testing.T) {
 func TestIntegration_NonEthBasedChain_SmartAccount_TransferEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -704,7 +696,7 @@ func TestIntegration_EthBasedChain_SmartAccount_TransferEthUsingPaymaster(t *tes
 	amount := big.NewInt(7_000_000_000)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -777,7 +769,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferEthUsingPaymaster(t *
 	amount := big.NewInt(7_000_000_000)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -853,7 +845,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferEthUsingPaymaster(t *
 func TestIntegration_NonEthBasedChain_SmartAccount_TransferBaseToken(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -894,7 +886,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferBaseTokenUsingPaymast
 	amount := big.NewInt(7_000_000_000)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -970,7 +962,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferBaseTokenUsingPaymast
 func TestIntegrationSmartAccount_TransferToken(t *testing.T) {
 	amount := big.NewInt(5)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1010,7 +1002,7 @@ func TestIntegrationSmartAccount_TransferTokenUsingPaymaster(t *testing.T) {
 	amount := big.NewInt(5)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1087,7 +1079,7 @@ func TestIntegrationSmartAccount_TransferTokenUsingPaymaster(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_PopulateTransaction(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1114,7 +1106,7 @@ func TestIntegrationSmartAccount_PopulateTransaction(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_SignTransaction(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1130,7 +1122,7 @@ func TestIntegrationSmartAccount_SignTransaction(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_SignMessage(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1143,7 +1135,7 @@ func TestIntegrationSmartAccount_SignMessage(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_SignTypedData(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1177,7 +1169,7 @@ func TestIntegrationSmartAccount_SignTypedData(t *testing.T) {
 }
 
 func TestIntegrationSmartAccount_SendTransaction(t *testing.T) {
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1204,7 +1196,7 @@ func TestIntegrationSmartAccount_SendTransaction(t *testing.T) {
 func TestIntegrationMultisigSmartAccount_Withdraw(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1212,8 +1204,7 @@ func TestIntegrationMultisigSmartAccount_Withdraw(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewMultisigECDSASmartAccount(MultisigAccount, []string{PrivateKey1, PrivateKey2}, client)
@@ -1249,7 +1240,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawUsingPaymaster(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1257,8 +1248,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawUsingPaymaster(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewMultisigECDSASmartAccount(MultisigAccount, []string{PrivateKey1, PrivateKey2}, client)
@@ -1328,7 +1318,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawUsingPaymaster(t *testing.T) {
 func TestIntegrationMultisigSmartAccount_WithdrawToken(t *testing.T) {
 	amount := big.NewInt(5)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1336,8 +1326,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawToken(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewMultisigECDSASmartAccount(MultisigAccount, []string{PrivateKey1, PrivateKey2}, client)
@@ -1373,7 +1362,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawTokenUsingPaymaster(t *testing.
 	amount := big.NewInt(5)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1381,8 +1370,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawTokenUsingPaymaster(t *testing.
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	c := clients.Client(client)
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &c, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	account := accounts.NewMultisigECDSASmartAccount(MultisigAccount, []string{PrivateKey1, PrivateKey2}, client)
@@ -1452,7 +1440,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawTokenUsingPaymaster(t *testing.
 func TestIntegrationMultisigSmartAccount_TransferEth(t *testing.T) {
 	amount := big.NewInt(7_000_000_000)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1490,7 +1478,7 @@ func TestIntegrationMultisigSmartAccount_TransferEthUsingPaymaster(t *testing.T)
 	amount := big.NewInt(7_000_000_000)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1563,7 +1551,7 @@ func TestIntegrationMultisigSmartAccount_TransferEthUsingPaymaster(t *testing.T)
 func TestIntegrationMultisigSmartAccount_TransferToken(t *testing.T) {
 	amount := big.NewInt(5)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
@@ -1603,7 +1591,7 @@ func TestIntegrationMultisigSmartAccount_TransferTokenUsingPaymaster(t *testing.
 	amount := big.NewInt(5)
 	minimalAllowance := big.NewInt(1)
 
-	client, err := clients.DialBase(L2ChainURL)
+	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 

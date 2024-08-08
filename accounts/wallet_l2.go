@@ -21,7 +21,7 @@ import (
 
 // WalletL2 implements the AdapterL2 interface.
 type WalletL2 struct {
-	client    *clients.BaseClient
+	client    *clients.Client
 	signer    *Signer
 	auth      *bind.TransactOpts
 	baseToken common.Address
@@ -56,15 +56,15 @@ func NewWalletL2FromSigner(signer *Signer, client *clients.Client) (*WalletL2, e
 		return &WalletL2{signer: signer}, nil
 	}
 
-	bridgeContracts, err := (*client).BridgeContracts(context.Background())
+	bridgeContracts, err := client.BridgeContracts(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	defaultL2Bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2Erc20DefaultBridge, *client)
+	defaultL2Bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2Erc20DefaultBridge, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
 	}
-	sharedL2Bridge, err := l2sharedbridge.NewIL2SharedBridge(bridgeContracts.L2SharedBridge, *client)
+	sharedL2Bridge, err := l2sharedbridge.NewIL2SharedBridge(bridgeContracts.L2SharedBridge, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
 	}
@@ -73,17 +73,13 @@ func NewWalletL2FromSigner(signer *Signer, client *clients.Client) (*WalletL2, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
 	}
-	baseClient, ok := (*client).(*clients.BaseClient)
-	if !ok {
-		fmt.Println("The client should be type of clients.BaseClient")
-	}
-	baseToken, err := baseClient.BaseTokenContractAddress(context.Background())
+	baseToken, err := client.BaseTokenContractAddress(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
 	return &WalletL2{
-		client:                 baseClient,
+		client:                 client,
 		signer:                 signer,
 		auth:                   auth,
 		baseToken:              baseToken,

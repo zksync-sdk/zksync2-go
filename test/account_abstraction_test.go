@@ -27,7 +27,7 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	assert.NoError(t, err, "ethclient.Dial should not return an error")
 	defer ethClient.Close()
 
-	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
 	// ====== Deploy Token ======

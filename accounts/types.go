@@ -743,8 +743,8 @@ type AllowanceParams struct {
 // PayloadSigner signs various types of payloads, optionally using a some kind of secret.
 // Returns the serialized signature.
 // The client is used to fetch data from the network if it is required for signing.
-type PayloadSigner func(ctx context.Context, payload []byte, secret interface{}, client *clients.BaseClient) ([]byte, error)
+type PayloadSigner func(ctx context.Context, payload []byte, secret interface{}, client *clients.Client) ([]byte, error)
 
 // TransactionBuilder populates missing fields in a tx with default values.
 // The client is used to fetch data from the network if it is required.
-type TransactionBuilder func(ctx context.Context, tx *zkTypes.Transaction712, secret interface{}, client *clients.BaseClient) error
+type TransactionBuilder func(ctx context.Context, tx *zkTypes.Transaction712, secret interface{}, client *clients.Client) error
