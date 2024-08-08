@@ -2,14 +2,22 @@ package types
 
 import (
 	"encoding/json"
-	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"math/big"
 )
 
 // CallMsg contains parameters for contract call using EIP-712 transaction.
 type CallMsg struct {
-	ethereum.CallMsg
-	Meta *Eip712Meta // EIP-712 metadata.
+	From      common.Address  // The sender of the 'transaction'.
+	To        *common.Address // The destination contract (nil for contract creation).
+	Gas       uint64          // If 0, the call executes with near-infinite gas.
+	GasPrice  *big.Int        // Wei <-> gas exchange ratio
+	GasFeeCap *big.Int        // EIP-1559 fee cap per gas.
+	GasTipCap *big.Int        // EIP-1559 tip per gas.
+	Value     *big.Int        // Amount of wei sent along with the call.
+	Data      []byte          // Input data, usually an ABI-encoded contract method invocation.
+	Meta      *Eip712Meta     // EIP-712 metadata.
 }
 
 func (m CallMsg) MarshalJSON() ([]byte, error) {

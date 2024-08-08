@@ -453,10 +453,8 @@ func TestIntegrationBaseClient_CallContractL2(t *testing.T) {
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
 	result, err := client.CallContractL2(context.Background(), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			To:   &L2Dai,
-			Data: symbolCalldata,
-		},
+		To:   &L2Dai,
+		Data: symbolCalldata,
 	}, nil)
 	assert.NoError(t, err, "CallContractL2 should not return an error")
 
@@ -509,10 +507,8 @@ func TestIntegrationBaseClient_CallContractAtHashL2(t *testing.T) {
 	assert.NoError(t, err, "BlockByNumber should not return an error")
 
 	result, err := client.CallContractAtHashL2(context.Background(), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			To:   &L2Dai,
-			Data: symbolCalldata,
-		},
+		To:   &L2Dai,
+		Data: symbolCalldata,
 	}, block.Hash)
 	assert.NoError(t, err, "CallContractAtHashL2 should not return an error")
 
@@ -559,10 +555,8 @@ func TestIntegrationBaseClient_PendingCallContractL2(t *testing.T) {
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
 	result, err := client.PendingCallContractL2(context.Background(), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			To:   &L2Dai,
-			Data: symbolCalldata,
-		},
+		To:   &L2Dai,
+		Data: symbolCalldata,
 	})
 	assert.NoError(t, err, "PendingCallContractL2 should not return an error")
 
@@ -658,10 +652,8 @@ func TestIntegrationBaseClient_CallContractByTag(t *testing.T) {
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
 	result, err := client.CallContractByTag(context.Background(), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			To:   &L2Dai,
-			Data: symbolCalldata,
-		},
+		To:   &L2Dai,
+		Data: symbolCalldata,
 	}, "committed")
 	assert.NoError(t, err, "CallContractByTag should not return an error")
 
@@ -727,11 +719,9 @@ func TestIntegrationBaseClient_EstimateGasL2(t *testing.T) {
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
 	gas, err := client.EstimateGasL2(context.Background(), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From: Address1,
-			To:   &L2Dai,
-			Data: approveTokenCalldata,
-		},
+		From: Address1,
+		To:   &L2Dai,
+		Data: approveTokenCalldata,
 	})
 
 	assert.NoError(t, err, "EstimateGas should not return an error")
@@ -759,11 +749,9 @@ func TestIntegrationBaseClient_SendTransaction(t *testing.T) {
 	assert.NoError(t, err, "NonceAt should not return an error")
 
 	gas, err := client.EstimateGasL2(context.Background(), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From: Address1,
-			To:   &L2Dai,
-			Data: approveTokenCalldata,
-		},
+		From: Address1,
+		To:   &L2Dai,
+		Data: approveTokenCalldata,
 	})
 	assert.NoError(t, err, "EstimateGas should not return an error")
 
@@ -1133,11 +1121,9 @@ func TestIntegrationBaseClient_EstimateFee(t *testing.T) {
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
 	fee, err := client.EstimateFee(context.Background(), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From:  Address1,
-			To:    &Address2,
-			Value: big.NewInt(7_000_000_000),
-		},
+		From:  Address1,
+		To:    &Address2,
+		Value: big.NewInt(7_000_000_000),
 	})
 
 	assert.NoError(t, err, "EstimateFee should not return an error")
@@ -1161,11 +1147,9 @@ func TestIntegrationBaseClient_EstimateGasL1(t *testing.T) {
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
 	gas, err := client.EstimateGasL1(context.Background(), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From:  Address1,
-			To:    &Address2,
-			Value: big.NewInt(7_000_000_000),
-		},
+		From:  Address1,
+		To:    &Address2,
+		Value: big.NewInt(7_000_000_000),
 		Meta: &zkTypes.Eip712Meta{
 			GasPerPubdata: utils.NewBig(utils.RequiredL1ToL2GasPerPubdataLimit.Int64()),
 		},
@@ -1214,11 +1198,9 @@ func TestIntegrationBaseClient_EstimateL1ToL2Execute(t *testing.T) {
 	assert.NoError(t, err, "MainContractAddress should not return an error")
 
 	gas, err := client.EstimateL1ToL2Execute(context.Background(), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From:  Address1,
-			To:    &mainContractAddress,
-			Value: big.NewInt(7_000_000_000),
-		},
+		From:  Address1,
+		To:    &mainContractAddress,
+		Value: big.NewInt(7_000_000_000),
 	})
 
 	assert.NoError(t, err, "EstimateL1ToL2Execute should not return an error")

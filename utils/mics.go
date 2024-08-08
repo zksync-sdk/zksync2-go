@@ -17,7 +17,14 @@ func NewBig(n int64) *hexutil.Big {
 
 func NewCallMsg(call ethereum.CallMsg) *types.CallMsg {
 	return &types.CallMsg{
-		CallMsg: call,
+		From:      call.From,
+		To:        call.To,
+		Gas:       call.Gas,
+		GasPrice:  call.GasPrice,
+		GasFeeCap: call.GasFeeCap,
+		GasTipCap: call.GasTipCap,
+		Value:     call.Value,
+		Data:      call.Data,
 		Meta: &types.Eip712Meta{
 			GasPerPubdata: NewBig(DefaultGasPerPubdataLimit.Int64()),
 		},

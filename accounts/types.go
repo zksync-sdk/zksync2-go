@@ -7,7 +7,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/bridgehub"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1bridge"
@@ -40,31 +39,27 @@ func (o *CallOpts) ToCallOpts(from common.Address) *bind.CallOpts {
 // Its primary purpose is to be transformed into types.CallMsg, wherein the 'From'
 // field represents the associated account.
 type CallMsg struct {
-	To         *common.Address     // The address of the recipient.
-	Gas        uint64              // If 0, the call executes with near-infinite gas.
-	GasPrice   *big.Int            // Wei <-> gas exchange ratio.
-	GasFeeCap  *big.Int            // EIP-1559 fee cap per gas.
-	GasTipCap  *big.Int            // EIP-1559 tip per gas.
-	Value      *big.Int            // Amount of wei sent along with the call.
-	Data       []byte              // Input data, usually an ABI-encoded contract method invocation
-	AccessList types.AccessList    // EIP-2930 access list.
-	Meta       *zkTypes.Eip712Meta // EIP-712 metadata.
+	To        *common.Address     // The address of the recipient.
+	Gas       uint64              // If 0, the call executes with near-infinite gas.
+	GasPrice  *big.Int            // Wei <-> gas exchange ratio.
+	GasFeeCap *big.Int            // EIP-1559 fee cap per gas.
+	GasTipCap *big.Int            // EIP-1559 tip per gas.
+	Value     *big.Int            // Amount of wei sent along with the call.
+	Data      []byte              // Input data, usually an ABI-encoded contract method invocation
+	Meta      *zkTypes.Eip712Meta // EIP-712 metadata.
 }
 
 func (m *CallMsg) ToCallMsg(from common.Address) zkTypes.CallMsg {
 	return zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From:       from,
-			To:         m.To,
-			Gas:        m.Gas,
-			GasPrice:   m.GasPrice,
-			GasFeeCap:  m.GasFeeCap,
-			GasTipCap:  m.GasTipCap,
-			Value:      m.Value,
-			Data:       m.Data,
-			AccessList: m.AccessList,
-		},
-		Meta: m.Meta,
+		From:      from,
+		To:        m.To,
+		Gas:       m.Gas,
+		GasPrice:  m.GasPrice,
+		GasFeeCap: m.GasFeeCap,
+		GasTipCap: m.GasTipCap,
+		Value:     m.Value,
+		Data:      m.Data,
+		Meta:      m.Meta,
 	}
 }
 
@@ -80,8 +75,6 @@ type WithdrawalCallMsg struct {
 	GasPrice  *big.Int // Wei <-> gas exchange ratio.
 	GasFeeCap *big.Int // EIP-1559 fee cap per gas.
 	GasTipCap *big.Int // EIP-1559 tip per gas.
-
-	AccessList types.AccessList // EIP-2930 access list.
 }
 
 func (m *WithdrawalCallMsg) ToWithdrawalCallMsg(from common.Address) clients.WithdrawalCallMsg {
@@ -95,7 +88,6 @@ func (m *WithdrawalCallMsg) ToWithdrawalCallMsg(from common.Address) clients.Wit
 		GasPrice:      m.GasPrice,
 		GasFeeCap:     m.GasFeeCap,
 		GasTipCap:     m.GasTipCap,
-		AccessList:    m.AccessList,
 	}
 }
 
@@ -110,21 +102,18 @@ type TransferCallMsg struct {
 	GasPrice  *big.Int // Wei <-> gas exchange ratio.
 	GasFeeCap *big.Int // EIP-1559 fee cap per gas.
 	GasTipCap *big.Int // EIP-1559 tip per gas.
-
-	AccessList types.AccessList // EIP-2930 access list.
 }
 
 func (m *TransferCallMsg) ToTransferCallMsg(from common.Address) clients.TransferCallMsg {
 	return clients.TransferCallMsg{
-		To:         m.To,
-		Amount:     m.Amount,
-		Token:      m.Token,
-		From:       from,
-		Gas:        m.Gas,
-		GasPrice:   m.GasPrice,
-		GasFeeCap:  m.GasFeeCap,
-		GasTipCap:  m.GasTipCap,
-		AccessList: m.AccessList,
+		To:        m.To,
+		Amount:    m.Amount,
+		Token:     m.Token,
+		From:      from,
+		Gas:       m.Gas,
+		GasPrice:  m.GasPrice,
+		GasFeeCap: m.GasFeeCap,
+		GasTipCap: m.GasTipCap,
 	}
 }
 
@@ -160,8 +149,6 @@ type DepositCallMsg struct {
 	GasPrice  *big.Int // Wei <-> gas exchange ratio.
 	GasFeeCap *big.Int // EIP-1559 fee cap per gas.
 	GasTipCap *big.Int // EIP-1559 tip per gas.
-
-	AccessList types.AccessList // EIP-2930 access list.
 }
 
 func (m *DepositCallMsg) ToDepositTransaction() DepositTransaction {
@@ -191,7 +178,6 @@ func (m *DepositCallMsg) ToRequestExecuteCallMsg() RequestExecuteCallMsg {
 		GasPrice:          m.GasPrice,
 		GasFeeCap:         m.GasFeeCap,
 		GasTipCap:         m.GasTipCap,
-		AccessList:        m.AccessList,
 	}
 }
 
@@ -275,8 +261,6 @@ type RequestExecuteCallMsg struct {
 	GasPrice  *big.Int // Wei <-> gas exchange ratio.
 	GasFeeCap *big.Int // EIP-1559 fee cap per gas.
 	GasTipCap *big.Int // EIP-1559 tip per gas.
-
-	AccessList types.AccessList // EIP-2930 access list.
 }
 
 func (m *RequestExecuteCallMsg) ToRequestExecuteTransaction() RequestExecuteTransaction {
@@ -375,41 +359,35 @@ type Transaction struct {
 	GasFeeCap *big.Int        // EIP-1559 fee cap per gas.
 	Gas       uint64          // Gas limit to set for the transaction execution.
 
-	AccessList types.AccessList // EIP-2930 access list.
-
 	ChainID *big.Int            // Chain ID of the network.
 	Meta    *zkTypes.Eip712Meta // EIP-712 metadata.
 }
 
 func (t *Transaction) ToTransaction712(from common.Address) *zkTypes.Transaction712 {
 	return &zkTypes.Transaction712{
-		Nonce:      t.Nonce,
-		GasTipCap:  t.GasTipCap,
-		GasFeeCap:  t.GasFeeCap,
-		Gas:        new(big.Int).SetUint64(t.Gas),
-		To:         t.To,
-		Value:      t.Value,
-		Data:       t.Data,
-		AccessList: t.AccessList,
-		ChainID:    t.ChainID,
-		From:       &from,
-		Meta:       t.Meta,
+		Nonce:     t.Nonce,
+		GasTipCap: t.GasTipCap,
+		GasFeeCap: t.GasFeeCap,
+		Gas:       new(big.Int).SetUint64(t.Gas),
+		To:        t.To,
+		Value:     t.Value,
+		Data:      t.Data,
+		ChainID:   t.ChainID,
+		From:      &from,
+		Meta:      t.Meta,
 	}
 }
 
 func (t *Transaction) ToCallMsg(from common.Address) zkTypes.CallMsg {
 	return zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From:       from,
-			To:         t.To,
-			Gas:        t.Gas,
-			GasFeeCap:  t.GasFeeCap,
-			GasTipCap:  t.GasTipCap,
-			Value:      t.Value,
-			Data:       t.Data,
-			AccessList: t.AccessList,
-		},
-		Meta: t.Meta,
+		From:      from,
+		To:        t.To,
+		Gas:       t.Gas,
+		GasFeeCap: t.GasFeeCap,
+		GasTipCap: t.GasTipCap,
+		Value:     t.Value,
+		Data:      t.Data,
+		Meta:      t.Meta,
 	}
 }
 
@@ -522,14 +500,12 @@ func (t *RequestExecuteTransaction) ToCallMsg(from common.Address, opts *Transac
 		}
 	}
 	return zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From:     from,
-			To:       &t.ContractAddress,
-			Gas:      opts.GasLimit,
-			GasPrice: opts.GasPrice,
-			Value:    opts.Value,
-			Data:     t.Calldata,
-		},
+		From:     from,
+		To:       &t.ContractAddress,
+		Gas:      opts.GasLimit,
+		GasPrice: opts.GasPrice,
+		Value:    opts.Value,
+		Data:     t.Calldata,
 		Meta: &zkTypes.Eip712Meta{
 			GasPerPubdata: utils.NewBig(t.GasPerPubdataByte.Int64()),
 			FactoryDeps:   factoryDeps,

@@ -27,8 +27,6 @@ type TransferCallMsg struct {
 	GasFeeCap *big.Int // EIP-1559 fee cap per gas.
 	GasTipCap *big.Int // EIP-1559 tip per gas.
 
-	AccessList types.AccessList // EIP-2930 access list.
-
 	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
 }
 
@@ -100,17 +98,15 @@ func (m *TransferCallMsg) ToZkCallMsg() (*zkTypes.CallMsg, error) {
 	}
 
 	return &zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From:      m.From,
-			To:        to,
-			Gas:       m.Gas,
-			GasPrice:  m.GasPrice,
-			GasFeeCap: m.GasFeeCap,
-			GasTipCap: m.GasTipCap,
-			Value:     value,
-			Data:      data,
-		},
-		Meta: meta,
+		From:      m.From,
+		To:        to,
+		Gas:       m.Gas,
+		GasPrice:  m.GasPrice,
+		GasFeeCap: m.GasFeeCap,
+		GasTipCap: m.GasTipCap,
+		Value:     value,
+		Data:      data,
+		Meta:      meta,
 	}, nil
 }
 
@@ -126,8 +122,6 @@ type WithdrawalCallMsg struct {
 	GasPrice  *big.Int // Wei <-> gas exchange ratio.
 	GasFeeCap *big.Int // EIP-1559 fee cap per gas.
 	GasTipCap *big.Int // EIP-1559 tip per gas.
-
-	AccessList types.AccessList // EIP-2930 access list.
 
 	PaymasterParams *zkTypes.PaymasterParams // The paymaster parameters.
 }
@@ -195,8 +189,15 @@ func (m *WithdrawalCallMsg) ToZkCallMsg(defaultL2Bridge *common.Address) (*zkTyp
 	}
 
 	return &zkTypes.CallMsg{
-		CallMsg: *msg,
-		Meta:    meta,
+		From:      msg.From,
+		To:        msg.To,
+		Gas:       msg.Gas,
+		GasPrice:  msg.GasPrice,
+		GasFeeCap: msg.GasFeeCap,
+		GasTipCap: msg.GasTipCap,
+		Value:     msg.Value,
+		Data:      msg.Data,
+		Meta:      meta,
 	}, nil
 }
 
