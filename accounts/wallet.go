@@ -10,7 +10,6 @@ import (
 
 // Wallet wraps all operations that interact with an associated account.
 // An account typically contains a private key, allowing it to sign various types of payloads.
-// Wallet implements the Adapter interface.
 type Wallet struct {
 	WalletL1
 	WalletL2
@@ -41,7 +40,7 @@ func NewWallet(rawPrivateKey []byte, clientL2 *clients.Client, clientL1 *ethclie
 // The clientL2 and clientL1 parameters are optional; if not provided, only AdapterL2.SignTransaction,
 // AdapterL2.Address, AdapterL2.Signer methods can be used, as the rest of the functionalities
 // require communication with the network.
-// A wallet that contains only a signer can be configured to communicate with L2 and L1 networks by
+// A runner that contains only a signer can be configured to communicate with L2 and L1 networks by
 // using Wallet.Connect and Wallet.ConnectL1, respectively.
 func NewWalletFromSigner(signer *Signer, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
 	if signer == nil {
@@ -62,11 +61,10 @@ func NewWalletFromSigner(signer *Signer, clientL2 *clients.Client, clientL1 *eth
 	if walletL2, err = NewWalletL2FromSigner(signer, clientL2); err != nil {
 		return nil, err
 	}
-	a := AdapterL2(walletL2)
 	return &Wallet{
 		WalletL1: *walletL1,
 		WalletL2: *walletL2,
-		Deployer: NewBaseDeployer(&a),
+		Deployer: *NewDeployer(walletL2),
 		clientL1: clientL1,
 		clientL2: clientL2,
 	}, nil

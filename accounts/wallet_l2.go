@@ -19,7 +19,8 @@ import (
 	"math/big"
 )
 
-// WalletL2 implements the AdapterL2 interface.
+// WalletL2 associated with an account and provides common operations on the
+// L2 network for the associated account.
 type WalletL2 struct {
 	client    *clients.Client
 	signer    *Signer
