@@ -8,17 +8,6 @@ import (
 	"time"
 )
 
-// Deprecated: Will be removed in the future releases.
-type BlockNumber string // Enums or hex value
-
-var (
-	BlockNumberEarliest  BlockNumber = "earliest"
-	BlockNumberLatest    BlockNumber = "latest"
-	BlockNumberPending   BlockNumber = "pending"
-	BlockNumberCommitted BlockNumber = "committed"
-	BlockNumberFinalized BlockNumber = "finalized"
-)
-
 // Block represents a block.
 type Block struct {
 	Header           *types.Header

@@ -8,69 +8,6 @@ import (
 	"time"
 )
 
-// Deprecated: Deprecated in favor of Receipt
-type TransactionReceipt struct {
-	types.Receipt
-	// extend
-	From              common.Address `json:"from"`
-	To                common.Address `json:"to"`
-	EffectiveGasPrice *hexutil.Big   `json:"effectiveGasPrice"`
-	L1BatchNumber     *hexutil.Big   `json:"l1BatchNumber"`
-	L1BatchTxIndex    *hexutil.Big   `json:"l1BatchTxIndex"`
-	Logs              []*Log         `json:"logs"`
-	L2ToL1Logs        []*L2ToL1Log   `json:"l2ToL1Logs"`
-}
-
-func (r *TransactionReceipt) MarshalJSON() ([]byte, error) {
-	// get json of embedded types.Receipt with its custom marshaller
-	rj, err := json.Marshal(r.Receipt)
-	if err != nil {
-		return nil, err
-	}
-	// decode back to abstract struct
-	var buf map[string]interface{}
-	if err := json.Unmarshal(rj, &buf); err != nil {
-		return nil, err
-	}
-	// mixin our fields
-	buf["from"] = r.From
-	buf["to"] = r.To
-	buf["effectiveGasPrice"] = r.EffectiveGasPrice
-	buf["l1BatchNumber"] = r.L1BatchNumber
-	buf["l1BatchTxIndex"] = r.L1BatchTxIndex
-	buf["logs"] = r.Logs
-	buf["l2ToL1Logs"] = r.L2ToL1Logs
-	// encode to json again all together
-	return json.Marshal(&buf)
-}
-
-func (r *TransactionReceipt) UnmarshalJSON(input []byte) error {
-	if err := r.Receipt.UnmarshalJSON(input); err != nil {
-		return err
-	}
-	type TransactionReceipt struct {
-		From              common.Address `json:"from"`
-		To                common.Address `json:"to"`
-		EffectiveGasPrice *hexutil.Big   `json:"effectiveGasPrice"`
-		L1BatchNumber     *hexutil.Big   `json:"l1BatchNumber"`
-		L1BatchTxIndex    *hexutil.Big   `json:"l1BatchTxIndex"`
-		Logs              []*Log         `json:"logs"`
-		L2ToL1Logs        []*L2ToL1Log   `json:"l2ToL1Logs"`
-	}
-	var dec TransactionReceipt
-	if err := json.Unmarshal(input, &dec); err != nil {
-		return err
-	}
-	r.From = dec.From
-	r.To = dec.To
-	r.EffectiveGasPrice = dec.EffectiveGasPrice
-	r.L1BatchNumber = dec.L1BatchNumber
-	r.L1BatchTxIndex = dec.L1BatchTxIndex
-	r.Logs = dec.Logs
-	r.L2ToL1Logs = dec.L2ToL1Logs
-	return nil
-}
-
 // Receipt represents the results of a transaction.
 type Receipt struct {
 	types.Receipt

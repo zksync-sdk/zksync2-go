@@ -3,12 +3,8 @@ package accounts
 import (
 	"context"
 	"errors"
-	"fmt"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/zksync-sdk/zksync2-go/clients"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
 	"math/big"
 )
 
@@ -135,72 +131,4 @@ func (w *Wallet) Connect(client *clients.Client) (*Wallet, error) {
 func (w *Wallet) ConnectL1(client *ethclient.Client) (*Wallet, error) {
 	s := w.Signer()
 	return NewWalletFromSigner(&s, w.clientL2, client)
-}
-
-// Deprecated: Deprecated in favor of Wallet.Signer.
-func (w *Wallet) GetEthSigner() Signer {
-	return w.Signer()
-}
-
-// Deprecated: Deprecated in favor of Wallet.Address.
-func (w *Wallet) GetAddress() common.Address {
-	return w.Address()
-}
-
-// Deprecated: Will be removed in the future releases.
-func (w *Wallet) GetProvider() clients.Client {
-	return *w.clientL2
-}
-
-// Deprecated: Will be removed in future releases.
-func (w *Wallet) CreateEthereumProvider(rpcClient *rpc.Client) (clients.EthProvider, error) {
-	mainContractAddress, err := (*w.clientL2).MainContractAddress(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	clientL1 := ethclient.NewClient(rpcClient)
-	chainId, err := clientL1.ChainID(context.Background())
-	signer := w.Signer()
-	auth, err := newTransactorWithSigner(&signer, chainId)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
-	}
-	bridgeContracts, err := (*w.clientL2).BridgeContracts(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	return clients.NewDefaultEthProvider(rpcClient, auth, mainContractAddress, bridgeContracts.L1Erc20DefaultBridge)
-}
-
-// Deprecated: Deprecated in favor of Wallet.Balance.
-func (w *Wallet) GetBalance() (*big.Int, error) {
-	return w.Balance(context.Background(), w.Address(), nil)
-}
-
-// Deprecated: Deprecated in favor of Wallet.Balance.
-func (w *Wallet) GetTokenBalance(token *zkTypes.Token) (*big.Int, error) {
-	return w.Balance(context.Background(), token.L2Address, nil)
-}
-
-// Deprecated: Deprecated in favor of Wallet.Balance.
-func (w *Wallet) GetBalanceOf(token *zkTypes.Token, blockNumber *big.Int) (*big.Int, error) {
-	return w.Balance(context.Background(), token.L2Address, blockNumber)
-}
-
-// Deprecated: Deprecated in favor of Wallet.Nonce.
-func (w *Wallet) GetNonce() (*big.Int, error) {
-	nonce, err := w.Nonce(context.Background(), nil)
-	if err != nil {
-		return nil, err
-	}
-	return new(big.Int).SetUint64(nonce), nil
-}
-
-// Deprecated: Deprecated in favor of Wallet.Nonce.
-func (w *Wallet) GetNonceAt(blockNumber *big.Int) (*big.Int, error) {
-	nonce, err := w.Nonce(context.Background(), blockNumber)
-	if err != nil {
-		return nil, err
-	}
-	return new(big.Int).SetUint64(nonce), nil
 }

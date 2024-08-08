@@ -532,7 +532,7 @@ func (c *BaseClient) WaitFinalized(ctx context.Context, txHash common.Hash) (*zk
 	defer queryTicker.Stop()
 	var blockHead *types.Header
 	for {
-		err = c.rpcClient.CallContext(ctx, &blockHead, "eth_getBlockByNumber", zkTypes.BlockNumberFinalized, false)
+		err = c.rpcClient.CallContext(ctx, &blockHead, "eth_getBlockByNumber", "finalized", false)
 		if err == nil && blockHead == nil {
 			err = ethereum.NotFound
 		}

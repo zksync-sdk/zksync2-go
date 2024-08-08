@@ -293,39 +293,6 @@ func (m *RequestExecuteCallMsg) ToRequestExecuteTransaction() RequestExecuteTran
 	}
 }
 
-// Deprecated in favor of ToCallMsgWithChainID
-func (m *RequestExecuteCallMsg) ToCallMsg(from common.Address) (ethereum.CallMsg, error) {
-	bridgehubAbi, err := bridgehub.IBridgehubMetaData.GetAbi()
-	if err != nil {
-		return ethereum.CallMsg{}, fmt.Errorf("failed to load IZkSync ABI: %w", err)
-	}
-	requestExecuteCalldata, err := bridgehubAbi.Pack("requestL2TransactionDirect", bridgehub.L2TransactionRequestDirect{
-		ChainId:                  nil, // set it properly after method
-		MintValue:                m.MintValue,
-		L2Contract:               m.ContractAddress,
-		L2Value:                  m.L2Value,
-		L2Calldata:               m.Calldata,
-		L2GasLimit:               m.L2GasLimit,
-		L2GasPerPubdataByteLimit: m.GasPerPubdataByte,
-		FactoryDeps:              m.FactoryDeps,
-		RefundRecipient:          m.RefundRecipient,
-	})
-	if err != nil {
-		return ethereum.CallMsg{}, err
-	}
-
-	return ethereum.CallMsg{
-		From:      from,
-		To:        &m.ContractAddress,
-		Gas:       m.Gas,
-		GasPrice:  m.GasPrice,
-		GasFeeCap: m.GasFeeCap,
-		GasTipCap: m.GasTipCap,
-		Value:     m.Value,
-		Data:      requestExecuteCalldata,
-	}, nil
-}
-
 func (m *RequestExecuteCallMsg) ToCallMsgWithChainID(from common.Address, chainID *big.Int) (ethereum.CallMsg, error) {
 	bridgehubAbi, err := bridgehub.IBridgehubMetaData.GetAbi()
 	if err != nil {
