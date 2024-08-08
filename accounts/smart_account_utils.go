@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -127,15 +126,13 @@ var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *
 		}
 
 		fee, err := client.EstimateFee(ensureContext(ctx), zkTypes.CallMsg{
-			CallMsg: ethereum.CallMsg{
-				From:      from,
-				To:        tx.To,
-				GasFeeCap: tx.GasFeeCap,
-				GasTipCap: tx.GasTipCap,
-				Value:     tx.Value,
-				Data:      tx.Data,
-			},
-			Meta: tx.Meta,
+			From:      from,
+			To:        tx.To,
+			GasFeeCap: tx.GasFeeCap,
+			GasTipCap: tx.GasTipCap,
+			Value:     tx.Value,
+			Data:      tx.Data,
+			Meta:      tx.Meta,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to EstimateFee: %w", err)

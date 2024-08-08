@@ -311,16 +311,15 @@ func (a *WalletL2) SignTransaction(tx *zkTypes.Transaction712) ([]byte, error) {
 		gas = tx.Gas.Uint64()
 	}
 	preparedTx, err := a.PopulateTransaction(context.Background(), Transaction{
-		To:         tx.To,
-		Data:       tx.Data,
-		Value:      tx.Value,
-		Nonce:      tx.Nonce,
-		GasTipCap:  tx.GasTipCap,
-		GasFeeCap:  tx.GasFeeCap,
-		Gas:        gas,
-		AccessList: tx.AccessList,
-		ChainID:    tx.ChainID,
-		Meta:       tx.Meta,
+		To:        tx.To,
+		Data:      tx.Data,
+		Value:     tx.Value,
+		Nonce:     tx.Nonce,
+		GasTipCap: tx.GasTipCap,
+		GasFeeCap: tx.GasFeeCap,
+		Gas:       gas,
+		ChainID:   tx.ChainID,
+		Meta:      tx.Meta,
 	})
 	if err != nil {
 		return nil, err

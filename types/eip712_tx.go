@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"math/big"
@@ -21,14 +20,13 @@ const EIP712TxType = `0x71`
 // abstraction and paymasters.
 // Smart contracts must be deployed with support for the EIP-712 transaction type.
 type Transaction712 struct {
-	Nonce      *big.Int         // Nonce to use for the transaction execution.
-	GasTipCap  *big.Int         // EIP-1559 tip per gas.
-	GasFeeCap  *big.Int         // EIP-1559 fee cap per gas.
-	Gas        *big.Int         // Gas limit to set for the transaction execution.
-	To         *common.Address  // The address of the recipient.
-	Value      *big.Int         // Funds to transfer along the transaction (nil = 0 = no funds).
-	Data       hexutil.Bytes    // Input data, usually an ABI-encoded contract method invocation.
-	AccessList types.AccessList // EIP-2930 access list.
+	Nonce     *big.Int        // Nonce to use for the transaction execution.
+	GasTipCap *big.Int        // EIP-1559 tip per gas.
+	GasFeeCap *big.Int        // EIP-1559 fee cap per gas.
+	Gas       *big.Int        // Gas limit to set for the transaction execution.
+	To        *common.Address // The address of the recipient.
+	Value     *big.Int        // Funds to transfer along the transaction (nil = 0 = no funds).
+	Data      hexutil.Bytes   // Input data, usually an ABI-encoded contract method invocation.
 
 	ChainID *big.Int        // Chain ID of the network.
 	From    *common.Address // The address of the sender.

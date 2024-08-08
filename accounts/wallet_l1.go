@@ -6,7 +6,6 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -810,11 +809,9 @@ func (a *WalletL1) EstimateCustomBridgeDepositL2Gas(ctx context.Context, l1Bridg
 	}
 
 	return (*a.clientL2).EstimateL1ToL2Execute(ensureContext(ctx), zkTypes.CallMsg{
-		CallMsg: ethereum.CallMsg{
-			From: utils.ApplyL1ToL2Alias(l1BridgeAddress),
-			To:   &l2BridgeAddress,
-			Data: calldata,
-		},
+		From: utils.ApplyL1ToL2Alias(l1BridgeAddress),
+		To:   &l2BridgeAddress,
+		Data: calldata,
 		Meta: &zkTypes.Eip712Meta{
 			GasPerPubdata: utils.NewBig(gasPerPubdataByte.Int64()),
 		},
@@ -844,11 +841,9 @@ func (a *WalletL1) EstimateDefaultBridgeDepositL2Gas(ctx context.Context, token 
 
 	if token == a.baseToken {
 		return (*a.clientL2).EstimateL1ToL2Execute(ensureContext(ctx), zkTypes.CallMsg{
-			CallMsg: ethereum.CallMsg{
-				From:  from,
-				To:    &to,
-				Value: amount,
-			},
+			From:  from,
+			To:    &to,
+			Value: amount,
 			Meta: &zkTypes.Eip712Meta{
 				GasPerPubdata: utils.NewBig(gasPerPubdataByte.Int64()),
 			},
