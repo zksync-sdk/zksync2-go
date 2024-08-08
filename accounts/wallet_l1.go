@@ -27,7 +27,8 @@ import (
 	"strings"
 )
 
-// WalletL1 implements the AdapterL1 interface.
+// WalletL1 is associated with an account and provides common operations on the
+// L1 network for the associated account.
 type WalletL1 struct {
 	clientL1        *ethclient.Client
 	clientL2        *clients.Client
