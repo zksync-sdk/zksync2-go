@@ -35,7 +35,7 @@ type WalletL2 struct {
 
 // NewWalletL2 creates an instance of WalletL2 associated with the account provided by the raw private key.
 func NewWalletL2(rawPrivateKey []byte, client *clients.Client) (*WalletL2, error) {
-	chainID, err := (*client).ChainID(context.Background())
+	chainID, err := client.ChainID(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func NewWalletL2FromSigner(signer *Signer, client *clients.Client) (*WalletL2, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
 	}
-	chainId, err := (*client).ChainID(context.Background())
+	chainId, err := client.ChainID(context.Background())
 	auth, err := newTransactorWithSigner(signer, chainId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
@@ -112,7 +112,7 @@ func (a *WalletL2) Balance(ctx context.Context, token common.Address, at *big.In
 	}
 
 	if token == utils.L2BaseTokenAddress {
-		return (*a.client).BalanceAt(ensureContext(ctx), a.Address(), at)
+		return a.client.BalanceAt(ensureContext(ctx), a.Address(), at)
 	}
 	erc20Token, err := erc20.NewIERC20(token, a.client)
 	if err != nil {
@@ -127,7 +127,7 @@ func (a *WalletL2) Balance(ctx context.Context, token common.Address, at *big.In
 
 // AllBalances returns all balances for confirmed tokens given by an associated account.
 func (a *WalletL2) AllBalances(ctx context.Context) (map[common.Address]*big.Int, error) {
-	return (*a.client).AllAccountBalances(ensureContext(ctx), a.Address())
+	return a.client.AllAccountBalances(ensureContext(ctx), a.Address())
 }
 
 // L2BridgeContracts returns L2 bridge contracts.
@@ -147,7 +147,7 @@ func (a *WalletL2) DeploymentNonce(opts *CallOpts) (*big.Int, error) {
 
 // IsBaseToken returns whether the token is the base token.
 func (a *WalletL2) IsBaseToken(ctx context.Context, token common.Address) (bool, error) {
-	return (*a.client).IsBaseToken(ensureContext(ctx), token)
+	return a.client.IsBaseToken(ensureContext(ctx), token)
 }
 
 // Withdraw initiates the withdrawal process which withdraws ETH or any ERC20
@@ -198,7 +198,7 @@ func (a *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*type
 
 // EstimateGasWithdraw estimates the amount of gas required for a withdrawal transaction.
 func (a *WalletL2) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMsg) (uint64, error) {
-	return (*a.client).EstimateGasWithdraw(ensureContext(ctx), msg.ToWithdrawalCallMsg(a.Address()))
+	return a.client.EstimateGasWithdraw(ensureContext(ctx), msg.ToWithdrawalCallMsg(a.Address()))
 }
 
 // Transfer moves the base token or any ERC20 token from the associated account to the target account.
@@ -214,7 +214,7 @@ func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.
 	}
 
 	if opts.GasLimit == 0 {
-		gas, gasErr := (*a.client).EstimateGasTransfer(opts.Context, tx.ToTransferCallMsg(a.Address(), opts))
+		gas, gasErr := a.client.EstimateGasTransfer(opts.Context, tx.ToTransferCallMsg(a.Address(), opts))
 		if gasErr != nil {
 			return nil, gasErr
 		}
@@ -234,7 +234,7 @@ func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*types.
 
 // EstimateGasTransfer estimates the amount of gas required for a transfer transaction.
 func (a *WalletL2) EstimateGasTransfer(ctx context.Context, msg TransferCallMsg) (uint64, error) {
-	return (*a.client).EstimateGasTransfer(ensureContext(ctx), msg.ToTransferCallMsg(a.Address()))
+	return a.client.EstimateGasTransfer(ensureContext(ctx), msg.ToTransferCallMsg(a.Address()))
 }
 
 // CallContract executes a message call for EIP-712 transaction, which is
@@ -244,7 +244,7 @@ func (a *WalletL2) EstimateGasTransfer(ctx context.Context, msg TransferCallMsg)
 // which case the code is taken from the latest known block. Note that state from
 // very old blocks might not be available.
 func (a *WalletL2) CallContract(ctx context.Context, msg CallMsg, blockNumber *big.Int) ([]byte, error) {
-	return (*a.client).CallContractL2(ensureContext(ctx), msg.ToCallMsg(a.Address()), blockNumber)
+	return a.client.CallContractL2(ensureContext(ctx), msg.ToCallMsg(a.Address()), blockNumber)
 }
 
 // PopulateTransaction is designed for users who prefer a simplified approach by
@@ -257,14 +257,14 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zk
 		tx.ChainID = (*a.signer).Domain().ChainId
 	}
 	if tx.Nonce == nil {
-		nonce, err := (*a.client).NonceAt(ensureContext(ctx), a.Address(), nil)
+		nonce, err := a.client.NonceAt(ensureContext(ctx), a.Address(), nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get nonce: %w", err)
 		}
 		tx.Nonce = new(big.Int).SetUint64(nonce)
 	}
 	if tx.GasFeeCap == nil {
-		gasFeeCap, err := (*a.client).SuggestGasPrice(ensureContext(ctx))
+		gasFeeCap, err := a.client.SuggestGasPrice(ensureContext(ctx))
 		if err != nil {
 			return nil, fmt.Errorf("failed to SuggestGasPrice: %w", err)
 		}
@@ -279,7 +279,7 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*zk
 		tx.Meta.GasPerPubdata = utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())
 	}
 	if tx.Gas == 0 || tx.GasFeeCap == nil {
-		fee, err := (*a.client).EstimateFee(ensureContext(ctx), tx.ToCallMsg(a.Address()))
+		fee, err := a.client.EstimateFee(ensureContext(ctx), tx.ToCallMsg(a.Address()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to EstimateFee: %w", err)
 		}
@@ -339,13 +339,13 @@ func (a *WalletL2) SendTransaction(ctx context.Context, tx *Transaction) (common
 	if err != nil {
 		return common.Hash{}, err
 	}
-	return (*a.client).SendRawTransaction(ensureContext(ctx), rawTx)
+	return a.client.SendRawTransaction(ensureContext(ctx), rawTx)
 }
 
 func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction) (*types.Transaction, error) {
 	if auth.GasPrice != nil {
 		if auth.Nonce == nil {
-			nonce, err := (*a.client).NonceAt(auth.Context, a.Address(), nil)
+			nonce, err := a.client.NonceAt(auth.Context, a.Address(), nil)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get nonce: %w", err)
 			}
@@ -362,7 +362,7 @@ func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction)
 			})
 
 		signedTx, _ := types.SignTx(transaction, types.NewLondonSigner((*a.signer).Domain().ChainId), (*a.signer).PrivateKey())
-		err := (*a.client).SendTransaction(auth.Context, signedTx)
+		err := a.client.SendTransaction(auth.Context, signedTx)
 		if err != nil {
 			return nil, err
 		}
@@ -383,7 +383,7 @@ func (a *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction)
 				Value:     preparedTx.Value,
 			})
 		signedTx, _ := types.SignTx(transaction, types.NewLondonSigner((*a.signer).Domain().ChainId), (*a.signer).PrivateKey())
-		err = (*a.client).SendTransaction(auth.Context, signedTx)
+		err = a.client.SendTransaction(auth.Context, signedTx)
 		if err != nil {
 			return nil, err
 		}

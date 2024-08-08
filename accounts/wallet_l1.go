@@ -92,7 +92,7 @@ func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 
 		return nil, fmt.Errorf("failed to load IBridgehub: %w", err)
 	}
 
-	bridgeContracts, err := (*clientL2).BridgeContracts(context.Background())
+	bridgeContracts, err := clientL2.BridgeContracts(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (a *WalletL1) BaseToken(opts *CallOpts) (common.Address, error) {
 
 // IsEthBasedChain returns whether the chain is ETH-based.
 func (a *WalletL1) IsEthBasedChain(ctx context.Context) (bool, error) {
-	return (a.clientL2).IsEthBasedChain(ctx)
+	return a.clientL2.IsEthBasedChain(ctx)
 }
 
 // BalanceL1 returns the balance of the specified token on L1 that can be
@@ -208,7 +208,7 @@ func (a *WalletL1) AllowanceL1(opts *CallOpts, token common.Address, bridgeAddre
 
 // L2TokenAddress returns the corresponding address on the L2 network for the token on the L1 network.
 func (a *WalletL1) L2TokenAddress(ctx context.Context, token common.Address) (common.Address, error) {
-	return (*a.clientL2).L2TokenAddress(ensureContext(ctx), token)
+	return a.clientL2.L2TokenAddress(ensureContext(ctx), token)
 }
 
 // ApproveERC20 approves the specified amount of tokens for the specified L1 bridge.
@@ -525,7 +525,7 @@ func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Ha
 		return nil, errors.New("not enough Topics count")
 	}
 
-	proof, err := (*a.clientL2).LogProof(opts.Context, withdrawalHash, l2ToL1LogIndex)
+	proof, err := a.clientL2.LogProof(opts.Context, withdrawalHash, l2ToL1LogIndex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
 	}
@@ -617,7 +617,7 @@ func (a *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Has
 		return false, errors.New("not enough Topics count")
 	}
 	sender := common.BytesToAddress(log.Topics[1].Bytes()[12:])
-	proof, err := (*a.clientL2).LogProof(callOpts.Context, withdrawalHash, l2ToL1LogIndex)
+	proof, err := a.clientL2.LogProof(callOpts.Context, withdrawalHash, l2ToL1LogIndex)
 	if err != nil {
 		return false, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
 	}
@@ -650,7 +650,7 @@ func (a *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Has
 // of the L1 bridge, which results in returning L1 tokens back to the depositor, otherwise throws the error.
 func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Hash) (*types.Transaction, error) {
 	opts := ensureTransactOpts(auth)
-	receipt, err := (*a.clientL2).TransactionReceipt(opts.Context, depositHash)
+	receipt, err := a.clientL2.TransactionReceipt(opts.Context, depositHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
 	}
@@ -669,7 +669,7 @@ func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Has
 		return nil, errors.New("can't claim successful deposit")
 	}
 
-	tx, _, err := (*a.clientL2).TransactionByHash(opts.Context, depositHash)
+	tx, _, err := a.clientL2.TransactionByHash(opts.Context, depositHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Transaction: %w", err)
 	}
@@ -703,7 +703,7 @@ func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Has
 	l1Token := inputValues[2].(common.Address)
 	amount := inputValues[3].(*big.Int)
 
-	proof, err := (*a.clientL2).LogProof(opts.Context, depositHash, successL2ToL1LogIndex)
+	proof, err := a.clientL2.LogProof(opts.Context, depositHash, successL2ToL1LogIndex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
 	}
@@ -803,7 +803,7 @@ func (a *WalletL1) EstimateCustomBridgeDepositL2Gas(ctx context.Context, l1Bridg
 		return 0, err
 	}
 
-	return (*a.clientL2).EstimateL1ToL2Execute(ensureContext(ctx), zkTypes.CallMsg{
+	return a.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), zkTypes.CallMsg{
 		From: utils.ApplyL1ToL2Alias(l1BridgeAddress),
 		To:   &l2BridgeAddress,
 		Data: calldata,
@@ -835,7 +835,7 @@ func (a *WalletL1) EstimateDefaultBridgeDepositL2Gas(ctx context.Context, token 
 	}
 
 	if token == a.baseToken {
-		return (*a.clientL2).EstimateL1ToL2Execute(ensureContext(ctx), zkTypes.CallMsg{
+		return a.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), zkTypes.CallMsg{
 			From:  from,
 			To:    &to,
 			Value: amount,
@@ -844,7 +844,7 @@ func (a *WalletL1) EstimateDefaultBridgeDepositL2Gas(ctx context.Context, token 
 			},
 		})
 	} else {
-		bridgeContracts, err := (*a.clientL2).BridgeContracts(ensureContext(ctx))
+		bridgeContracts, err := a.clientL2.BridgeContracts(ensureContext(ctx))
 		if err != nil {
 			return 0, err
 		}
@@ -1329,7 +1329,7 @@ func (a *WalletL1) prepareRequestExecuteTx(auth *TransactOpts, tx *RequestExecut
 		tx.RefundRecipient = a.auth.From
 	}
 	if tx.L2GasLimit == nil {
-		gas, err := (*a.clientL2).EstimateL1ToL2Execute(opts.Context, tx.ToCallMsg(a.auth.From, opts))
+		gas, err := a.clientL2.EstimateL1ToL2Execute(opts.Context, tx.ToCallMsg(a.auth.From, opts))
 		if err != nil {
 			return err
 		}
@@ -1452,7 +1452,7 @@ func (a *WalletL1) insertGasPriceInDepositMsg(ctx context.Context, msg *DepositC
 }
 
 func (a *WalletL1) getWithdrawalLog(ctx context.Context, withdrawalHash common.Hash, index int) (*zkTypes.Log, *big.Int, error) {
-	receipt, err := (*a.clientL2).TransactionReceipt(ctx, withdrawalHash)
+	receipt, err := a.clientL2.TransactionReceipt(ctx, withdrawalHash)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
 	}
@@ -1473,7 +1473,7 @@ func (a *WalletL1) getWithdrawalLog(ctx context.Context, withdrawalHash common.H
 }
 
 func (a *WalletL1) getWithdrawalL2ToL1Log(ctx context.Context, withdrawalHash common.Hash, index int) (int, *zkTypes.L2ToL1Log, error) {
-	receipt, err := (*a.clientL2).TransactionReceipt(ctx, withdrawalHash)
+	receipt, err := a.clientL2.TransactionReceipt(ctx, withdrawalHash)
 	if err != nil {
 		return 0, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
 	}
