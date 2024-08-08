@@ -25,7 +25,7 @@ type Wallet struct {
 // as the rest of the functionalities require communication with the L1 network.
 // A Wallet can be configured to communicate with L1 networks by using and Wallet.ConnectL1 method.
 func NewWallet(rawPrivateKey []byte, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
-	chainID, err := (*clientL2).ChainID(context.Background())
+	chainID, err := clientL2.ChainID(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -112,13 +112,13 @@ func NewRandomWallet(chainId int64, clientL2 *clients.Client, clientL1 *ethclien
 // Nonce returns the account nonce of the associated account.
 // The block number can be nil, in which case the nonce is taken from the latest known block.
 func (w *Wallet) Nonce(ctx context.Context, blockNumber *big.Int) (uint64, error) {
-	return (*w.clientL2).NonceAt(ctx, w.Address(), blockNumber)
+	return w.clientL2.NonceAt(ctx, w.Address(), blockNumber)
 }
 
 // PendingNonce returns the account nonce of the associated account in the pending state.
 // This is the nonce that should be used for the next transaction.
 func (w *Wallet) PendingNonce(ctx context.Context) (uint64, error) {
-	return (*w.clientL2).PendingNonceAt(ctx, w.Address())
+	return w.clientL2.PendingNonceAt(ctx, w.Address())
 }
 
 // Connect returns a new instance of Wallet with the provided client for the L2 network.
