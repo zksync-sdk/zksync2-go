@@ -13,7 +13,7 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/nonceholder"
 	"github.com/zksync-sdk/zksync2-go/eip712"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 )
@@ -128,7 +128,7 @@ func (a *SmartAccount) DeploymentNonce(opts *CallOpts) (*big.Int, error) {
 // PopulateTransaction populates the transaction tx using the provided TransactionBuilder function.
 // If tx.From is not set, it sets the value from the Address method which can
 // be utilized in the TransactionBuilder function.
-func (a *SmartAccount) PopulateTransaction(ctx context.Context, tx *zkTypes.Transaction712) error {
+func (a *SmartAccount) PopulateTransaction(ctx context.Context, tx *types.Transaction712) error {
 	if tx.From == nil {
 		from := a.Address()
 		tx.From = &from
@@ -139,7 +139,7 @@ func (a *SmartAccount) PopulateTransaction(ctx context.Context, tx *zkTypes.Tran
 // SignTransaction returns a signed transaction that is ready to be broadcast to
 // the network. The PopulateTransaction method is called first to ensure that all
 // necessary properties for the transaction to be valid have been populated.
-func (a *SmartAccount) SignTransaction(ctx context.Context, tx *zkTypes.Transaction712) ([]byte, error) {
+func (a *SmartAccount) SignTransaction(ctx context.Context, tx *types.Transaction712) ([]byte, error) {
 	err := a.cacheData(ensureContext(ctx))
 	if err != nil {
 		return nil, err
@@ -174,7 +174,7 @@ func (a *SmartAccount) SignTransaction(ctx context.Context, tx *zkTypes.Transact
 
 // SendTransaction injects a transaction into the pending pool for execution.
 // The SignTransaction is called first to ensure transaction is properly signed.
-func (a *SmartAccount) SendTransaction(ctx context.Context, tx *zkTypes.Transaction712) (common.Hash, error) {
+func (a *SmartAccount) SendTransaction(ctx context.Context, tx *types.Transaction712) (common.Hash, error) {
 	rawTx, err := a.SignTransaction(ensureContext(ctx), tx)
 	if err != nil {
 		return common.Hash{}, err
@@ -237,7 +237,7 @@ func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (c
 			return common.Hash{}, packErr
 		}
 
-		return a.SendTransaction(opts.Context, &zkTypes.Transaction712{
+		return a.SendTransaction(opts.Context, &types.Transaction712{
 			Nonce:     opts.Nonce,
 			GasTipCap: opts.GasTipCap,
 			GasFeeCap: opts.GasFeeCap,
@@ -247,7 +247,7 @@ func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (c
 			Data:      data,
 			From:      &from,
 			ChainID:   a.chainId,
-			Meta: &zkTypes.Eip712Meta{
+			Meta: &types.Eip712Meta{
 				GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 				PaymasterParams: tx.PaymasterParams,
 			},
@@ -268,7 +268,7 @@ func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (c
 		return common.Hash{}, abiPack
 	}
 
-	return a.SendTransaction(opts.Context, &zkTypes.Transaction712{
+	return a.SendTransaction(opts.Context, &types.Transaction712{
 		Nonce:     opts.Nonce,
 		GasTipCap: opts.GasTipCap,
 		GasFeeCap: opts.GasFeeCap,
@@ -278,7 +278,7 @@ func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (c
 		Data:      data,
 		ChainID:   a.chainId,
 		From:      &from,
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 			PaymasterParams: tx.PaymasterParams,
 		},
@@ -304,7 +304,7 @@ func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (com
 	}
 
 	if tx.Token == utils.L2BaseTokenAddress {
-		return a.SendTransaction(opts.Context, &zkTypes.Transaction712{
+		return a.SendTransaction(opts.Context, &types.Transaction712{
 			Nonce:     opts.Nonce,
 			GasTipCap: opts.GasTipCap,
 			GasFeeCap: opts.GasFeeCap,
@@ -313,7 +313,7 @@ func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (com
 			Value:     tx.Amount,
 			ChainID:   a.chainId,
 			From:      &from,
-			Meta: &zkTypes.Eip712Meta{
+			Meta: &types.Eip712Meta{
 				GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 				PaymasterParams: tx.PaymasterParams,
 			},
@@ -330,7 +330,7 @@ func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (com
 		return common.Hash{}, err
 	}
 
-	return a.SendTransaction(opts.Context, &zkTypes.Transaction712{
+	return a.SendTransaction(opts.Context, &types.Transaction712{
 		Nonce:     opts.Nonce,
 		GasTipCap: opts.GasTipCap,
 		GasFeeCap: opts.GasFeeCap,
@@ -340,7 +340,7 @@ func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (com
 		Data:      data,
 		ChainID:   a.chainId,
 		From:      &from,
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
 			PaymasterParams: tx.PaymasterParams,
 		},

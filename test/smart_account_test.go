@@ -12,7 +12,7 @@ import (
 	"github.com/zksync-sdk/zksync2-go/accounts"
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 	"testing"
@@ -245,7 +245,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *tes
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -327,7 +327,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -449,7 +449,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseTokenUsingPaymast
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -571,7 +571,7 @@ func TestIntegrationSmartAccount_WithdrawTokenUsingPaymaster(t *testing.T) {
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -722,7 +722,7 @@ func TestIntegration_EthBasedChain_SmartAccount_TransferEthUsingPaymaster(t *tes
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -799,7 +799,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferEthUsingPaymaster(t *
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -916,7 +916,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferBaseTokenUsingPaymast
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -1035,7 +1035,7 @@ func TestIntegrationSmartAccount_TransferTokenUsingPaymaster(t *testing.T) {
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -1085,7 +1085,7 @@ func TestIntegrationSmartAccount_PopulateTransaction(t *testing.T) {
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	tx := &zkTypes.Transaction712{
+	tx := &types.Transaction712{
 		To:    &Address2,
 		Value: big.NewInt(7_000_000_000),
 		From:  &Address1,
@@ -1112,7 +1112,7 @@ func TestIntegrationSmartAccount_SignTransaction(t *testing.T) {
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	signedTx, err := account.SignTransaction(context.Background(), &zkTypes.Transaction712{
+	signedTx, err := account.SignTransaction(context.Background(), &types.Transaction712{
 		To:    &Address2,
 		Value: big.NewInt(1_000_000_000_000_000_000), // 1ETH
 	})
@@ -1181,7 +1181,7 @@ func TestIntegrationSmartAccount_SendTransaction(t *testing.T) {
 	approveTokenCalldata, err := tokenAbi.Pack("approve", Address2, big.NewInt(1))
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	txHash, err := account.SendTransaction(context.Background(), &zkTypes.Transaction712{
+	txHash, err := account.SendTransaction(context.Background(), &types.Transaction712{
 		To:   &L2Dai,
 		Data: approveTokenCalldata,
 	})
@@ -1270,7 +1270,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawUsingPaymaster(t *testing.T) {
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -1392,7 +1392,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawTokenUsingPaymaster(t *testing.
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -1505,7 +1505,7 @@ func TestIntegrationMultisigSmartAccount_TransferEthUsingPaymaster(t *testing.T)
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},
@@ -1624,7 +1624,7 @@ func TestIntegrationMultisigSmartAccount_TransferTokenUsingPaymaster(t *testing.
 
 	paymasterParams, err := utils.GetPaymasterParams(
 		Paymaster,
-		&zkTypes.ApprovalBasedPaymasterInput{
+		&types.ApprovalBasedPaymasterInput{
 			Token:            ApprovalToken,
 			MinimalAllowance: minimalAllowance,
 			InnerInput:       []byte{},

@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -21,7 +21,7 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/zksync"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 	"time"
@@ -45,7 +45,7 @@ type Client struct {
 	bridgehubAddress        common.Address
 	baseTokenAddress        common.Address
 
-	bridgeContracts *zkTypes.BridgeContracts
+	bridgeContracts *types.BridgeContracts
 }
 
 // Dial connects a client to the given URL.
@@ -89,7 +89,7 @@ func (c *Client) ChainID(ctx context.Context) (*big.Int, error) {
 //
 // Note that loading full blocks requires two requests. Use HeaderByHash
 // if you don't need all transactions or uncle headers.
-func (c *Client) BlockByHash(ctx context.Context, hash common.Hash) (*zkTypes.Block, error) {
+func (c *Client) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
 	return c.getBlock(ctx, "eth_getBlockByHash", hash, true)
 }
 
@@ -98,7 +98,7 @@ func (c *Client) BlockByHash(ctx context.Context, hash common.Hash) (*zkTypes.Bl
 //
 // Note that loading full blocks requires two requests. Use HeaderByNumber
 // if you don't need all transactions or uncle headers.
-func (c *Client) BlockByNumber(ctx context.Context, number *big.Int) (*zkTypes.Block, error) {
+func (c *Client) BlockByNumber(ctx context.Context, number *big.Int) (*types.Block, error) {
 	return c.getBlock(ctx, "eth_getBlockByNumber", toBlockNumArg(number), true)
 }
 
@@ -113,19 +113,19 @@ func (c *Client) PeerCount(ctx context.Context) (uint64, error) {
 }
 
 // HeaderByHash returns the block header with the given hash.
-func (c *Client) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
+func (c *Client) HeaderByHash(ctx context.Context, hash common.Hash) (*ethTypes.Header, error) {
 	return c.ethClient.HeaderByHash(ctx, hash)
 }
 
 // HeaderByNumber returns a block header from the current canonical chain. If number is
 // nil, the latest known header is returned.
-func (c *Client) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
+func (c *Client) HeaderByNumber(ctx context.Context, number *big.Int) (*ethTypes.Header, error) {
 	return c.ethClient.HeaderByNumber(ctx, number)
 }
 
 // TransactionByHash returns the transaction with the given hash.
-func (c *Client) TransactionByHash(ctx context.Context, hash common.Hash) (tx *zkTypes.TransactionResponse, isPending bool, err error) {
-	var resp *zkTypes.TransactionResponse
+func (c *Client) TransactionByHash(ctx context.Context, hash common.Hash) (tx *types.TransactionResponse, isPending bool, err error) {
+	var resp *types.TransactionResponse
 	err = c.rpcClient.CallContext(ctx, &resp, "eth_getTransactionByHash", hash)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to query eth_getTransactionByHash: %w", err)
@@ -140,7 +140,7 @@ func (c *Client) TransactionByHash(ctx context.Context, hash common.Hash) (tx *z
 // TransactionSender returns the sender address of the given transaction. The transaction
 // must be known to the remote node and included in the blockchain at the given block and
 // index. The sender is the one derived by the protocol at the time of inclusion.
-func (c *Client) TransactionSender(ctx context.Context, tx *zkTypes.TransactionResponse, block common.Hash, index uint) (common.Address, error) {
+func (c *Client) TransactionSender(ctx context.Context, tx *types.TransactionResponse, block common.Hash, index uint) (common.Address, error) {
 	var meta struct {
 		Hash *common.Hash
 		From common.Address
@@ -160,8 +160,8 @@ func (c *Client) TransactionCount(ctx context.Context, blockHash common.Hash) (u
 }
 
 // TransactionInBlock returns a single transaction at index in the given block.
-func (c *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash, index uint) (*zkTypes.TransactionResponse, error) {
-	var tx *zkTypes.TransactionResponse
+func (c *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash, index uint) (*types.TransactionResponse, error) {
+	var tx *types.TransactionResponse
 	err := c.rpcClient.CallContext(ctx, &tx, "eth_getTransactionByBlockHashAndIndex", blockHash, hexutil.Uint64(index))
 	if err != nil {
 		return nil, err
@@ -176,8 +176,8 @@ func (c *Client) TransactionInBlock(ctx context.Context, blockHash common.Hash, 
 
 // TransactionReceipt returns the receipt of a transaction by transaction hash.
 // Note that the receipt is not available for pending transactions.
-func (c *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*zkTypes.Receipt, error) {
-	var resp *zkTypes.Receipt
+func (c *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+	var resp *types.Receipt
 	err := c.rpcClient.CallContext(ctx, &resp, "eth_getTransactionReceipt", txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query eth_getTransactionReceipt: %w", err)
@@ -195,7 +195,7 @@ func (c *Client) SyncProgress(ctx context.Context) (*ethereum.SyncProgress, erro
 
 // SubscribeNewHead subscribes to notifications about the current blockchain head
 // on the given channel.
-func (c *Client) SubscribeNewHead(ctx context.Context, ch chan<- *types.Header) (ethereum.Subscription, error) {
+func (c *Client) SubscribeNewHead(ctx context.Context, ch chan<- *ethTypes.Header) (ethereum.Subscription, error) {
 	return c.ethClient.SubscribeNewHead(ctx, ch)
 }
 
@@ -230,14 +230,14 @@ func (c *Client) NonceAt(ctx context.Context, account common.Address, blockNumbe
 
 // FilterLogs performs the same function as FilterLogsL2, and that method should be used instead.
 // This method is designed to be compatible with bind.ContractBackend.
-func (c *Client) FilterLogs(ctx context.Context, query ethereum.FilterQuery) ([]types.Log, error) {
+func (c *Client) FilterLogs(ctx context.Context, query ethereum.FilterQuery) ([]ethTypes.Log, error) {
 	return c.ethClient.FilterLogs(ctx, query)
 }
 
 // FilterLogsL2 executes a log filter operation, blocking during execution and
 // returning all the results in one batch.
-func (c *Client) FilterLogsL2(ctx context.Context, q ethereum.FilterQuery) ([]zkTypes.Log, error) {
-	var result []zkTypes.Log
+func (c *Client) FilterLogsL2(ctx context.Context, q ethereum.FilterQuery) ([]types.Log, error) {
+	var result []types.Log
 	arg, err := toFilterArg(q)
 	if err != nil {
 		return nil, err
@@ -248,13 +248,13 @@ func (c *Client) FilterLogsL2(ctx context.Context, q ethereum.FilterQuery) ([]zk
 
 // SubscribeFilterLogs performs the same function as SubscribeFilterLogsL2, and that method should be used instead.
 // This method is designed to be compatible with bind.ContractBackend.
-func (c *Client) SubscribeFilterLogs(ctx context.Context, query ethereum.FilterQuery, ch chan<- types.Log) (ethereum.Subscription, error) {
+func (c *Client) SubscribeFilterLogs(ctx context.Context, query ethereum.FilterQuery, ch chan<- ethTypes.Log) (ethereum.Subscription, error) {
 	return c.ethClient.SubscribeFilterLogs(ctx, query, ch)
 }
 
 // SubscribeFilterLogsL2 creates a background log filtering operation, returning
 // a subscription immediately, which can be used to stream the found events.
-func (c *Client) SubscribeFilterLogsL2(ctx context.Context, query ethereum.FilterQuery, ch chan<- zkTypes.Log) (ethereum.Subscription, error) {
+func (c *Client) SubscribeFilterLogsL2(ctx context.Context, query ethereum.FilterQuery, ch chan<- types.Log) (ethereum.Subscription, error) {
 	arg, err := toFilterArg(query)
 	if err != nil {
 		return nil, err
@@ -312,7 +312,7 @@ func (c *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNu
 
 // CallContractL2 is almost the same as CallContract except that it executes a message call
 // for EIP-712 transaction.
-func (c *Client) CallContractL2(ctx context.Context, msg zkTypes.CallMsg, blockNumber *big.Int) ([]byte, error) {
+func (c *Client) CallContractL2(ctx context.Context, msg types.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, toBlockNumArg(blockNumber))
 	if err != nil {
@@ -334,7 +334,7 @@ func (c *Client) CallContractAtHash(ctx context.Context, msg ethereum.CallMsg, b
 
 // CallContractAtHashL2 is almost the same as CallContractL2 except that it selects
 // the block by block hash instead of block height.
-func (c *Client) CallContractAtHashL2(ctx context.Context, msg zkTypes.CallMsg, blockHash common.Hash) ([]byte, error) {
+func (c *Client) CallContractAtHashL2(ctx context.Context, msg types.CallMsg, blockHash common.Hash) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, rpc.BlockNumberOrHashWithHash(blockHash, false))
 	if err != nil {
@@ -356,7 +356,7 @@ func (c *Client) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) 
 
 // PendingCallContractL2 executes a message call for EIP-712 transaction using the EVM.
 // The state seen by the contract call is the pending state.
-func (c *Client) PendingCallContractL2(ctx context.Context, msg zkTypes.CallMsg) ([]byte, error) {
+func (c *Client) PendingCallContractL2(ctx context.Context, msg types.CallMsg) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, "pending")
 	if err != nil {
@@ -369,13 +369,13 @@ func (c *Client) PendingCallContractL2(ctx context.Context, msg zkTypes.CallMsg)
 //
 // Note that loading full blocks requires two requests. Use HeaderByTag
 // if you don't need all transactions or uncle headers.
-func (c *Client) BlockByTag(ctx context.Context, blockTag string) (*zkTypes.Block, error) {
+func (c *Client) BlockByTag(ctx context.Context, blockTag string) (*types.Block, error) {
 	return c.getBlock(ctx, "eth_getBlockByNumber", blockTag, true)
 }
 
 // HeaderByTag returns a block header by blockTag
-func (c *Client) HeaderByTag(ctx context.Context, blockTag string) (*types.Header, error) {
-	var head *types.Header
+func (c *Client) HeaderByTag(ctx context.Context, blockTag string) (*ethTypes.Header, error) {
+	var head *ethTypes.Header
 	err := c.rpcClient.CallContext(ctx, &head, "eth_getBlockByNumber", blockTag, false)
 	if err == nil && head == nil {
 		err = ethereum.NotFound
@@ -420,7 +420,7 @@ func (c *Client) TransactionCountByTag(ctx context.Context, blockTag string) (ui
 
 // CallContractByTag executes a message call for EIP-712 transaction using the EVM.
 // The state seen by the contract call is defined by blockTag.
-func (c *Client) CallContractByTag(ctx context.Context, msg zkTypes.CallMsg, blockTag string) ([]byte, error) {
+func (c *Client) CallContractByTag(ctx context.Context, msg types.CallMsg, blockTag string) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, blockTag)
 	if err != nil {
@@ -455,7 +455,7 @@ func (c *Client) EstimateGas(ctx context.Context, call ethereum.CallMsg) (uint64
 }
 
 // EstimateGasL2 is almost the same as EstimateGas except that it executes an EIP-712 transaction.
-func (c *Client) EstimateGasL2(ctx context.Context, msg zkTypes.CallMsg) (uint64, error) {
+func (c *Client) EstimateGasL2(ctx context.Context, msg types.CallMsg) (uint64, error) {
 	var hex hexutil.Uint64
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_estimateGas", msg)
 	if err != nil {
@@ -468,7 +468,7 @@ func (c *Client) EstimateGasL2(ctx context.Context, msg zkTypes.CallMsg) (uint64
 //
 // If the transaction was a contract creation use the TransactionReceipt method to get the
 // contract address after the transaction has been mined.
-func (c *Client) SendTransaction(ctx context.Context, tx *types.Transaction) error {
+func (c *Client) SendTransaction(ctx context.Context, tx *ethTypes.Transaction) error {
 	return c.ethClient.SendTransaction(ctx, tx)
 }
 
@@ -484,7 +484,7 @@ func (c *Client) SendRawTransaction(ctx context.Context, tx []byte) (common.Hash
 
 // WaitMined waits for tx to be mined on the blockchain.
 // It stops waiting when the context is canceled.
-func (c *Client) WaitMined(ctx context.Context, txHash common.Hash) (*zkTypes.Receipt, error) {
+func (c *Client) WaitMined(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
 	queryTicker := time.NewTicker(time.Second)
 	defer queryTicker.Stop()
 	for {
@@ -503,7 +503,7 @@ func (c *Client) WaitMined(ctx context.Context, txHash common.Hash) (*zkTypes.Re
 
 // WaitFinalized waits for tx to be finalized on the blockchain.
 // It stops waiting when the context is canceled.
-func (c *Client) WaitFinalized(ctx context.Context, txHash common.Hash) (*zkTypes.Receipt, error) {
+func (c *Client) WaitFinalized(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
 	receipt, err := c.WaitMined(ctx, txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to wait for tx is mined: %w", err)
@@ -513,7 +513,7 @@ func (c *Client) WaitFinalized(ctx context.Context, txHash common.Hash) (*zkType
 	}
 	queryTicker := time.NewTicker(time.Second)
 	defer queryTicker.Stop()
-	var blockHead *types.Header
+	var blockHead *ethTypes.Header
 	for {
 		err = c.rpcClient.CallContext(ctx, &blockHead, "eth_getBlockByNumber", "finalized", false)
 		if err == nil && blockHead == nil {
@@ -576,9 +576,9 @@ func (c *Client) TestnetPaymaster(ctx context.Context) (common.Address, error) {
 
 // BridgeContracts returns the addresses of the default ZKsync Era bridge
 // contracts on both L1 and L2.
-func (c *Client) BridgeContracts(ctx context.Context) (*zkTypes.BridgeContracts, error) {
+func (c *Client) BridgeContracts(ctx context.Context) (*types.BridgeContracts, error) {
 	if c.bridgeContracts == nil {
-		res := zkTypes.BridgeContracts{}
+		res := types.BridgeContracts{}
 		err := c.rpcClient.CallContext(ctx, &res, "zks_getBridgeContracts")
 		if err != nil {
 			return nil, fmt.Errorf("failed to query zks_getBridgeContracts: %w", err)
@@ -624,7 +624,7 @@ func (c *Client) IsBaseToken(ctx context.Context, token common.Address) (bool, e
 
 // ContractAccountInfo returns the version of the supported account abstraction
 // and nonce ordering from a given contract address.
-func (c *Client) ContractAccountInfo(ctx context.Context, address common.Address) (*zkTypes.ContractAccountInfo, error) {
+func (c *Client) ContractAccountInfo(ctx context.Context, address common.Address) (*types.ContractAccountInfo, error) {
 	contractDeployer, err := contractdeployer.NewIContractDeployerCaller(utils.ContractDeployerAddress, c)
 	if err != nil {
 		return nil, err
@@ -633,9 +633,9 @@ func (c *Client) ContractAccountInfo(ctx context.Context, address common.Address
 	if err != nil {
 		return nil, err
 	}
-	return &zkTypes.ContractAccountInfo{
-		SupportedAAVersion: zkTypes.AccountAbstractionVersion(accountInfo.SupportedAAVersion),
-		NonceOrdering:      zkTypes.AccountNonceOrdering(accountInfo.NonceOrdering),
+	return &types.ContractAccountInfo{
+		SupportedAAVersion: types.AccountAbstractionVersion(accountInfo.SupportedAAVersion),
+		NonceOrdering:      types.AccountNonceOrdering(accountInfo.NonceOrdering),
 	}, nil
 }
 
@@ -680,8 +680,8 @@ func (c *Client) L1BatchBlockRange(ctx context.Context, l1BatchNumber *big.Int) 
 }
 
 // L1BatchDetails returns data pertaining to a given batch.
-func (c *Client) L1BatchDetails(ctx context.Context, l1BatchNumber *big.Int) (*zkTypes.BatchDetails, error) {
-	var resp *zkTypes.BatchDetails
+func (c *Client) L1BatchDetails(ctx context.Context, l1BatchNumber *big.Int) (*types.BatchDetails, error) {
+	var resp *types.BatchDetails
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getL1BatchDetails", l1BatchNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getL1BatchDetails: %w", err)
@@ -692,8 +692,8 @@ func (c *Client) L1BatchDetails(ctx context.Context, l1BatchNumber *big.Int) (*z
 }
 
 // BlockDetails returns additional ZKsync Era-specific information about the L2 block.
-func (c *Client) BlockDetails(ctx context.Context, block uint32) (*zkTypes.BlockDetails, error) {
-	var resp *zkTypes.BlockDetails
+func (c *Client) BlockDetails(ctx context.Context, block uint32) (*types.BlockDetails, error) {
+	var resp *types.BlockDetails
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getBlockDetails", block)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getBlockDetails: %w", err)
@@ -704,8 +704,8 @@ func (c *Client) BlockDetails(ctx context.Context, block uint32) (*zkTypes.Block
 }
 
 // TransactionDetails returns data from a specific transaction given by the transaction hash.
-func (c *Client) TransactionDetails(ctx context.Context, txHash common.Hash) (*zkTypes.TransactionDetails, error) {
-	var resp *zkTypes.TransactionDetails
+func (c *Client) TransactionDetails(ctx context.Context, txHash common.Hash) (*types.TransactionDetails, error) {
+	var resp *types.TransactionDetails
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getTransactionDetails", txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getTransactionDetails: %w", err)
@@ -728,8 +728,8 @@ func (c *Client) BytecodeByHash(ctx context.Context, bytecodeHash common.Hash) (
 }
 
 // RawBlockTransactions returns data of transactions in a block.
-func (c *Client) RawBlockTransactions(ctx context.Context, number uint64) ([]zkTypes.RawBlockTransaction, error) {
-	var resp []zkTypes.RawBlockTransaction
+func (c *Client) RawBlockTransactions(ctx context.Context, number uint64) ([]types.RawBlockTransaction, error) {
+	var resp []types.RawBlockTransaction
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getRawBlockTransactions", number)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getRawBlockTransactions: %w", err)
@@ -740,8 +740,8 @@ func (c *Client) RawBlockTransactions(ctx context.Context, number uint64) ([]zkT
 }
 
 // LogProof returns the proof for a transaction's L2 to L1 log sent via the L1Messenger system contract.
-func (c *Client) LogProof(ctx context.Context, txHash common.Hash, logIndex int) (*zkTypes.LogProof, error) {
-	var resp *zkTypes.LogProof
+func (c *Client) LogProof(ctx context.Context, txHash common.Hash, logIndex int) (*types.LogProof, error) {
+	var resp *types.LogProof
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getL2ToL1LogProof", txHash, logIndex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getL2ToL1LogProof: %w", err)
@@ -752,8 +752,8 @@ func (c *Client) LogProof(ctx context.Context, txHash common.Hash, logIndex int)
 }
 
 // Deprecated: Endpoint will be deprecated in favor of LogProof
-func (c *Client) MsgProof(ctx context.Context, block uint32, sender common.Address, msg common.Hash) (*zkTypes.MessageProof, error) {
-	var resp *zkTypes.MessageProof
+func (c *Client) MsgProof(ctx context.Context, block uint32, sender common.Address, msg common.Hash) (*types.MessageProof, error) {
+	var resp *types.MessageProof
 	err := c.rpcClient.CallContext(ctx, &resp, "zks_getL2ToL1MsgProof", block, sender, msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getL2ToL1MsgProof: %w", err)
@@ -764,8 +764,8 @@ func (c *Client) MsgProof(ctx context.Context, block uint32, sender common.Addre
 }
 
 // Proof returns Merkle proofs for one or more storage values at the specified account along with a Merkle proof of their authenticity.
-func (c *Client) Proof(ctx context.Context, address common.Address, keys []common.Hash, l1BatchNumber *big.Int) (*zkTypes.StorageProof, error) {
-	var res zkTypes.StorageProof
+func (c *Client) Proof(ctx context.Context, address common.Address, keys []common.Hash, l1BatchNumber *big.Int) (*types.StorageProof, error) {
+	var res types.StorageProof
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getProof", address, keys, l1BatchNumber)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getProof: %w", err)
@@ -782,8 +782,8 @@ func (c *Client) Proof(ctx context.Context, address common.Address, keys []commo
 //
 // It’s expected that the optimistic logs of two uncommitted transactions that modify the same state will not
 // have causal relationships between each other.
-func (c *Client) SendRawTransactionWithDetailedOutput(ctx context.Context, tx []byte) (*zkTypes.TransactionWithDetailedOutput, error) {
-	var res zkTypes.TransactionWithDetailedOutput
+func (c *Client) SendRawTransactionWithDetailedOutput(ctx context.Context, tx []byte) (*types.TransactionWithDetailedOutput, error) {
+	var res types.TransactionWithDetailedOutput
 	err := c.rpcClient.CallContext(ctx, &res, "zks_sendRawTransactionWithDetailedOutput", hexutil.Encode(tx))
 	if err != nil {
 		return nil, fmt.Errorf("failed to call zks_sendRawTransactionWithDetailedOutput: %w", err)
@@ -793,7 +793,7 @@ func (c *Client) SendRawTransactionWithDetailedOutput(ctx context.Context, tx []
 
 // L2TransactionFromPriorityOp returns transaction on L2 network from transaction
 // receipt on L1 network.
-func (c *Client) L2TransactionFromPriorityOp(ctx context.Context, l1TxReceipt *types.Receipt) (*zkTypes.TransactionResponse, error) {
+func (c *Client) L2TransactionFromPriorityOp(ctx context.Context, l1TxReceipt *ethTypes.Receipt) (*types.TransactionResponse, error) {
 	if c.mainContract == nil {
 		if err := c.cacheMainContract(ctx); err != nil {
 			return nil, err
@@ -821,7 +821,7 @@ func (c *Client) L2TransactionFromPriorityOp(ctx context.Context, l1TxReceipt *t
 // The txHash is the  hash of the L2 transaction where the message was initiated.
 // The index is used in case there were multiple transactions in one message, you may pass an index of the
 // transaction which confirmation data should be fetched.
-func (c *Client) PriorityOpConfirmation(ctx context.Context, txHash common.Hash, index int) (*zkTypes.PriorityOpConfirmation, error) {
+func (c *Client) PriorityOpConfirmation(ctx context.Context, txHash common.Hash, index int) (*types.PriorityOpConfirmation, error) {
 	receipt, err := c.TransactionReceipt(ctx, txHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
@@ -831,13 +831,13 @@ func (c *Client) PriorityOpConfirmation(ctx context.Context, txHash common.Hash,
 	}
 	fLogs := make([]struct {
 		i int
-		l *zkTypes.L2ToL1Log
+		l *types.L2ToL1Log
 	}, 0)
 	for i, l := range receipt.L2ToL1Logs {
 		if l.Sender == utils.BootloaderFormalAddress {
 			fLogs = append(fLogs, struct {
 				i int
-				l *zkTypes.L2ToL1Log
+				l *types.L2ToL1Log
 			}{i, l})
 		}
 	}
@@ -853,7 +853,7 @@ func (c *Client) PriorityOpConfirmation(ctx context.Context, txHash common.Hash,
 		return nil, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
 	}
 
-	return &zkTypes.PriorityOpConfirmation{
+	return &types.PriorityOpConfirmation{
 		L1BatchNumber:     l2ToL1Log.L1BatchNumber.ToInt(),
 		L2MessageIndex:    proof.Id,
 		L2TxNumberInBlock: receipt.L1BatchNumber.ToInt(),
@@ -862,8 +862,8 @@ func (c *Client) PriorityOpConfirmation(ctx context.Context, txHash common.Hash,
 }
 
 // ConfirmedTokens returns confirmed tokens. Confirmed token is any token bridged to ZKsync Era via the official bridge.
-func (c *Client) ConfirmedTokens(ctx context.Context, from uint32, limit uint8) ([]*zkTypes.Token, error) {
-	res := make([]*zkTypes.Token, 0)
+func (c *Client) ConfirmedTokens(ctx context.Context, from uint32, limit uint8) ([]*types.Token, error) {
+	res := make([]*types.Token, 0)
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getConfirmedTokens", from, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getConfirmedTokens: %w", err)
@@ -960,8 +960,8 @@ func (c *Client) L1TokenAddress(ctx context.Context, token common.Address) (comm
 }
 
 // ProtocolVersion return the protocol version
-func (c *Client) ProtocolVersion(ctx context.Context) (*zkTypes.ProtocolVersion, error) {
-	var res zkTypes.ProtocolVersion
+func (c *Client) ProtocolVersion(ctx context.Context) (*types.ProtocolVersion, error) {
+	var res types.ProtocolVersion
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getProtocolVersion")
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getProtocolVersion: %w", err)
@@ -987,8 +987,8 @@ func (c *Client) AllAccountBalances(ctx context.Context, address common.Address)
 }
 
 // EstimateFee returns the fee for the transaction.
-func (c *Client) EstimateFee(ctx context.Context, msg zkTypes.CallMsg) (*zkTypes.Fee, error) {
-	var res zkTypes.Fee
+func (c *Client) EstimateFee(ctx context.Context, msg types.CallMsg) (*types.Fee, error) {
+	var res types.Fee
 	err := c.rpcClient.CallContext(ctx, &res, "zks_estimateFee", msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_estimateFee: %w", err)
@@ -997,8 +997,8 @@ func (c *Client) EstimateFee(ctx context.Context, msg zkTypes.CallMsg) (*zkTypes
 }
 
 // FeeParams returns the current fee parameters.
-func (c *Client) FeeParams(ctx context.Context) (*zkTypes.FeeParams, error) {
-	var res zkTypes.FeeParams
+func (c *Client) FeeParams(ctx context.Context) (*types.FeeParams, error) {
+	var res types.FeeParams
 	err := c.rpcClient.CallContext(ctx, &res, "zks_getFeeParams")
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_getFeeParams: %w", err)
@@ -1007,7 +1007,7 @@ func (c *Client) FeeParams(ctx context.Context) (*zkTypes.FeeParams, error) {
 }
 
 // EstimateGasL1 estimates the amount of gas required to submit a transaction from L1 to L2.
-func (c *Client) EstimateGasL1(ctx context.Context, msg zkTypes.CallMsg) (uint64, error) {
+func (c *Client) EstimateGasL1(ctx context.Context, msg types.CallMsg) (uint64, error) {
 	var res hexutil.Uint64
 	err := c.rpcClient.CallContext(ctx, &res, "zks_estimateGasL1ToL2", msg)
 	if err != nil {
@@ -1028,7 +1028,7 @@ func (c *Client) EstimateGasTransfer(ctx context.Context, msg TransferCallMsg) (
 // EstimateGasWithdraw estimates the amount of gas required for a withdrawal transaction.
 func (c *Client) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMsg) (uint64, error) {
 	var (
-		callMsg *zkTypes.CallMsg
+		callMsg *types.CallMsg
 		err     error
 	)
 
@@ -1055,9 +1055,9 @@ func (c *Client) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMsg)
 }
 
 // EstimateL1ToL2Execute estimates the amount of gas required for an L1 to L2 execute operation.
-func (c *Client) EstimateL1ToL2Execute(ctx context.Context, msg zkTypes.CallMsg) (uint64, error) {
+func (c *Client) EstimateL1ToL2Execute(ctx context.Context, msg types.CallMsg) (uint64, error) {
 	if msg.Meta == nil || msg.Meta.GasPerPubdata == nil {
-		msg.Meta = &zkTypes.Eip712Meta{GasPerPubdata: utils.NewBig(utils.RequiredL1ToL2GasPerPubdataLimit.Int64())}
+		msg.Meta = &types.Eip712Meta{GasPerPubdata: utils.NewBig(utils.RequiredL1ToL2GasPerPubdataLimit.Int64())}
 	}
 
 	// If the `from` address is not provided, we use a random address, because
@@ -1149,7 +1149,7 @@ func (c *Client) isEIP1271SignatureCorrect(ctx context.Context, address common.A
 	return value == utils.Eip1271MagicValue, nil
 }
 
-func (c *Client) getBlock(ctx context.Context, method string, args ...interface{}) (*zkTypes.Block, error) {
+func (c *Client) getBlock(ctx context.Context, method string, args ...interface{}) (*types.Block, error) {
 	var raw json.RawMessage
 	err := c.rpcClient.CallContext(ctx, &raw, method, args...)
 	if err != nil {
@@ -1165,23 +1165,23 @@ func (c *Client) getBlock(ctx context.Context, method string, args ...interface{
 	}
 
 	// Quick-verify transaction and uncle lists. This mostly helps with debugging the server.
-	if block.UncleHash == types.EmptyUncleHash && len(block.Uncles) > 0 {
+	if block.UncleHash == ethTypes.EmptyUncleHash && len(block.Uncles) > 0 {
 		return nil, errors.New("server returned non-empty uncle list but block header indicates no uncles")
 	}
-	if block.UncleHash != types.EmptyUncleHash && len(block.Uncles) == 0 {
+	if block.UncleHash != ethTypes.EmptyUncleHash && len(block.Uncles) == 0 {
 		return nil, errors.New("server returned empty uncle list but block header indicates uncles")
 	}
-	if block.TxHash == types.EmptyTxsHash && len(block.Transactions) > 0 {
+	if block.TxHash == ethTypes.EmptyTxsHash && len(block.Transactions) > 0 {
 		return nil, errors.New("server returned non-empty transaction list but block header indicates no transactions")
 	}
 	// TODO use this validation when transaction root is fixed on zksync node
-	//if head.TxHash != types.EmptyTxsHash && len(body.Transactions) == 0 {
+	//if head.TxHash != ethTypes.EmptyTxsHash && len(body.Transactions) == 0 {
 	//	return nil, errors.New("server returned empty transaction list but block header indicates transactions")
 	//}
 	// Load uncles because they are not included in the block response.
-	var uncles []*types.Header
+	var uncles []*ethTypes.Header
 	if len(block.Uncles) > 0 {
-		uncles = make([]*types.Header, len(block.Uncles))
+		uncles = make([]*ethTypes.Header, len(block.Uncles))
 		reqs := make([]rpc.BatchElem, len(block.Uncles))
 		for i := range reqs {
 			reqs[i] = rpc.BatchElem{
@@ -1203,8 +1203,8 @@ func (c *Client) getBlock(ctx context.Context, method string, args ...interface{
 		}
 	}
 
-	return &zkTypes.Block{
-		Header: &types.Header{
+	return &types.Block{
+		Header: &ethTypes.Header{
 			ParentHash:       block.ParentHash,
 			UncleHash:        block.UncleHash,
 			Coinbase:         block.Coinbase,

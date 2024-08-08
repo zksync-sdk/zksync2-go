@@ -6,14 +6,14 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
+	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/zksync-sdk/zksync2-go/accounts"
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
 	"github.com/zksync-sdk/zksync2-go/contracts/testneterc20token"
-	zkTypes "github.com/zksync-sdk/zksync2-go/types"
+	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 	"os"
@@ -760,7 +760,7 @@ func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
 	nonce, err := wallet.Nonce(context.Background(), nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	tx := &zkTypes.Transaction712{
+	tx := &types.Transaction712{
 		Nonce:     new(big.Int).SetUint64(nonce),
 		GasTipCap: big.NewInt(0),
 		GasFeeCap: big.NewInt(100_000_000),
@@ -770,7 +770,7 @@ func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
 		ChainID:   big.NewInt(270),
 		From:      &Address1,
 		Data:      hexutil.Bytes{},
-		Meta: &zkTypes.Eip712Meta{
+		Meta: &types.Eip712Meta{
 			GasPerPubdata: utils.NewBig(50_000),
 		},
 	}
@@ -792,7 +792,7 @@ func TestIntegrationWallet_SignTransaction(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	signedTx, err := wallet.SignTransaction(&zkTypes.Transaction712{
+	signedTx, err := wallet.SignTransaction(&types.Transaction712{
 		To:    &Address2,
 		Value: big.NewInt(1_000_000_000_000_000_000), // 1ETH
 	})
@@ -1078,7 +1078,7 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 //	var (
 //		wallet    *accounts.Wallet
 //		ethClient *ethclient.Client
-//		tx        *types.Transaction
+//		tx        *ethTypes.Transaction
 //	)
 //
 //	defer func() {
@@ -1937,8 +1937,8 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoug
 	nonce, err := ethClient.NonceAt(context.Background(), wallet.Address(), nil)
 	assert.NoError(t, err, "NonceAt should not return an error")
 
-	transferTx := types.NewTx(
-		&types.DynamicFeeTx{
+	transferTx := ethTypes.NewTx(
+		&ethTypes.DynamicFeeTx{
 			To:        &transferTo,
 			Value:     new(big.Int).SetUint64(500_000_000_000_000_000),
 			Gas:       30_000,
@@ -1946,7 +1946,7 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoug
 			GasFeeCap: big.NewInt(10_000_000_000),
 		})
 
-	signedTransferTx, _ := types.SignTx(transferTx, types.NewLondonSigner(l1ChainId), wallet.Signer().PrivateKey())
+	signedTransferTx, _ := ethTypes.SignTx(transferTx, ethTypes.NewLondonSigner(l1ChainId), wallet.Signer().PrivateKey())
 	err = ethClient.SendTransaction(context.Background(), signedTransferTx)
 	assert.NoError(t, err, "ethClient.SendTransaction should not return an error")
 
