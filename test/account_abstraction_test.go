@@ -118,11 +118,9 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	assert.NoError(t, err, "GetPaymasterParams should not return an error")
 
 	hash, err := wallet.SendTransaction(context.Background(), &accounts.Transaction{
-		To:   &tokenAddress,
-		Data: calldata,
-		Meta: &types.Eip712Meta{
-			PaymasterParams: paymasterParams,
-		},
+		To:              &tokenAddress,
+		Data:            calldata,
+		PaymasterParams: paymasterParams,
 	})
 	assert.NoError(t, err, "SendTransaction should not return an error")
 

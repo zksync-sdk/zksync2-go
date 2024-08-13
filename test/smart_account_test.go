@@ -1085,7 +1085,7 @@ func TestIntegrationSmartAccount_PopulateTransaction(t *testing.T) {
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	tx := &types.Transaction712{
+	tx := &types.Transaction{
 		To:    &Address2,
 		Value: big.NewInt(7_000_000_000),
 		From:  &Address1,
@@ -1102,7 +1102,7 @@ func TestIntegrationSmartAccount_PopulateTransaction(t *testing.T) {
 	assert.NotNil(t, tx.Gas, "Gas must not be nil")
 	assert.NotNil(t, tx.GasFeeCap, "GasFeeCap must not be nil")
 	assert.NotNil(t, tx.GasTipCap, "GasTipCap must not be nil")
-	assert.NotNil(t, tx.Meta, "Meta must not be nil")
+	assert.NotNil(t, tx.GasPerPubdata, "GasPerPubdata must not be nil")
 }
 
 func TestIntegrationSmartAccount_SignTransaction(t *testing.T) {
@@ -1112,7 +1112,7 @@ func TestIntegrationSmartAccount_SignTransaction(t *testing.T) {
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	signedTx, err := account.SignTransaction(context.Background(), &types.Transaction712{
+	signedTx, err := account.SignTransaction(context.Background(), &types.Transaction{
 		To:    &Address2,
 		Value: big.NewInt(1_000_000_000_000_000_000), // 1ETH
 	})
@@ -1181,7 +1181,7 @@ func TestIntegrationSmartAccount_SendTransaction(t *testing.T) {
 	approveTokenCalldata, err := tokenAbi.Pack("approve", Address2, big.NewInt(1))
 	assert.NoError(t, err, "abi.Pack should not return an error")
 
-	txHash, err := account.SendTransaction(context.Background(), &types.Transaction712{
+	txHash, err := account.SendTransaction(context.Background(), &types.Transaction{
 		To:   &L2Dai,
 		Data: approveTokenCalldata,
 	})

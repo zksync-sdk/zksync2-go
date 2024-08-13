@@ -347,8 +347,8 @@ func (t *TransactOpts) ToTransactOpts(from common.Address, signer bind.SignerFn)
 	}
 }
 
-// Transaction is similar to types.Transaction712 but does not include the From field. This design is intended for use
-// with AdapterL1, AdapterL2, or Deployer, which already have an associated account. The From field is bound to
+// Transaction is similar to types.Transaction but does not include the From field. This design is intended for use
+// with entities which already have an associated account. The From field is bound to
 // their associated account, and thus, it is not included in this type.
 type Transaction struct {
 	To        *common.Address // The address of the recipient.
@@ -359,22 +359,39 @@ type Transaction struct {
 	GasFeeCap *big.Int        // EIP-1559 fee cap per gas.
 	Gas       uint64          // Gas limit to set for the transaction execution.
 
-	ChainID *big.Int          // Chain ID of the network.
-	Meta    *types.Eip712Meta // EIP-712 metadata.
+	ChainID *big.Int // Chain ID of the network.
+
+	// GasPerPubdata denotes the maximum amount of gas the user is willing
+	// to pay for a single byte of pubdata.
+	GasPerPubdata *big.Int `json:"gasPerPubdata,omitempty"`
+	// CustomSignature is used for the cases in which the signer's account
+	// is not an EOA.
+	CustomSignature hexutil.Bytes `json:"customSignature,omitempty"`
+	// FactoryDeps is a non-empty array of bytes. For deployment transactions,
+	// it should contain the bytecode of the contract being deployed.
+	// If the contract is a factory contract, i.e. it can deploy other contracts,
+	// the array should also contain the bytecodes of the contracts which it can deploy.
+	FactoryDeps []hexutil.Bytes `json:"factoryDeps"`
+	// PaymasterParams contains parameters for configuring the custom paymaster
+	// for the transaction.
+	PaymasterParams *types.PaymasterParams `json:"paymasterParams,omitempty"`
 }
 
-func (t *Transaction) ToTransaction712(from common.Address) *types.Transaction712 {
-	return &types.Transaction712{
-		Nonce:     t.Nonce,
-		GasTipCap: t.GasTipCap,
-		GasFeeCap: t.GasFeeCap,
-		Gas:       new(big.Int).SetUint64(t.Gas),
-		To:        t.To,
-		Value:     t.Value,
-		Data:      t.Data,
-		ChainID:   t.ChainID,
-		From:      &from,
-		Meta:      t.Meta,
+func (t *Transaction) ToTransaction712(from common.Address) *types.Transaction {
+	return &types.Transaction{
+		Nonce:           t.Nonce,
+		GasTipCap:       t.GasTipCap,
+		GasFeeCap:       t.GasFeeCap,
+		Gas:             new(big.Int).SetUint64(t.Gas),
+		To:              t.To,
+		Value:           t.Value,
+		Data:            t.Data,
+		ChainID:         t.ChainID,
+		From:            &from,
+		GasPerPubdata:   t.GasPerPubdata,
+		CustomSignature: t.CustomSignature,
+		FactoryDeps:     t.FactoryDeps,
+		PaymasterParams: t.PaymasterParams,
 	}
 }
 
@@ -387,7 +404,12 @@ func (t *Transaction) ToCallMsg(from common.Address) types.CallMsg {
 		GasTipCap: t.GasTipCap,
 		Value:     t.Value,
 		Data:      t.Data,
-		Meta:      t.Meta,
+		Meta: &types.Eip712Meta{
+			GasPerPubdata:   (*hexutil.Big)(t.GasPerPubdata),
+			CustomSignature: t.CustomSignature,
+			FactoryDeps:     t.FactoryDeps,
+			PaymasterParams: t.PaymasterParams,
+		},
 	}
 }
 
@@ -653,16 +675,14 @@ func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *T
 	}
 
 	return &Transaction{
-		To:        &utils.ContractDeployerAddress,
-		Data:      data,
-		Nonce:     auth.Nonce,
-		GasFeeCap: auth.GasFeeCap,
-		GasTipCap: auth.GasTipCap,
-		Gas:       auth.GasLimit,
-		Meta: &types.Eip712Meta{
-			GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
-			FactoryDeps:   factoryDeps,
-		},
+		To:            &utils.ContractDeployerAddress,
+		Data:          data,
+		Nonce:         auth.Nonce,
+		GasFeeCap:     auth.GasFeeCap,
+		GasTipCap:     auth.GasTipCap,
+		Gas:           auth.GasLimit,
+		GasPerPubdata: utils.DefaultGasPerPubdataLimit,
+		FactoryDeps:   factoryDeps,
 	}, nil
 }
 
@@ -710,16 +730,14 @@ func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *
 	}
 
 	return &Transaction{
-		To:        &utils.ContractDeployerAddress,
-		Data:      data,
-		Nonce:     auth.Nonce,
-		GasFeeCap: auth.GasFeeCap,
-		GasTipCap: auth.GasTipCap,
-		Gas:       auth.GasLimit,
-		Meta: &types.Eip712Meta{
-			GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
-			FactoryDeps:   factoryDeps,
-		},
+		To:            &utils.ContractDeployerAddress,
+		Data:          data,
+		Nonce:         auth.Nonce,
+		GasFeeCap:     auth.GasFeeCap,
+		GasTipCap:     auth.GasTipCap,
+		Gas:           auth.GasLimit,
+		GasPerPubdata: utils.DefaultGasPerPubdataLimit,
+		FactoryDeps:   factoryDeps,
 	}, nil
 }
 
@@ -747,4 +765,4 @@ type PayloadSigner func(ctx context.Context, payload []byte, secret interface{},
 
 // TransactionBuilder populates missing fields in a tx with default values.
 // The client is used to fetch data from the network if it is required.
-type TransactionBuilder func(ctx context.Context, tx *types.Transaction712, secret interface{}, client *clients.Client) error
+type TransactionBuilder func(ctx context.Context, tx *types.Transaction, secret interface{}, client *clients.Client) error

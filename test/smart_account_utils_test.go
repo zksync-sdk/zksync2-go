@@ -15,7 +15,7 @@ func TestIntegration_PopulateTransactionECDSA(t *testing.T) {
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
-	tx := types.Transaction712{
+	tx := types.Transaction{
 		To:      &Address2,
 		Value:   big.NewInt(7_000_000_000),
 		ChainID: big.NewInt(270),
@@ -33,11 +33,11 @@ func TestIntegration_PopulateTransactionECDSA(t *testing.T) {
 	assert.NotNil(t, tx.Gas, "Gas must not be nil")
 	assert.NotNil(t, tx.GasFeeCap, "GasFeeCap must not be nil")
 	assert.NotNil(t, tx.GasTipCap, "GasTipCap must not be nil")
-	assert.NotNil(t, tx.Meta, "Meta must not be nil")
+	assert.NotNil(t, tx.GasPerPubdata, "GasPerPubdata must not be nil")
 }
 
 func TestIntegration_PopulateTransactionECDSA_ErrorNoClientProvided(t *testing.T) {
-	tx := types.Transaction712{
+	tx := types.Transaction{
 		To:      &Address2,
 		Value:   big.NewInt(7_000_000_000),
 		ChainID: big.NewInt(270),
@@ -53,6 +53,6 @@ func TestIntegration_PopulateTransactionMultipleECDSA_ErrorNoMultipleKeysProvide
 	defer client.Close()
 	assert.NoError(t, err, "clients.DialBase should not return an error")
 
-	err = accounts.PopulateTransactionMultipleECDSA(context.Background(), &types.Transaction712{}, [1]string{PrivateKey1}, client)
+	err = accounts.PopulateTransactionMultipleECDSA(context.Background(), &types.Transaction{}, [1]string{PrivateKey1}, client)
 	assert.Error(t, err, "PopulateTransactionMultipleECDSA should return an error when only one private key is provided")
 }

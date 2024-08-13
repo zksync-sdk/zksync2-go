@@ -26,7 +26,7 @@ type Signer interface {
 	SignHash(msg []byte) ([]byte, error)
 	// SignTypedData signs the given EIP-712 typed data using the signer's private key and returns the signature.
 	// The domain parameter is the EIP-712 domain separator, and the data parameter is the EIP-712 typed data.
-	SignTypedData(d *eip712.Domain, data eip712.TypedData) ([]byte, error)
+	SignTypedData(typedData apitypes.TypedData) ([]byte, error)
 }
 
 // BaseSigner represents basis implementation of Signer interface.
@@ -111,21 +111,7 @@ func (s *BaseSigner) PrivateKey() *ecdsa.PrivateKey {
 	return s.pk
 }
 
-func (s *BaseSigner) SignTypedData(domain *eip712.Domain, data eip712.TypedData) ([]byte, error) {
-	// compile TypedData structure
-	eip712Msg, err := data.EIP712Message()
-	if err != nil {
-		return nil, err
-	}
-	typedData := apitypes.TypedData{
-		Types: apitypes.Types{
-			data.EIP712Type():   data.EIP712Types(),
-			domain.EIP712Type(): domain.EIP712Types(),
-		},
-		PrimaryType: data.EIP712Type(),
-		Domain:      domain.EIP712Domain(),
-		Message:     eip712Msg,
-	}
+func (s *BaseSigner) SignTypedData(typedData apitypes.TypedData) ([]byte, error) {
 	hash, err := s.HashTypedData(typedData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hash of typed data: %w", err)
