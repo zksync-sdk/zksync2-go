@@ -204,6 +204,9 @@ func (a *WalletL2) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMs
 
 // Transfer moves the base token or any ERC20 token from the associated account to the target account.
 func (a *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*ethTypes.Transaction, error) {
+	// returns types.Transaction
+	// check the type of the transaction
+
 	opts := ensureTransactOpts(auth)
 
 	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
@@ -253,7 +256,7 @@ func (a *WalletL2) CallContract(ctx context.Context, msg CallMsg, blockNumber *b
 // required fields are Transaction.To and either Transaction.Data or
 // Transaction.Value (or both, if the method is payable). Any other fields that
 // are not set will be prepared by this method.
-func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*types.Transaction712, error) {
+func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*types.Transaction, error) {
 	if tx.ChainID == nil {
 		tx.ChainID = (*a.signer).Domain().ChainId
 	}
@@ -274,10 +277,8 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*ty
 	if tx.GasTipCap == nil {
 		tx.GasTipCap = big.NewInt(0)
 	}
-	if tx.Meta == nil {
-		tx.Meta = &types.Eip712Meta{GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())}
-	} else if tx.Meta.GasPerPubdata == nil {
-		tx.Meta.GasPerPubdata = utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64())
+	if tx.GasPerPubdata == nil {
+		tx.GasPerPubdata = utils.DefaultGasPerPubdataLimit
 	}
 	if tx.Gas == 0 || tx.GasFeeCap == nil {
 		fee, err := a.client.EstimateFee(ensureContext(ctx), tx.ToCallMsg(a.Address()))
@@ -302,31 +303,38 @@ func (a *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*ty
 // the network. The input transaction must be a valid transaction with all fields
 // having appropriate values. To obtain a valid transaction, you can use the
 // PopulateTransaction method.
-func (a *WalletL2) SignTransaction(tx *types.Transaction712) ([]byte, error) {
+func (a *WalletL2) SignTransaction(tx *types.Transaction) ([]byte, error) {
 	var gas uint64 = 0
 	if tx.Gas != nil {
 		gas = tx.Gas.Uint64()
 	}
 	preparedTx, err := a.PopulateTransaction(context.Background(), Transaction{
-		To:        tx.To,
-		Data:      tx.Data,
-		Value:     tx.Value,
-		Nonce:     tx.Nonce,
-		GasTipCap: tx.GasTipCap,
-		GasFeeCap: tx.GasFeeCap,
-		Gas:       gas,
-		ChainID:   tx.ChainID,
-		Meta:      tx.Meta,
+		To:              tx.To,
+		Data:            tx.Data,
+		Value:           tx.Value,
+		Nonce:           tx.Nonce,
+		GasTipCap:       tx.GasTipCap,
+		GasFeeCap:       tx.GasFeeCap,
+		Gas:             gas,
+		ChainID:         tx.ChainID,
+		GasPerPubdata:   tx.GasPerPubdata,
+		CustomSignature: tx.CustomSignature,
+		FactoryDeps:     tx.FactoryDeps,
+		PaymasterParams: tx.PaymasterParams,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	signature, err := (*a.signer).SignTypedData((*a.signer).Domain(), preparedTx)
+	typedData, err := preparedTx.TypedData()
 	if err != nil {
 		return nil, err
 	}
-	return preparedTx.RLPValues(signature)
+	signature, err := (*a.signer).SignTypedData(*typedData)
+	if err != nil {
+		return nil, err
+	}
+	return preparedTx.Encode(signature)
 }
 
 // SendTransaction injects a transaction into the pending pool for execution. Any

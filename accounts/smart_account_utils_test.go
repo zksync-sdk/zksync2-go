@@ -8,7 +8,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/assert"
-	"github.com/zksync-sdk/zksync2-go/eip712"
 	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
@@ -24,35 +23,20 @@ var Address2 = common.HexToAddress("0xa61464658AfeAf65CccaaFD3a512b69A83B77618")
 func TestSignPayloadWithECDSASignTransaction(t *testing.T) {
 	signature := "0x475e207d1e5da85721e37118cea54b2a3ac8e5dcd79cd7935c59bdd5cbc71e9824d4ab9dbaa5f8542e51588f4187c406fc4311c2ce9a9aa2a269f14298e5777d1b"
 
-	tx := types.Transaction712{
-		Nonce:     big.NewInt(0),
-		GasTipCap: big.NewInt(0),
-		GasFeeCap: big.NewInt(1_000_000_000),
-		Gas:       big.NewInt(1_000_000_000),
-		To:        &Address2,
-		Value:     big.NewInt(7_000_000_000),
-		Data:      hexutil.Bytes{},
-		ChainID:   big.NewInt(270),
-		From:      &Address1,
-		Meta: &types.Eip712Meta{
-			GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
-		},
+	tx := types.Transaction{
+		Nonce:         big.NewInt(0),
+		GasTipCap:     big.NewInt(0),
+		GasFeeCap:     big.NewInt(1_000_000_000),
+		Gas:           big.NewInt(1_000_000_000),
+		To:            &Address2,
+		Value:         big.NewInt(7_000_000_000),
+		Data:          hexutil.Bytes{},
+		ChainID:       big.NewInt(270),
+		From:          &Address1,
+		GasPerPubdata: utils.DefaultGasPerPubdataLimit,
 	}
 
-	domain := eip712.ZkSyncEraEIP712Domain(270)
-
-	eip712Msg, err := tx.EIP712Message()
-	assert.NoError(t, err, "EIP712Message should not return an error")
-
-	hash, _, err := apitypes.TypedDataAndHash(apitypes.TypedData{
-		Types: apitypes.Types{
-			tx.EIP712Type():     tx.EIP712Types(),
-			domain.EIP712Type(): domain.EIP712Types(),
-		},
-		PrimaryType: tx.EIP712Type(),
-		Domain:      domain.EIP712Domain(),
-		Message:     eip712Msg,
-	})
+	hash, err := tx.Hash()
 	assert.NoError(t, err, "TypedDataAndHash should not return an error")
 
 	sig, err := SignPayloadWithECDSA(context.Background(), hash, PrivateKey1, nil)
@@ -104,35 +88,20 @@ func TestSignPayloadWithECDSASignTypedData(t *testing.T) {
 func TestSignPayloadWithMultipleECDSASignTransaction(t *testing.T) {
 	signature := "0x475e207d1e5da85721e37118cea54b2a3ac8e5dcd79cd7935c59bdd5cbc71e9824d4ab9dbaa5f8542e51588f4187c406fc4311c2ce9a9aa2a269f14298e5777d1b4ff4f280885d2dd0b2234d82cacec8ba94bd6659b64b1d516668b4ca79faf58a58c469fd95590e2541ca01866e312e56c7e38a74b4a8b72fdb07a69a3b34c19f1c"
 
-	tx := types.Transaction712{
-		Nonce:     big.NewInt(0),
-		GasTipCap: big.NewInt(0),
-		GasFeeCap: big.NewInt(1_000_000_000),
-		Gas:       big.NewInt(1_000_000_000),
-		To:        &Address2,
-		Value:     big.NewInt(7_000_000_000),
-		Data:      hexutil.Bytes{},
-		ChainID:   big.NewInt(270),
-		From:      &Address1,
-		Meta: &types.Eip712Meta{
-			GasPerPubdata: utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
-		},
+	tx := types.Transaction{
+		Nonce:         big.NewInt(0),
+		GasTipCap:     big.NewInt(0),
+		GasFeeCap:     big.NewInt(1_000_000_000),
+		Gas:           big.NewInt(1_000_000_000),
+		To:            &Address2,
+		Value:         big.NewInt(7_000_000_000),
+		Data:          hexutil.Bytes{},
+		ChainID:       big.NewInt(270),
+		From:          &Address1,
+		GasPerPubdata: utils.DefaultGasPerPubdataLimit,
 	}
 
-	domain := eip712.ZkSyncEraEIP712Domain(270)
-
-	eip712Msg, err := tx.EIP712Message()
-	assert.NoError(t, err, "EIP712Message should not return an error")
-
-	hash, _, err := apitypes.TypedDataAndHash(apitypes.TypedData{
-		Types: apitypes.Types{
-			tx.EIP712Type():     tx.EIP712Types(),
-			domain.EIP712Type(): domain.EIP712Types(),
-		},
-		PrimaryType: tx.EIP712Type(),
-		Domain:      domain.EIP712Domain(),
-		Message:     eip712Msg,
-	})
+	hash, err := tx.Hash()
 	assert.NoError(t, err, "TypedDataAndHash should not return an error")
 
 	sig, err := SignPayloadWithMultipleECDSA(context.Background(), hash, []string{PrivateKey1, PrivateKey2}, nil)

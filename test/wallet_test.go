@@ -760,19 +760,17 @@ func TestIntegrationWallet_PopulateTransaction(t *testing.T) {
 	nonce, err := wallet.Nonce(context.Background(), nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	tx := &types.Transaction712{
-		Nonce:     new(big.Int).SetUint64(nonce),
-		GasTipCap: big.NewInt(0),
-		GasFeeCap: big.NewInt(100_000_000),
-		Gas:       big.NewInt(154_379),
-		To:        &Address2,
-		Value:     big.NewInt(7_000_000_000),
-		ChainID:   big.NewInt(270),
-		From:      &Address1,
-		Data:      hexutil.Bytes{},
-		Meta: &types.Eip712Meta{
-			GasPerPubdata: utils.NewBig(50_000),
-		},
+	tx := &types.Transaction{
+		Nonce:         new(big.Int).SetUint64(nonce),
+		GasTipCap:     big.NewInt(0),
+		GasFeeCap:     big.NewInt(100_000_000),
+		Gas:           big.NewInt(154_379),
+		To:            &Address2,
+		Value:         big.NewInt(7_000_000_000),
+		ChainID:       big.NewInt(270),
+		From:          &Address1,
+		Data:          hexutil.Bytes{},
+		GasPerPubdata: big.NewInt(50_000),
 	}
 
 	populatedTx, err := wallet.PopulateTransaction(context.Background(), accounts.Transaction{
@@ -792,7 +790,7 @@ func TestIntegrationWallet_SignTransaction(t *testing.T) {
 	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	signedTx, err := wallet.SignTransaction(&types.Transaction712{
+	signedTx, err := wallet.SignTransaction(&types.Transaction{
 		To:    &Address2,
 		Value: big.NewInt(1_000_000_000_000_000_000), // 1ETH
 	})
