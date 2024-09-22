@@ -795,7 +795,7 @@ func (a *WalletL1) PriorityOpConfirmation(ctx context.Context, txHash common.Has
 	return a.clientL2.PriorityOpConfirmation(ctx, txHash, index)
 }
 
-// EstimateCustomBridgeDepositL2Gas used by EstimateDefaultBridgeDepositL2Gas to estimate L2 gas required for token
+// EstimateCustomBridgeDepositL2Gas used by EstimateDepositL2GasFromDefaultBridge to estimate L2 gas required for token
 // bridging via a custom ERC20 bridge.
 func (a *WalletL1) EstimateCustomBridgeDepositL2Gas(ctx context.Context, l1BridgeAddress, l2BridgeAddress, token common.Address,
 	amount *big.Int, to common.Address, bridgeData []byte, from common.Address, gasPerPubdataByte *big.Int) (uint64, error) {
@@ -814,9 +814,9 @@ func (a *WalletL1) EstimateCustomBridgeDepositL2Gas(ctx context.Context, l1Bridg
 	})
 }
 
-// EstimateDefaultBridgeDepositL2Gas returns an estimation of L2 gas required for token bridging via the default ERC20
+// EstimateDepositL2GasFromDefaultBridge returns an estimation of L2 gas required for token bridging via the default ERC20
 // bridge.
-func (a *WalletL1) EstimateDefaultBridgeDepositL2Gas(ctx context.Context, token common.Address, amount *big.Int,
+func (a *WalletL1) EstimateDepositL2GasFromDefaultBridge(ctx context.Context, token common.Address, amount *big.Int,
 	to, from common.Address, gasPerPubdataByte *big.Int) (uint64, error) {
 
 	// If the `from` address is not provided, we use a random address, because
@@ -1202,7 +1202,7 @@ func (a *WalletL1) estimateL2GasLimit(auth *TransactOpts, tx *DepositTransaction
 			return err
 		}
 	} else {
-		gas, err := a.EstimateDefaultBridgeDepositL2Gas(
+		gas, err := a.EstimateDepositL2GasFromDefaultBridge(
 			auth.Context,
 			tx.Token,
 			tx.Amount,
