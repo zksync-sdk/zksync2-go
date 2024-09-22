@@ -795,19 +795,20 @@ func (a *WalletL1) PriorityOpConfirmation(ctx context.Context, txHash common.Has
 	return a.clientL2.PriorityOpConfirmation(ctx, txHash, index)
 }
 
-// EstimateCustomBridgeDepositL2Gas used by EstimateDepositL2GasFromDefaultBridge to estimate L2 gas required for token
+// EstimateDepositL2GasFromCustomBridge used by EstimateDepositL2GasFromDefaultBridge to estimate L2 gas required for token
 // bridging via a custom ERC20 bridge.
-func (a *WalletL1) EstimateCustomBridgeDepositL2Gas(ctx context.Context, l1BridgeAddress, l2BridgeAddress, token common.Address,
-	amount *big.Int, to common.Address, bridgeData []byte, from common.Address, gasPerPubdataByte *big.Int) (uint64, error) {
+func (a *WalletL1) EstimateDepositL2GasFromCustomBridge(ctx context.Context, l1BridgeAddress, l2BridgeAddress, token common.Address,
+	amount *big.Int, to common.Address, bridgeData []byte, from common.Address, gasPerPubdataByte, l2Value *big.Int) (uint64, error) {
 	calldata, err := utils.Erc20BridgeCalldata(token, from, to, amount, bridgeData)
 	if err != nil {
 		return 0, err
 	}
 
 	return a.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), types.CallMsg{
-		From: utils.ApplyL1ToL2Alias(l1BridgeAddress),
-		To:   &l2BridgeAddress,
-		Data: calldata,
+		From:  utils.ApplyL1ToL2Alias(l1BridgeAddress),
+		To:    &l2BridgeAddress,
+		Data:  calldata,
+		Value: l2Value,
 		Meta: &types.Eip712Meta{
 			GasPerPubdata: utils.NewBig(gasPerPubdataByte.Int64()),
 		},
@@ -856,7 +857,7 @@ func (a *WalletL1) EstimateDepositL2GasFromDefaultBridge(ctx context.Context, to
 		if token == utils.LegacyEthAddress {
 			token = utils.EthAddressInContracts
 		}
-		return a.EstimateCustomBridgeDepositL2Gas(
+		return a.EstimateDepositL2GasFromCustomBridge(
 			ensureContext(ctx),
 			bridgeContracts.L1SharedBridge,
 			bridgeContracts.L2SharedBridge,
@@ -865,7 +866,8 @@ func (a *WalletL1) EstimateDepositL2GasFromDefaultBridge(ctx context.Context, to
 			to,
 			calldata,
 			from,
-			gasPerPubdataByte)
+			gasPerPubdataByte,
+			common.Big0)
 	}
 }
 
@@ -1232,8 +1234,8 @@ func (a *WalletL1) estimateL2GasLimitFromCustomBridge(auth *TransactOpts, tx *De
 		return errBridge
 	}
 
-	gas, errGas := a.EstimateCustomBridgeDepositL2Gas(auth.Context, *tx.BridgeAddress, l2Address, tx.Token,
-		tx.Amount, tx.To, tx.CustomBridgeData, a.auth.From, tx.GasPerPubdataByte)
+	gas, errGas := a.EstimateDepositL2GasFromCustomBridge(auth.Context, *tx.BridgeAddress, l2Address, tx.Token,
+		tx.Amount, tx.To, tx.CustomBridgeData, a.auth.From, tx.GasPerPubdataByte, common.Big0)
 	if errGas != nil {
 		return errGas
 	}
