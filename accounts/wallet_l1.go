@@ -804,13 +804,11 @@ func (w *WalletL1) EstimateDepositL2GasFromCustomBridge(ctx context.Context, l1B
 	}
 
 	return w.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), types.CallMsg{
-		From:  utils.ApplyL1ToL2Alias(l1BridgeAddress),
-		To:    &l2BridgeAddress,
-		Data:  calldata,
-		Value: l2Value,
-		Meta: &types.Eip712Meta{
-			GasPerPubdata: utils.NewBig(gasPerPubdataByte.Int64()),
-		},
+		From:          utils.ApplyL1ToL2Alias(l1BridgeAddress),
+		To:            &l2BridgeAddress,
+		Data:          calldata,
+		Value:         l2Value,
+		GasPerPubdata: gasPerPubdataByte,
 	})
 }
 
@@ -837,12 +835,10 @@ func (w *WalletL1) EstimateDepositL2GasFromDefaultBridge(ctx context.Context, to
 
 	if token == w.baseToken {
 		return w.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), types.CallMsg{
-			From:  from,
-			To:    &to,
-			Value: amount,
-			Meta: &types.Eip712Meta{
-				GasPerPubdata: utils.NewBig(gasPerPubdataByte.Int64()),
-			},
+			From:          from,
+			To:            &to,
+			Value:         amount,
+			GasPerPubdata: gasPerPubdataByte,
 		})
 	} else {
 		bridgeContracts, err := w.clientL2.BridgeContracts(ensureContext(ctx))

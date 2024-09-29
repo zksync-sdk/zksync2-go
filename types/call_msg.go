@@ -17,7 +17,21 @@ type CallMsg struct {
 	GasTipCap *big.Int        // EIP-1559 tip per gas.
 	Value     *big.Int        // Amount of wei sent along with the call.
 	Data      []byte          // Input data, usually an ABI-encoded contract method invocation.
-	Meta      *Eip712Meta     // EIP-712 metadata.
+
+	// GasPerPubdata denotes the maximum amount of gas the user is willing
+	// to pay for a single byte of pubdata.
+	GasPerPubdata *big.Int
+	// CustomSignature is used for the cases in which the signer's account
+	// is not an EOA.
+	CustomSignature hexutil.Bytes
+	// FactoryDeps is a non-empty array of bytes. For deployment transactions,
+	// it should contain the bytecode of the contract being deployed.
+	// If the contract is a factory contract, i.e. it can deploy other contracts,
+	// the array should also contain the bytecodes of the contracts which it can deploy.
+	FactoryDeps []hexutil.Bytes
+	// PaymasterParams contains parameters for configuring the custom paymaster
+	// for the transaction.
+	PaymasterParams *PaymasterParams
 }
 
 func (m CallMsg) MarshalJSON() ([]byte, error) {
@@ -44,8 +58,31 @@ func (m CallMsg) MarshalJSON() ([]byte, error) {
 	if m.GasFeeCap != nil {
 		arg["maxFeePerGas"] = (*hexutil.Big)(m.GasFeeCap)
 	}
-	if m.Meta != nil {
-		arg["eip712Meta"] = m.Meta
+
+	eip712Meta := map[string]interface{}{}
+
+	if m.GasPerPubdata != nil {
+		eip712Meta["gasPerPubdata"] = (*hexutil.Big)(m.GasPerPubdata)
 	}
+	if len(m.CustomSignature) > 0 {
+		eip712Meta["customSignature"] = m.CustomSignature
+	}
+	if len(m.FactoryDeps) > 0 {
+		// Convert FactoryDeps into [][]uint format
+		fdb := make([][]uint, len(m.FactoryDeps))
+		for i, v := range m.FactoryDeps {
+			fdb[i] = make([]uint, len(v))
+			for j, b := range v {
+				fdb[i][j] = uint(b)
+			}
+		}
+		eip712Meta["factoryDeps"] = fdb
+	}
+	if m.PaymasterParams != nil {
+		eip712Meta["paymasterParams"] = m.PaymasterParams
+	}
+
+	// Add eip712Meta to the main argument map
+	arg["eip712Meta"] = eip712Meta
 	return json.Marshal(arg)
 }
