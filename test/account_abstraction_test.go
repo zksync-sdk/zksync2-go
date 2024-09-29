@@ -53,7 +53,7 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	token, err := NewToken(tokenAddress, client)
 	assert.NoError(t, err, "NewToken should not return an error")
 
-	opts, err := bind.NewKeyedTransactorWithChainID(wallet.Signer().PrivateKey(), wallet.Signer().Domain().ChainId)
+	opts, err := bind.NewKeyedTransactorWithChainID(wallet.Signer().PrivateKey(), wallet.Signer().ChainID())
 	assert.NoError(t, err, "NewKeyedTransactorWithChainID should not return an error")
 
 	mint, err := token.Mint(opts, wallet.Address(), AirdropAmount)

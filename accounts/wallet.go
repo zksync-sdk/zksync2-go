@@ -28,12 +28,11 @@ func NewWallet(rawPrivateKey []byte, clientL2 *clients.Client, clientL1 *ethclie
 	if err != nil {
 		return nil, err
 	}
-	signer, err := NewBaseSignerFromRawPrivateKey(rawPrivateKey, chainID.Int64())
+	signer, err := NewECDSASignerFromRawPrivateKey(rawPrivateKey, chainID)
 	if err != nil {
 		return nil, err
 	}
-	s := Signer(signer)
-	return NewWalletFromSigner(&s, clientL2, clientL1)
+	return NewWalletFromSigner(signer, clientL2, clientL1)
 }
 
 // NewWalletFromSigner creates an instance of Wallet associated with the account provided by the signer.
@@ -42,7 +41,7 @@ func NewWallet(rawPrivateKey []byte, clientL2 *clients.Client, clientL1 *ethclie
 // require communication with the network.
 // A runner that contains only a signer can be configured to communicate with L2 and L1 networks by
 // using Wallet.Connect and Wallet.ConnectL1, respectively.
-func NewWalletFromSigner(signer *Signer, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
+func NewWalletFromSigner(signer *ECDSASigner, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
 	if signer == nil {
 		return nil, errors.New("signer must be provided")
 	}
@@ -73,38 +72,35 @@ func NewWalletFromSigner(signer *Signer, clientL2 *clients.Client, clientL1 *eth
 // NewWalletFromMnemonic creates a new instance of Wallet based on the provided mnemonic phrase.
 // The clientL2 and clientL1 parameters are optional, and can be configured with Wallet.Connect
 // and Wallet.ConnectL1, respectively.
-func NewWalletFromMnemonic(mnemonic string, chainId int64, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
-	signer, err := NewBaseSignerFromMnemonic(mnemonic, chainId)
+func NewWalletFromMnemonic(mnemonic string, chainId *big.Int, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
+	signer, err := NewECDSASignerFromMnemonic(mnemonic, chainId)
 	if err != nil {
 		return nil, err
 	}
-	s := Signer(signer)
-	return NewWalletFromSigner(&s, clientL2, clientL1)
+	return NewWalletFromSigner(signer, clientL2, clientL1)
 }
 
 // NewWalletFromRawPrivateKey creates a new instance of Wallet based on the provided private key
 // of the account and chain ID.
 // The clientL2 and clientL1 parameters are optional, and can be configured with Wallet.Connect
 // and Wallet.ConnectL1, respectively.
-func NewWalletFromRawPrivateKey(rawPk []byte, chainId int64, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
-	signer, err := NewBaseSignerFromRawPrivateKey(rawPk, chainId)
+func NewWalletFromRawPrivateKey(rawPk []byte, chainId *big.Int, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
+	signer, err := NewECDSASignerFromRawPrivateKey(rawPk, chainId)
 	if err != nil {
 		return nil, err
 	}
-	s := Signer(signer)
-	return NewWalletFromSigner(&s, clientL2, clientL1)
+	return NewWalletFromSigner(signer, clientL2, clientL1)
 }
 
 // NewRandomWallet creates an instance of Wallet with a randomly generated account.
 // The clientL2 and clientL1 parameters are optional, and can be configured with Wallet.Connect
 // and Wallet.ConnectL1, respectively.
-func NewRandomWallet(chainId int64, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
+func NewRandomWallet(chainId *big.Int, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
 	signer, err := NewRandomBaseSigner(chainId)
 	if err != nil {
 		return nil, err
 	}
-	s := Signer(signer)
-	return NewWalletFromSigner(&s, clientL2, clientL1)
+	return NewWalletFromSigner(signer, clientL2, clientL1)
 }
 
 // Nonce returns the account nonce of the associated account.
@@ -121,12 +117,10 @@ func (w *Wallet) PendingNonce(ctx context.Context) (uint64, error) {
 
 // Connect returns a new instance of Wallet with the provided client for the L2 network.
 func (w *Wallet) Connect(client *clients.Client) (*Wallet, error) {
-	s := w.Signer()
-	return NewWalletFromSigner(&s, client, w.clientL1)
+	return NewWalletFromSigner(w.Signer(), client, w.clientL1)
 }
 
 // ConnectL1 returns a new instance of Wallet with the provided client for the L1 network.
 func (w *Wallet) ConnectL1(client *ethclient.Client) (*Wallet, error) {
-	s := w.Signer()
-	return NewWalletFromSigner(&s, w.clientL2, client)
+	return NewWalletFromSigner(w.Signer(), w.clientL2, client)
 }

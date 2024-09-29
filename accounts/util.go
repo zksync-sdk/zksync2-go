@@ -38,11 +38,11 @@ func ensureTransactOpts(auth *TransactOpts) *TransactOpts {
 	return auth
 }
 
-func newTransactorWithSigner(signer *Signer, chainID *big.Int) (*bind.TransactOpts, error) {
+func newTransactorWithSigner(signer *ECDSASigner, chainID *big.Int) (*bind.TransactOpts, error) {
 	if chainID == nil {
 		return nil, bind.ErrNoChainID
 	}
-	keyAddr := (*signer).Address()
+	keyAddr := signer.Address()
 	latestSigner := types.LatestSignerForChainID(chainID)
 	return &bind.TransactOpts{
 		From: keyAddr,
@@ -50,7 +50,7 @@ func newTransactorWithSigner(signer *Signer, chainID *big.Int) (*bind.TransactOp
 			if address != keyAddr {
 				return nil, bind.ErrNotAuthorized
 			}
-			signature, err := (*signer).SignHash(latestSigner.Hash(tx).Bytes())
+			signature, err := signer.SignMessage(context.Background(), latestSigner.Hash(tx).Bytes())
 			if err != nil {
 				return nil, err
 			}

@@ -57,16 +57,15 @@ func NewWalletL1(rawPrivateKey []byte, clientL1 *ethclient.Client, clientL2 *cli
 	if err != nil {
 		return nil, err
 	}
-	signer, err := NewBaseSignerFromRawPrivateKey(rawPrivateKey, chainID.Int64())
+	signer, err := NewECDSASignerFromRawPrivateKey(rawPrivateKey, chainID)
 	if err != nil {
 		return nil, err
 	}
-	s := Signer(signer)
-	return NewWalletL1FromSigner(&s, clientL1, clientL2)
+	return NewWalletL1FromSigner(signer, clientL1, clientL2)
 }
 
 // NewWalletL1FromSigner creates an instance of WalletL1 associated with the account provided by the signer.
-func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 *clients.Client) (*WalletL1, error) {
+func NewWalletL1FromSigner(signer *ECDSASigner, clientL1 *ethclient.Client, clientL2 *clients.Client) (*WalletL1, error) {
 	if signer == nil {
 		return nil, errors.New("signer is not provided")
 	} else if clientL1 == nil {
@@ -151,69 +150,69 @@ func NewWalletL1FromSigner(signer *Signer, clientL1 *ethclient.Client, clientL2 
 }
 
 // MainContract returns the ZKsync L1 smart contract.
-func (a *WalletL1) MainContract(_ context.Context) (*zksynchyperchain.IZkSyncHyperchain, error) {
-	return a.mainContract, nil
+func (w *WalletL1) MainContract(_ context.Context) (*zksynchyperchain.IZkSyncHyperchain, error) {
+	return w.mainContract, nil
 }
 
 // BridgehubContract returns the Bridgehub L1 smart contract.
-func (a *WalletL1) BridgehubContract(_ context.Context) (*bridgehub.IBridgehub, error) {
-	return a.bridgehub, nil
+func (w *WalletL1) BridgehubContract(_ context.Context) (*bridgehub.IBridgehub, error) {
+	return w.bridgehub, nil
 }
 
 // L1BridgeContracts returns L1 bridge contracts.
-func (a *WalletL1) L1BridgeContracts(_ context.Context) (*types.L1BridgeContracts, error) {
-	return &types.L1BridgeContracts{Erc20: a.defaultL1Bridge, Shared: a.sharedL1Bridge}, nil
+func (w *WalletL1) L1BridgeContracts(_ context.Context) (*types.L1BridgeContracts, error) {
+	return &types.L1BridgeContracts{Erc20: w.defaultL1Bridge, Shared: w.sharedL1Bridge}, nil
 }
 
 // BaseToken returns the address of the base token on L1.
-func (a *WalletL1) BaseToken(opts *CallOpts) (common.Address, error) {
-	callOpts := ensureCallOpts(opts).ToCallOpts(a.auth.From)
-	return a.bridgehub.BaseToken(callOpts, a.l2ChainId)
+func (w *WalletL1) BaseToken(opts *CallOpts) (common.Address, error) {
+	callOpts := ensureCallOpts(opts).ToCallOpts(w.auth.From)
+	return w.bridgehub.BaseToken(callOpts, w.l2ChainId)
 }
 
 // IsEthBasedChain returns whether the chain is ETH-based.
-func (a *WalletL1) IsEthBasedChain(ctx context.Context) (bool, error) {
-	return a.clientL2.IsEthBasedChain(ctx)
+func (w *WalletL1) IsEthBasedChain(ctx context.Context) (bool, error) {
+	return w.clientL2.IsEthBasedChain(ctx)
 }
 
 // BalanceL1 returns the balance of the specified token on L1 that can be
 // either base token or any ERC20 token.
-func (a *WalletL1) BalanceL1(opts *CallOpts, token common.Address) (*big.Int, error) {
-	callOpts := ensureCallOpts(opts).ToCallOpts(a.auth.From)
+func (w *WalletL1) BalanceL1(opts *CallOpts, token common.Address) (*big.Int, error) {
+	callOpts := ensureCallOpts(opts).ToCallOpts(w.auth.From)
 	if token == utils.LegacyEthAddress || token == utils.EthAddressInContracts {
-		return a.clientL1.BalanceAt(callOpts.Context, a.auth.From, callOpts.BlockNumber)
+		return w.clientL1.BalanceAt(callOpts.Context, w.auth.From, callOpts.BlockNumber)
 	} else {
-		erc20Contract, err := erc20.NewIERC20(token, a.clientL1)
+		erc20Contract, err := erc20.NewIERC20(token, w.clientL1)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load IERC20: %w", err)
 		}
-		return erc20Contract.BalanceOf(callOpts, a.auth.From)
+		return erc20Contract.BalanceOf(callOpts, w.auth.From)
 	}
 }
 
 // AllowanceL1 returns the amount of approved tokens for a specific L1 bridge.
-func (a *WalletL1) AllowanceL1(opts *CallOpts, token common.Address, bridgeAddress common.Address) (*big.Int, error) {
+func (w *WalletL1) AllowanceL1(opts *CallOpts, token common.Address, bridgeAddress common.Address) (*big.Int, error) {
 	if token == (common.Address{}) {
 		token = utils.LegacyEthAddress
 	}
 	if bridgeAddress == (common.Address{}) {
-		bridgeAddress = a.sharedL1BridgeAddress
+		bridgeAddress = w.sharedL1BridgeAddress
 	}
 
-	erc20Contract, err := erc20.NewIERC20(token, a.clientL1)
+	erc20Contract, err := erc20.NewIERC20(token, w.clientL1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IERC20: %w", err)
 	}
-	return erc20Contract.Allowance(ensureCallOpts(opts).ToCallOpts(a.auth.From), a.auth.From, bridgeAddress)
+	return erc20Contract.Allowance(ensureCallOpts(opts).ToCallOpts(w.auth.From), w.auth.From, bridgeAddress)
 }
 
 // L2TokenAddress returns the corresponding address on the L2 network for the token on the L1 network.
-func (a *WalletL1) L2TokenAddress(ctx context.Context, token common.Address) (common.Address, error) {
-	return a.clientL2.L2TokenAddress(ensureContext(ctx), token)
+func (w *WalletL1) L2TokenAddress(ctx context.Context, token common.Address) (common.Address, error) {
+	return w.clientL2.L2TokenAddress(ensureContext(ctx), token)
 }
 
 // ApproveERC20 approves the specified amount of tokens for the specified L1 bridge.
-func (a *WalletL1) ApproveERC20(auth *TransactOpts, token common.Address, amount *big.Int,
+func (w *WalletL1) ApproveERC20(auth *TransactOpts, token common.Address, amount *big.Int,
 	bridgeAddress common.Address) (*ethTypes.Transaction, error) {
 	if token == (common.Address{}) {
 		return nil, errors.New("token L1 address must be provided")
@@ -222,10 +221,10 @@ func (a *WalletL1) ApproveERC20(auth *TransactOpts, token common.Address, amount
 		return nil, errors.New("ETH token can't be approved. The address of the token does not exist on L1")
 	}
 
-	opts := ensureTransactOpts(auth).ToTransactOpts(a.auth.From, a.auth.Signer)
+	opts := ensureTransactOpts(auth).ToTransactOpts(w.auth.From, w.auth.Signer)
 	if bridgeAddress == (common.Address{}) {
-		if !a.isEthBasedChain && token == a.baseToken {
-			sharedBridge, err := a.bridgehub.SharedBridge(&bind.CallOpts{
+		if !w.isEthBasedChain && token == w.baseToken {
+			sharedBridge, err := w.bridgehub.SharedBridge(&bind.CallOpts{
 				From:    opts.From,
 				Context: opts.Context,
 			})
@@ -234,11 +233,11 @@ func (a *WalletL1) ApproveERC20(auth *TransactOpts, token common.Address, amount
 			}
 			bridgeAddress = sharedBridge
 		} else {
-			bridgeAddress = a.sharedL1BridgeAddress
+			bridgeAddress = w.sharedL1BridgeAddress
 		}
 	}
 
-	erc20Contract, err := erc20.NewIERC20(token, a.clientL1)
+	erc20Contract, err := erc20.NewIERC20(token, w.clientL1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IERC20: %w", err)
 	}
@@ -246,16 +245,16 @@ func (a *WalletL1) ApproveERC20(auth *TransactOpts, token common.Address, amount
 }
 
 // BaseCost returns base cost for L2 transaction.
-func (a *WalletL1) BaseCost(opts *CallOpts, gasLimit, gasPerPubdataByte, gasPrice *big.Int) (*big.Int, error) {
-	callOpts := ensureCallOpts(opts).ToCallOpts(a.auth.From)
+func (w *WalletL1) BaseCost(opts *CallOpts, gasLimit, gasPerPubdataByte, gasPrice *big.Int) (*big.Int, error) {
+	callOpts := ensureCallOpts(opts).ToCallOpts(w.auth.From)
 	if gasPrice == nil {
 		var err error
-		if gasPrice, err = a.clientL1.SuggestGasPrice(callOpts.Context); err != nil {
+		if gasPrice, err = w.clientL1.SuggestGasPrice(callOpts.Context); err != nil {
 			return nil, err
 		}
 	}
-	return a.bridgehub.L2TransactionBaseCost(callOpts,
-		a.l2ChainId,
+	return w.bridgehub.L2TransactionBaseCost(callOpts,
+		w.l2ChainId,
 		gasPrice,
 		gasLimit,
 		gasPerPubdataByte,
@@ -265,7 +264,7 @@ func (a *WalletL1) BaseCost(opts *CallOpts, gasLimit, gasPerPubdataByte, gasPric
 // DepositAllowanceParams returns the parameters for the approval token transaction based on the deposit token and amount.
 // Some deposit transactions require multiple approvals. Existing allowance for the bridge is not checked;
 // allowance is calculated solely based on the specified amount.
-func (a *WalletL1) DepositAllowanceParams(opts *CallOpts, msg DepositCallMsg) ([]struct {
+func (w *WalletL1) DepositAllowanceParams(opts *CallOpts, msg DepositCallMsg) ([]struct {
 	Token     common.Address
 	Allowance *big.Int
 }, error) {
@@ -273,26 +272,26 @@ func (a *WalletL1) DepositAllowanceParams(opts *CallOpts, msg DepositCallMsg) ([
 	if msg.Token == utils.LegacyEthAddress {
 		msg.Token = utils.EthAddressInContracts
 	}
-	if a.isEthBasedChain && msg.Token == utils.EthAddressInContracts {
+	if w.isEthBasedChain && msg.Token == utils.EthAddressInContracts {
 		return nil, errors.New("token ETH can't be approved. The address of the token does not exist on L1")
 	}
 
 	transactOpts := msg.ToTransactOpts()
 	tx := msg.ToDepositTransaction()
-	mintValue, err := a.calculateMintValue(&transactOpts, &tx)
+	mintValue, err := w.calculateMintValue(&transactOpts, &tx)
 	if err != nil {
 		return nil, err
 	}
-	if a.isEthBasedChain || msg.Token == utils.EthAddressInContracts || msg.Token == a.baseToken {
+	if w.isEthBasedChain || msg.Token == utils.EthAddressInContracts || msg.Token == w.baseToken {
 		return []struct {
 			Token     common.Address
 			Allowance *big.Int
-		}{{a.baseToken, mintValue}}, nil
+		}{{w.baseToken, mintValue}}, nil
 	} else {
 		return []struct {
 			Token     common.Address
 			Allowance *big.Int
-		}{{a.baseToken, mintValue}, {msg.Token, msg.Amount}}, nil
+		}{{w.baseToken, mintValue}, {msg.Token, msg.Amount}}, nil
 	}
 }
 
@@ -304,27 +303,27 @@ func (a *WalletL1) DepositAllowanceParams(opts *CallOpts, msg DepositCallMsg) ([
 // DepositTransaction.ApproveBaseERC20 can be enabled to perform token approval.
 // If there are already enough approved tokens for the L1 bridge, token approval will be skipped.
 // To check the amount of approved tokens for a specific bridge, use the AdapterL1.AllowanceL1 method.
-func (a *WalletL1) Deposit(auth *TransactOpts, tx DepositTransaction) (*ethTypes.Transaction, error) {
+func (w *WalletL1) Deposit(auth *TransactOpts, tx DepositTransaction) (*ethTypes.Transaction, error) {
 	opts := ensureTransactOpts(auth)
 	if tx.Token == utils.LegacyEthAddress {
 		tx.Token = utils.EthAddressInContracts
 	}
-	if a.isEthBasedChain && tx.Token == utils.EthAddressInContracts {
-		return a.depositEthToEthBasedChain(opts, &tx)
-	} else if a.isEthBasedChain {
-		return a.depositTokenToEthBasedChain(opts, &tx)
+	if w.isEthBasedChain && tx.Token == utils.EthAddressInContracts {
+		return w.depositEthToEthBasedChain(opts, &tx)
+	} else if w.isEthBasedChain {
+		return w.depositTokenToEthBasedChain(opts, &tx)
 	} else if tx.Token == utils.EthAddressInContracts {
-		return a.depositEthToNonEthBasedChain(opts, &tx)
-	} else if tx.Token == a.baseToken {
-		return a.depositBaseTokenToNonEthBasedChain(opts, &tx)
+		return w.depositEthToNonEthBasedChain(opts, &tx)
+	} else if tx.Token == w.baseToken {
+		return w.depositBaseTokenToNonEthBasedChain(opts, &tx)
 	} else {
-		return a.depositNonBaseTokenToNonEthBasedChain(opts, &tx)
+		return w.depositNonBaseTokenToNonEthBasedChain(opts, &tx)
 	}
 }
 
 // EstimateGasDeposit estimates the amount of gas required for a deposit transaction on L1 network.
 // Gas of approving ERC20 token is not included in estimation.
-func (a *WalletL1) EstimateGasDeposit(ctx context.Context, msg DepositCallMsg) (uint64, error) {
+func (w *WalletL1) EstimateGasDeposit(ctx context.Context, msg DepositCallMsg) (uint64, error) {
 	if msg.Token == utils.LegacyEthAddress {
 		msg.Token = utils.EthAddressInContracts
 	}
@@ -332,39 +331,39 @@ func (a *WalletL1) EstimateGasDeposit(ctx context.Context, msg DepositCallMsg) (
 	opts := msg.ToTransactOpts()
 	opts.Context = ctx
 	depositTx := msg.ToDepositTransaction()
-	if err := a.populateDepositTxWithDefaults(&opts, &depositTx); err != nil {
+	if err := w.populateDepositTxWithDefaults(&opts, &depositTx); err != nil {
 		return 0, err
 	}
-	mintValue, err := a.calculateMintValue(&opts, &depositTx)
+	mintValue, err := w.calculateMintValue(&opts, &depositTx)
 	if err != nil {
 		return 0, err
 	}
-	if a.isEthBasedChain && msg.Token == utils.EthAddressInContracts {
-		tx, prepareErr := a.prepareDepositEthToEthBasedChain(&opts, &depositTx, mintValue)
+	if w.isEthBasedChain && msg.Token == utils.EthAddressInContracts {
+		tx, prepareErr := w.prepareDepositEthToEthBasedChain(&opts, &depositTx, mintValue)
 		if prepareErr != nil {
 			return 0, prepareErr
 		}
-		return a.EstimateGasRequestExecute(ensureContext(ctx), tx.ToRequestExecuteCallMsg(&opts))
-	} else if a.isEthBasedChain {
-		tx, prepareErr := a.prepareDepositTokenToEthBasedChain(&opts, &depositTx, mintValue)
+		return w.EstimateGasRequestExecute(ensureContext(ctx), tx.ToRequestExecuteCallMsg(&opts))
+	} else if w.isEthBasedChain {
+		tx, prepareErr := w.prepareDepositTokenToEthBasedChain(&opts, &depositTx, mintValue)
 		if prepareErr != nil {
 			return 0, prepareErr
 		}
 		return tx.Gas(), nil
 	} else if msg.Token == utils.EthAddressInContracts {
-		tx, prepareErr := a.prepareDepositEthToNonEthBasedChain(&opts, &depositTx, mintValue)
+		tx, prepareErr := w.prepareDepositEthToNonEthBasedChain(&opts, &depositTx, mintValue)
 		if prepareErr != nil {
 			return 0, prepareErr
 		}
 		return tx.Gas(), nil
-	} else if msg.Token == a.baseToken {
-		tx, prepareErr := a.prepareDepositBaseTokenToNonEthBasedChain(&opts, &depositTx, mintValue)
+	} else if msg.Token == w.baseToken {
+		tx, prepareErr := w.prepareDepositBaseTokenToNonEthBasedChain(&opts, &depositTx, mintValue)
 		if prepareErr != nil {
 			return 0, prepareErr
 		}
-		return a.EstimateGasRequestExecute(ensureContext(ctx), tx.ToRequestExecuteCallMsg(&opts))
+		return w.EstimateGasRequestExecute(ensureContext(ctx), tx.ToRequestExecuteCallMsg(&opts))
 	} else {
-		tx, prepareErr := a.prepareDepositNonBasedTokenToNonEthBasedChain(&opts, &depositTx, mintValue)
+		tx, prepareErr := w.prepareDepositNonBasedTokenToNonEthBasedChain(&opts, &depositTx, mintValue)
 		if prepareErr != nil {
 			return 0, prepareErr
 		}
@@ -373,7 +372,7 @@ func (a *WalletL1) EstimateGasDeposit(ctx context.Context, msg DepositCallMsg) (
 }
 
 // FullRequiredDepositFee retrieves the full needed ETH fee for the deposit on both L1 and L2 networks.
-func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMsg) (*FullDepositFee, error) {
+func (w *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMsg) (*FullDepositFee, error) {
 	if msg.Token == utils.LegacyEthAddress {
 		msg.Token = utils.EthAddressInContracts
 	}
@@ -384,14 +383,14 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 	tx := msg.ToDepositTransaction()
 	tx.Amount = dummyAmount
 
-	if err := a.populateDepositTxWithDefaults(&opts, &tx); err != nil {
+	if err := w.populateDepositTxWithDefaults(&opts, &tx); err != nil {
 		return nil, err
 	}
-	baseCost, err := a.calculateBaseCost(&opts, &tx)
+	baseCost, err := w.calculateBaseCost(&opts, &tx)
 	if err != nil {
 		return nil, err
 	}
-	mintValue, err := a.calculateMintValueFromBaseCost(baseCost, &tx)
+	mintValue, err := w.calculateMintValueFromBaseCost(baseCost, &tx)
 	if err != nil {
 		return nil, err
 	}
@@ -401,13 +400,13 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 		gasPriceForEstimation = opts.GasFeeCap
 	}
 
-	if a.isEthBasedChain {
-		selfBalanceETH, balanceErr := a.BalanceL1(nil, utils.EthAddressInContracts)
+	if w.isEthBasedChain {
+		selfBalanceETH, balanceErr := w.BalanceL1(nil, utils.EthAddressInContracts)
 		if balanceErr != nil {
 			return nil, balanceErr
 		}
 		// To ensure that L1 gas estimation succeeds when using estimateGasDeposit,
-		// the account needs to have a sufficient ETH balance.
+		// the account needs to have w sufficient ETH balance.
 		if baseCost.Cmp(new(big.Int).Add(selfBalanceETH, dummyAmount)) >= 0 {
 			recommendedETHBalance := utils.L1RecommendedMinEthDepositGasLimit
 			if msg.Token == utils.EthAddressInContracts {
@@ -416,15 +415,15 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 			recommendedETHBalance.Mul(recommendedETHBalance, gasPriceForEstimation)
 			recommendedETHBalance.Add(recommendedETHBalance, baseCost)
 			return nil, fmt.Errorf("not enough balance for deposit. Under the provided gas price, "+
-				"the recommended balance to perform a deposit is %v ETH", recommendedETHBalance)
+				"the recommended balance to perform w deposit is %v ETH", recommendedETHBalance)
 		}
 
 		if msg.Token != utils.EthAddressInContracts {
-			bridgeAddress := a.sharedL1BridgeAddress
+			bridgeAddress := w.sharedL1BridgeAddress
 			if msg.BridgeAddress != nil {
 				bridgeAddress = *msg.BridgeAddress
 			}
-			allowance, allowanceErr := a.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, msg.Token, bridgeAddress)
+			allowance, allowanceErr := w.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, msg.Token, bridgeAddress)
 			if allowanceErr != nil {
 				return nil, allowanceErr
 			}
@@ -433,7 +432,7 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 			}
 		}
 	} else {
-		allowance, allowanceErr := a.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, a.baseToken, a.sharedL1BridgeAddress)
+		allowance, allowanceErr := w.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, w.baseToken, w.sharedL1BridgeAddress)
 		if allowanceErr != nil {
 			return nil, allowanceErr
 		}
@@ -441,7 +440,7 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 			return nil, errors.New("not enough base token allowance to cover the deposit")
 		}
 
-		if msg.Token == utils.EthAddressInContracts || msg.Token == a.baseToken {
+		if msg.Token == utils.EthAddressInContracts || msg.Token == w.baseToken {
 			if msg.Value == nil {
 				msg.Value = msg.Amount
 			}
@@ -449,7 +448,7 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 			if msg.Value == nil {
 				msg.Value = big.NewInt(0)
 			}
-			allowance, allowanceErr = a.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, msg.Token, a.sharedL1BridgeAddress)
+			allowance, allowanceErr = w.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, msg.Token, w.sharedL1BridgeAddress)
 			if allowanceErr != nil {
 				return nil, allowanceErr
 			}
@@ -464,7 +463,7 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 	// fails because the user does not have enough balance.
 	// In that matter, new DepositCalMsg is created with empty
 	// GasPrice, GasFeeCap and GasTipCap field.
-	l1GasLimit, err := a.EstimateGasDeposit(ensureContext(ctx), DepositCallMsg{
+	l1GasLimit, err := w.EstimateGasDeposit(ensureContext(ctx), DepositCallMsg{
 		To:                tx.To,
 		Token:             tx.Token,
 		Amount:            dummyAmount,
@@ -496,29 +495,29 @@ func (a *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 }
 
 // FinalizeWithdraw proves the inclusion of the L2 -> L1 withdrawal message.
-func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Hash, index int) (*ethTypes.Transaction, error) {
-	if a.clientL1 == nil {
+func (w *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Hash, index int) (*ethTypes.Transaction, error) {
+	if w.clientL1 == nil {
 		return nil, errors.New("ethereum provider is not initialized")
 	}
 	var opts *bind.TransactOpts
 	if auth == nil {
 		opts = &bind.TransactOpts{
-			From:    a.auth.From,
-			Signer:  a.auth.Signer,
+			From:    w.auth.From,
+			Signer:  w.auth.Signer,
 			Context: context.Background(),
 		}
 	} else {
-		opts = auth.ToTransactOpts(a.auth.From, a.auth.Signer)
+		opts = auth.ToTransactOpts(w.auth.From, w.auth.Signer)
 	}
 
-	log, l1BatchTxId, err := a.getWithdrawalLog(opts.Context, withdrawalHash, index)
+	log, l1BatchTxId, err := w.getWithdrawalLog(opts.Context, withdrawalHash, index)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get WithdrawalLog: %w", err)
 	}
 	if l1BatchTxId == nil {
 		return nil, errors.New("empty l1BatchTxIndex")
 	}
-	l2ToL1LogIndex, _, err := a.getWithdrawalL2ToL1Log(opts.Context, withdrawalHash, index)
+	l2ToL1LogIndex, _, err := w.getWithdrawalL2ToL1Log(opts.Context, withdrawalHash, index)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get WithdrawalL2ToL1Log: %w", err)
 	}
@@ -526,7 +525,7 @@ func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Ha
 		return nil, errors.New("not enough Topics count")
 	}
 
-	proof, err := a.clientL2.LogProof(opts.Context, withdrawalHash, l2ToL1LogIndex)
+	proof, err := w.clientL2.LogProof(opts.Context, withdrawalHash, l2ToL1LogIndex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
 	}
@@ -552,9 +551,9 @@ func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Ha
 	sender := common.BytesToAddress(log.Topics[1].Bytes()[12:])
 
 	if sender == utils.L2BaseTokenAddress {
-		return a.sharedL1Bridge.FinalizeWithdrawal(
+		return w.sharedL1Bridge.FinalizeWithdrawal(
 			opts,
-			a.l2ChainId,
+			w.l2ChainId,
 			log.L1BatchNumber.ToInt(),
 			big.NewInt(int64(proof.Id)),
 			uint16(l1BatchTxId.Uint64()),
@@ -563,13 +562,13 @@ func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Ha
 	}
 
 	var l1Bridge *l1sharedbridge.IL1SharedBridge
-	isLegacyBridge, err := a.clientL2.IsL2BridgeLegacy(opts.Context, sender)
+	isLegacyBridge, err := w.clientL2.IsL2BridgeLegacy(opts.Context, sender)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if L2 bridge is legacy: %w", err)
 	}
 
 	if isLegacyBridge {
-		l2Bridge, errL2Bridge := l2bridge.NewIL2Bridge(sender, a.clientL2)
+		l2Bridge, errL2Bridge := l2bridge.NewIL2Bridge(sender, w.clientL2)
 		if errL2Bridge != nil {
 			return nil, fmt.Errorf("failed to connect to legacy L2 bridge: %w", errL2Bridge)
 		}
@@ -577,9 +576,9 @@ func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Ha
 		if errL1Bridge != nil {
 			return nil, errL1Bridge
 		}
-		l1Bridge, errL1Bridge = l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, a.clientL1)
+		l1Bridge, errL1Bridge = l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, w.clientL1)
 	} else {
-		l2Bridge, errL2Bridge := l2sharedbridge.NewIL2SharedBridge(sender, a.clientL2)
+		l2Bridge, errL2Bridge := l2sharedbridge.NewIL2SharedBridge(sender, w.clientL2)
 		if errL2Bridge != nil {
 			return nil, fmt.Errorf("failed to connect to legacy L2 bridge: %w", errL2Bridge)
 		}
@@ -587,12 +586,12 @@ func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Ha
 		if errL1Bridge != nil {
 			return nil, errL1Bridge
 		}
-		l1Bridge, errL1Bridge = l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, a.clientL1)
+		l1Bridge, errL1Bridge = l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, w.clientL1)
 	}
 
 	return l1Bridge.FinalizeWithdrawal(
 		opts,
-		a.l2ChainId,
+		w.l2ChainId,
 		log.L1BatchNumber.ToInt(),
 		big.NewInt(int64(proof.Id)),
 		uint16(l1BatchTxId.Uint64()),
@@ -601,16 +600,16 @@ func (a *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Ha
 }
 
 // IsWithdrawFinalized checks if the withdrawal finalized on L1 network.
-func (a *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Hash, index int) (bool, error) {
-	callOpts := ensureCallOpts(opts).ToCallOpts(a.auth.From)
-	if a.clientL1 == nil {
+func (w *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Hash, index int) (bool, error) {
+	callOpts := ensureCallOpts(opts).ToCallOpts(w.auth.From)
+	if w.clientL1 == nil {
 		return false, errors.New("ethereum provider is not initialized")
 	}
-	log, _, err := a.getWithdrawalLog(callOpts.Context, withdrawalHash, index)
+	log, _, err := w.getWithdrawalLog(callOpts.Context, withdrawalHash, index)
 	if err != nil {
 		return false, fmt.Errorf("failed to get WithdrawalLog: %w", err)
 	}
-	l2ToL1LogIndex, _, err := a.getWithdrawalL2ToL1Log(callOpts.Context, withdrawalHash, index)
+	l2ToL1LogIndex, _, err := w.getWithdrawalL2ToL1Log(callOpts.Context, withdrawalHash, index)
 	if err != nil {
 		return false, fmt.Errorf("failed to get WithdrawalL2ToL1Log: %w", err)
 	}
@@ -618,18 +617,18 @@ func (a *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Has
 		return false, errors.New("not enough Topics count")
 	}
 	sender := common.BytesToAddress(log.Topics[1].Bytes()[12:])
-	proof, err := a.clientL2.LogProof(callOpts.Context, withdrawalHash, l2ToL1LogIndex)
+	proof, err := w.clientL2.LogProof(callOpts.Context, withdrawalHash, l2ToL1LogIndex)
 	if err != nil {
 		return false, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
 	}
 
-	l1BridgeAddress := a.sharedL1BridgeAddress
-	isBaseToken, err := a.clientL2.IsBaseToken(callOpts.Context, sender)
+	l1BridgeAddress := w.sharedL1BridgeAddress
+	isBaseToken, err := w.clientL2.IsBaseToken(callOpts.Context, sender)
 	if err != nil {
 		return false, err
 	}
 	if !isBaseToken {
-		l2Bridge, bridgeErr := l2sharedbridge.NewIL2SharedBridge(sender, a.clientL2)
+		l2Bridge, bridgeErr := l2sharedbridge.NewIL2SharedBridge(sender, w.clientL2)
 		if bridgeErr != nil {
 			return false, fmt.Errorf("failed to init l2Bridge: %w", err)
 		}
@@ -639,19 +638,19 @@ func (a *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Has
 		}
 	}
 
-	l1Bridge, err := l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, a.clientL1)
+	l1Bridge, err := l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, w.clientL1)
 	if err != nil {
 		return false, fmt.Errorf("failed to init l1Bridge: %w", err)
 	}
-	return l1Bridge.IsWithdrawalFinalized(callOpts, a.l2ChainId, log.L1BatchNumber.ToInt(), big.NewInt(int64(proof.Id)))
+	return l1Bridge.IsWithdrawalFinalized(callOpts, w.l2ChainId, log.L1BatchNumber.ToInt(), big.NewInt(int64(proof.Id)))
 }
 
 // ClaimFailedDeposit withdraws funds from the initiated deposit, which failed when finalizing on L2.
 // If the deposit L2 transaction has failed, it sends an L1 transaction calling ClaimFailedDeposit method
 // of the L1 bridge, which results in returning L1 tokens back to the depositor, otherwise throws the error.
-func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Hash) (*ethTypes.Transaction, error) {
+func (w *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Hash) (*ethTypes.Transaction, error) {
 	opts := ensureTransactOpts(auth)
-	receipt, err := a.clientL2.TransactionReceipt(opts.Context, depositHash)
+	receipt, err := w.clientL2.TransactionReceipt(opts.Context, depositHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
 	}
@@ -670,7 +669,7 @@ func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Has
 		return nil, errors.New("can't claim successful deposit")
 	}
 
-	tx, _, err := a.clientL2.TransactionByHash(opts.Context, depositHash)
+	tx, _, err := w.clientL2.TransactionByHash(opts.Context, depositHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Transaction: %w", err)
 	}
@@ -680,7 +679,7 @@ func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Has
 
 	// Undo the aliasing, since the Mailbox contract set it as for contract address.
 	l1BridgeAddress := utils.UndoL1ToL2Alias(receipt.From)
-	l1Bridge, err := l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, a.clientL1)
+	l1Bridge, err := l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, w.clientL1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init l1Bridge: %w", err)
 	}
@@ -704,7 +703,7 @@ func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Has
 	l1Token := inputValues[2].(common.Address)
 	amount := inputValues[3].(*big.Int)
 
-	proof, err := a.clientL2.LogProof(opts.Context, depositHash, successL2ToL1LogIndex)
+	proof, err := w.clientL2.LogProof(opts.Context, depositHash, successL2ToL1LogIndex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
 	}
@@ -715,8 +714,8 @@ func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Has
 	}
 
 	return l1Bridge.ClaimFailedDeposit(
-		opts.ToTransactOpts(a.auth.From, a.auth.Signer),
-		a.l2ChainId,
+		opts.ToTransactOpts(w.auth.From, w.auth.Signer),
+		w.l2ChainId,
 		l1Sender,
 		l1Token,
 		amount,
@@ -729,16 +728,16 @@ func (a *WalletL1) ClaimFailedDeposit(auth *TransactOpts, depositHash common.Has
 }
 
 // RequestExecute request execution of L2 transaction from L1.
-func (a *WalletL1) RequestExecute(auth *TransactOpts, tx RequestExecuteTransaction) (*ethTypes.Transaction, error) {
+func (w *WalletL1) RequestExecute(auth *TransactOpts, tx RequestExecuteTransaction) (*ethTypes.Transaction, error) {
 	opts := ensureTransactOpts(auth)
-	err := a.prepareRequestExecuteTx(opts, &tx)
+	err := w.prepareRequestExecuteTx(opts, &tx)
 	if err != nil {
 		return nil, err
 	}
-	return a.bridgehub.RequestL2TransactionDirect(
-		opts.ToTransactOpts(a.auth.From, a.auth.Signer),
+	return w.bridgehub.RequestL2TransactionDirect(
+		opts.ToTransactOpts(w.auth.From, w.auth.Signer),
 		bridgehub.L2TransactionRequestDirect{
-			ChainId:                  a.l2ChainId,
+			ChainId:                  w.l2ChainId,
 			MintValue:                tx.MintValue,
 			L2Contract:               tx.ContractAddress,
 			L2Value:                  tx.L2Value,
@@ -752,38 +751,38 @@ func (a *WalletL1) RequestExecute(auth *TransactOpts, tx RequestExecuteTransacti
 }
 
 // EstimateGasRequestExecute estimates the amount of gas required for a request execute transaction.
-func (a *WalletL1) EstimateGasRequestExecute(ctx context.Context, msg RequestExecuteCallMsg) (uint64, error) {
+func (w *WalletL1) EstimateGasRequestExecute(ctx context.Context, msg RequestExecuteCallMsg) (uint64, error) {
 	opts := msg.ToTransactOpts()
 	tx := msg.ToRequestExecuteTransaction()
-	err := a.prepareRequestExecuteTx(&opts, &tx)
+	err := w.prepareRequestExecuteTx(&opts, &tx)
 	if err != nil {
 		return 0, err
 	}
 
 	preparedRequestExecuteCallMsg := tx.ToRequestExecuteCallMsg(&opts)
-	callMsg, err := preparedRequestExecuteCallMsg.ToCallMsgWithChainID(a.auth.From, a.l2ChainId)
+	callMsg, err := preparedRequestExecuteCallMsg.ToCallMsgWithChainID(w.auth.From, w.l2ChainId)
 	if err != nil {
 		return 0, err
 	}
 
-	return a.clientL1.EstimateGas(ensureContext(ctx), callMsg)
+	return w.clientL1.EstimateGas(ensureContext(ctx), callMsg)
 }
 
 // RequestExecuteAllowanceParams returns the parameters for the approval token transaction based on the request execute transaction.
 // Existing allowance for the bridge is not checked; allowance is calculated solely based on the specified transaction.
-func (a *WalletL1) RequestExecuteAllowanceParams(opts *CallOpts, msg RequestExecuteCallMsg) (AllowanceParams, error) {
-	if a.isEthBasedChain {
+func (w *WalletL1) RequestExecuteAllowanceParams(opts *CallOpts, msg RequestExecuteCallMsg) (AllowanceParams, error) {
+	if w.isEthBasedChain {
 		return AllowanceParams{}, errors.New("token ETH can't be approved. The address of the token does not exist on L1")
 	}
 
 	opts = ensureCallOpts(opts)
 	transactOpts := msg.ToTransactOpts()
 	tx := msg.ToRequestExecuteTransaction()
-	err := a.prepareRequestExecuteTx(&transactOpts, &tx)
+	err := w.prepareRequestExecuteTx(&transactOpts, &tx)
 	if err != nil {
 		return AllowanceParams{}, err
 	}
-	return AllowanceParams{Token: a.baseToken, Allowance: tx.MintValue}, nil
+	return AllowanceParams{Token: w.baseToken, Allowance: tx.MintValue}, nil
 
 }
 
@@ -791,20 +790,20 @@ func (a *WalletL1) RequestExecuteAllowanceParams(opts *CallOpts, msg RequestExec
 // The txHash is the  hash of the L2 transaction where the message was initiated.
 // The index is used in case there were multiple transactions in one message, you may pass an index of the
 // transaction which confirmation data should be fetched.
-func (a *WalletL1) PriorityOpConfirmation(ctx context.Context, txHash common.Hash, index int) (*types.PriorityOpConfirmation, error) {
-	return a.clientL2.PriorityOpConfirmation(ctx, txHash, index)
+func (w *WalletL1) PriorityOpConfirmation(ctx context.Context, txHash common.Hash, index int) (*types.PriorityOpConfirmation, error) {
+	return w.clientL2.PriorityOpConfirmation(ctx, txHash, index)
 }
 
 // EstimateDepositL2GasFromCustomBridge used by EstimateDepositL2GasFromDefaultBridge to estimate L2 gas required for token
 // bridging via a custom ERC20 bridge.
-func (a *WalletL1) EstimateDepositL2GasFromCustomBridge(ctx context.Context, l1BridgeAddress, l2BridgeAddress, token common.Address,
+func (w *WalletL1) EstimateDepositL2GasFromCustomBridge(ctx context.Context, l1BridgeAddress, l2BridgeAddress, token common.Address,
 	amount *big.Int, to common.Address, bridgeData []byte, from common.Address, gasPerPubdataByte, l2Value *big.Int) (uint64, error) {
 	calldata, err := utils.Erc20BridgeCalldata(token, from, to, amount, bridgeData)
 	if err != nil {
 		return 0, err
 	}
 
-	return a.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), types.CallMsg{
+	return w.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), types.CallMsg{
 		From:  utils.ApplyL1ToL2Alias(l1BridgeAddress),
 		To:    &l2BridgeAddress,
 		Data:  calldata,
@@ -817,10 +816,10 @@ func (a *WalletL1) EstimateDepositL2GasFromCustomBridge(ctx context.Context, l1B
 
 // EstimateDepositL2GasFromDefaultBridge returns an estimation of L2 gas required for token bridging via the default ERC20
 // bridge.
-func (a *WalletL1) EstimateDepositL2GasFromDefaultBridge(ctx context.Context, token common.Address, amount *big.Int,
+func (w *WalletL1) EstimateDepositL2GasFromDefaultBridge(ctx context.Context, token common.Address, amount *big.Int,
 	to, from common.Address, gasPerPubdataByte *big.Int) (uint64, error) {
 
-	// If the `from` address is not provided, we use a random address, because
+	// If the `from` address is not provided, we use w random address, because
 	// due to storage slot aggregation, the gas estimation will depend on the address
 	// and so estimation for the zero address may be smaller than for the sender.
 	if from == (common.Address{}) {
@@ -836,8 +835,8 @@ func (a *WalletL1) EstimateDepositL2GasFromDefaultBridge(ctx context.Context, to
 		from = crypto.PubkeyToAddress(*publicKeyECDSA)
 	}
 
-	if token == a.baseToken {
-		return a.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), types.CallMsg{
+	if token == w.baseToken {
+		return w.clientL2.EstimateL1ToL2Execute(ensureContext(ctx), types.CallMsg{
 			From:  from,
 			To:    &to,
 			Value: amount,
@@ -846,18 +845,18 @@ func (a *WalletL1) EstimateDepositL2GasFromDefaultBridge(ctx context.Context, to
 			},
 		})
 	} else {
-		bridgeContracts, err := a.clientL2.BridgeContracts(ensureContext(ctx))
+		bridgeContracts, err := w.clientL2.BridgeContracts(ensureContext(ctx))
 		if err != nil {
 			return 0, err
 		}
-		calldata, err := utils.Erc20DefaultBridgeData(token, a.clientL1)
+		calldata, err := utils.Erc20DefaultBridgeData(token, w.clientL1)
 		if err != nil {
 			return 0, err
 		}
 		if token == utils.LegacyEthAddress {
 			token = utils.EthAddressInContracts
 		}
-		return a.EstimateDepositL2GasFromCustomBridge(
+		return w.EstimateDepositL2GasFromCustomBridge(
 			ensureContext(ctx),
 			bridgeContracts.L1SharedBridge,
 			bridgeContracts.L2SharedBridge,
@@ -871,25 +870,25 @@ func (a *WalletL1) EstimateDepositL2GasFromDefaultBridge(ctx context.Context, to
 	}
 }
 
-func (a *WalletL1) depositEthToEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) depositEthToEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
-	mintValue, err := a.calculateMintValue(opts, tx)
+	mintValue, err := w.calculateMintValue(opts, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	preparedTx, err := a.prepareDepositEthToEthBasedChain(opts, tx, mintValue)
+	preparedTx, err := w.prepareDepositEthToEthBasedChain(opts, tx, mintValue)
 	if err != nil {
 		return nil, err
 	}
 
-	return a.RequestExecute(opts, *preparedTx)
+	return w.RequestExecute(opts, *preparedTx)
 }
 
-func (a *WalletL1) prepareDepositEthToEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*RequestExecuteTransaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) prepareDepositEthToEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*RequestExecuteTransaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
 	if opts.Value == nil {
@@ -906,15 +905,15 @@ func (a *WalletL1) prepareDepositEthToEthBasedChain(opts *TransactOpts, tx *Depo
 	}, nil
 }
 
-func (a *WalletL1) depositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) depositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
-	baseCost, err := a.calculateBaseCost(opts, tx)
+	baseCost, err := w.calculateBaseCost(opts, tx)
 	if err != nil {
 		return nil, err
 	}
-	mintValue, err := a.calculateMintValueFromBaseCost(baseCost, tx)
+	mintValue, err := w.calculateMintValueFromBaseCost(baseCost, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -924,48 +923,48 @@ func (a *WalletL1) depositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTr
 	}
 
 	if tx.ApproveERC20 {
-		bridge := a.sharedL1BridgeAddress
+		bridge := w.sharedL1BridgeAddress
 		if tx.BridgeAddress != nil {
 			bridge = *tx.BridgeAddress
 		}
-		approveErr := a.approveERC20(tx.ApproveAuth, tx.Token, tx.Amount, bridge)
+		approveErr := w.approveERC20(tx.ApproveAuth, tx.Token, tx.Amount, bridge)
 		if approveErr != nil {
 			return nil, approveErr
 		}
 	}
 
-	preparedTx, err := a.prepareDepositTokenToEthBasedChain(opts, tx, mintValue)
+	preparedTx, err := w.prepareDepositTokenToEthBasedChain(opts, tx, mintValue)
 	if err != nil {
 		return nil, err
 	}
-	if sendErr := a.clientL1.SendTransaction(opts.Context, preparedTx); sendErr != nil {
+	if sendErr := w.clientL1.SendTransaction(opts.Context, preparedTx); sendErr != nil {
 		return nil, sendErr
 	}
 	return preparedTx, nil
 }
 
-func (a *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*ethTypes.Transaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*ethTypes.Transaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
 	if opts.Value == nil {
 		opts.Value = mintValue
 	}
 
-	secondBridgeAddress := a.sharedL1BridgeAddress
+	secondBridgeAddress := w.sharedL1BridgeAddress
 	if tx.BridgeAddress != nil {
 		secondBridgeAddress = *tx.BridgeAddress
 	}
 
-	secondBridgeCalldata, err := a.secondBridgeCalldata(tx.Token, tx.To, tx.Amount)
+	secondBridgeCalldata, err := w.secondBridgeCalldata(tx.Token, tx.To, tx.Amount)
 	if err != nil {
 		return nil, err
 	}
 
-	noSendOpts := opts.ToTransactOpts(a.auth.From, a.auth.Signer)
+	noSendOpts := opts.ToTransactOpts(w.auth.From, w.auth.Signer)
 	noSendOpts.NoSend = true
-	depositTx, err := a.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
-		ChainId:                  a.l2ChainId,
+	depositTx, err := w.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
+		ChainId:                  w.l2ChainId,
 		MintValue:                mintValue,
 		L2Value:                  big.NewInt(0),
 		L2GasLimit:               tx.L2GasLimit,
@@ -981,15 +980,15 @@ func (a *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOpts, tx *De
 	return depositTx, nil
 }
 
-func (a *WalletL1) depositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) depositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
-	baseCost, err := a.calculateBaseCost(opts, tx)
+	baseCost, err := w.calculateBaseCost(opts, tx)
 	if err != nil {
 		return nil, err
 	}
-	mintValue, err := a.calculateMintValueFromBaseCost(baseCost, tx)
+	mintValue, err := w.calculateMintValueFromBaseCost(baseCost, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -999,44 +998,44 @@ func (a *WalletL1) depositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositT
 	}
 
 	if tx.ApproveBaseERC20 {
-		approveErr := a.approveERC20(ensureTransactOpts(tx.ApproveBaseAuth), a.baseToken, mintValue, a.sharedL1BridgeAddress)
+		approveErr := w.approveERC20(ensureTransactOpts(tx.ApproveBaseAuth), w.baseToken, mintValue, w.sharedL1BridgeAddress)
 		if approveErr != nil {
 			return nil, approveErr
 		}
 	}
 
-	preparedTx, err := a.prepareDepositEthToNonEthBasedChain(opts, tx, mintValue)
+	preparedTx, err := w.prepareDepositEthToNonEthBasedChain(opts, tx, mintValue)
 	if err != nil {
 		return nil, err
 	}
 
-	if sendErr := a.clientL1.SendTransaction(opts.Context, preparedTx); sendErr != nil {
+	if sendErr := w.clientL1.SendTransaction(opts.Context, preparedTx); sendErr != nil {
 		return nil, sendErr
 	}
 	return preparedTx, nil
 }
 
-func (a *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*ethTypes.Transaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*ethTypes.Transaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
 	if opts.Value == nil {
 		opts.Value = tx.Amount
 	}
-	secondBridgeCalldata, err := a.secondBridgeCalldata(utils.EthAddressInContracts, tx.To, big.NewInt(0))
+	secondBridgeCalldata, err := w.secondBridgeCalldata(utils.EthAddressInContracts, tx.To, big.NewInt(0))
 	if err != nil {
 		return nil, err
 	}
 
-	secondBridgeAddress := a.sharedL1BridgeAddress
+	secondBridgeAddress := w.sharedL1BridgeAddress
 	if tx.BridgeAddress != nil {
 		secondBridgeAddress = *tx.BridgeAddress
 	}
 
-	noSendOpts := opts.ToTransactOpts(a.auth.From, a.auth.Signer)
+	noSendOpts := opts.ToTransactOpts(w.auth.From, w.auth.Signer)
 	noSendOpts.NoSend = true
-	depositTx, err := a.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
-		ChainId:                  a.l2ChainId,
+	depositTx, err := w.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
+		ChainId:                  w.l2ChainId,
 		MintValue:                mintValue,
 		L2Value:                  big.NewInt(0),
 		L2GasLimit:               tx.L2GasLimit,
@@ -1052,11 +1051,11 @@ func (a *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOpts, tx *D
 	return depositTx, nil
 }
 
-func (a *WalletL1) depositBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) depositBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
-	mintValue, err := a.calculateMintValue(opts, tx)
+	mintValue, err := w.calculateMintValue(opts, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -1066,22 +1065,22 @@ func (a *WalletL1) depositBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *De
 		if tx.ApproveBaseERC20 {
 			approveOpts = tx.ApproveAuth
 		}
-		approveErr := a.approveERC20(ensureTransactOpts(approveOpts), a.baseToken, mintValue, a.sharedL1BridgeAddress)
+		approveErr := w.approveERC20(ensureTransactOpts(approveOpts), w.baseToken, mintValue, w.sharedL1BridgeAddress)
 		if approveErr != nil {
 			return nil, approveErr
 		}
 	}
 
-	preparedTx, err := a.prepareDepositBaseTokenToNonEthBasedChain(opts, tx, mintValue)
+	preparedTx, err := w.prepareDepositBaseTokenToNonEthBasedChain(opts, tx, mintValue)
 	if err != nil {
 		return nil, err
 	}
 
-	return a.RequestExecute(opts, *preparedTx)
+	return w.RequestExecute(opts, *preparedTx)
 }
 
-func (a *WalletL1) prepareDepositBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*RequestExecuteTransaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) prepareDepositBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*RequestExecuteTransaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
 	opts.Value = big.NewInt(0)
@@ -1097,15 +1096,15 @@ func (a *WalletL1) prepareDepositBaseTokenToNonEthBasedChain(opts *TransactOpts,
 	}, nil
 }
 
-func (a *WalletL1) depositNonBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) depositNonBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction) (*ethTypes.Transaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
-	baseCost, err := a.calculateBaseCost(opts, tx)
+	baseCost, err := w.calculateBaseCost(opts, tx)
 	if err != nil {
 		return nil, err
 	}
-	mintValue, err := a.calculateMintValueFromBaseCost(baseCost, tx)
+	mintValue, err := w.calculateMintValueFromBaseCost(baseCost, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -1115,55 +1114,55 @@ func (a *WalletL1) depositNonBaseTokenToNonEthBasedChain(opts *TransactOpts, tx 
 	}
 
 	if tx.ApproveBaseERC20 {
-		approveErr := a.approveERC20(ensureTransactOpts(tx.ApproveBaseAuth), a.baseToken, mintValue, a.sharedL1BridgeAddress)
+		approveErr := w.approveERC20(ensureTransactOpts(tx.ApproveBaseAuth), w.baseToken, mintValue, w.sharedL1BridgeAddress)
 		if approveErr != nil {
 			return nil, approveErr
 		}
 	}
 
 	if tx.ApproveERC20 {
-		bridge := a.sharedL1BridgeAddress
+		bridge := w.sharedL1BridgeAddress
 		if tx.BridgeAddress != nil {
 			bridge = *tx.BridgeAddress
 		}
-		approveErr := a.approveERC20(ensureTransactOpts(tx.ApproveAuth), tx.Token, tx.Amount, bridge)
+		approveErr := w.approveERC20(ensureTransactOpts(tx.ApproveAuth), tx.Token, tx.Amount, bridge)
 		if approveErr != nil {
 			return nil, approveErr
 		}
 	}
 
-	preparedTx, err := a.prepareDepositNonBasedTokenToNonEthBasedChain(opts, tx, mintValue)
+	preparedTx, err := w.prepareDepositNonBasedTokenToNonEthBasedChain(opts, tx, mintValue)
 	if err != nil {
 		return nil, err
 	}
 
-	if sendErr := a.clientL1.SendTransaction(opts.Context, preparedTx); sendErr != nil {
+	if sendErr := w.clientL1.SendTransaction(opts.Context, preparedTx); sendErr != nil {
 		return nil, sendErr
 	}
 	return preparedTx, nil
 }
 
-func (a *WalletL1) prepareDepositNonBasedTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*ethTypes.Transaction, error) {
-	if err := a.populateDepositTxWithDefaults(opts, tx); err != nil {
+func (w *WalletL1) prepareDepositNonBasedTokenToNonEthBasedChain(opts *TransactOpts, tx *DepositTransaction, mintValue *big.Int) (*ethTypes.Transaction, error) {
+	if err := w.populateDepositTxWithDefaults(opts, tx); err != nil {
 		return nil, err
 	}
 	if opts.Value == nil {
 		opts.Value = big.NewInt(0)
 	}
-	secondBridgeCalldata, err := a.secondBridgeCalldata(tx.Token, tx.To, tx.Amount)
+	secondBridgeCalldata, err := w.secondBridgeCalldata(tx.Token, tx.To, tx.Amount)
 	if err != nil {
 		return nil, err
 	}
 
-	secondBridgeAddress := a.sharedL1BridgeAddress
+	secondBridgeAddress := w.sharedL1BridgeAddress
 	if tx.BridgeAddress != nil {
 		secondBridgeAddress = *tx.BridgeAddress
 	}
 
-	noSendOpts := opts.ToTransactOpts(a.auth.From, a.auth.Signer)
+	noSendOpts := opts.ToTransactOpts(w.auth.From, w.auth.Signer)
 	noSendOpts.NoSend = true
-	depositTx, err := a.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
-		ChainId:                  a.l2ChainId,
+	depositTx, err := w.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
+		ChainId:                  w.l2ChainId,
 		MintValue:                mintValue,
 		L2Value:                  big.NewInt(0),
 		L2GasLimit:               tx.L2GasLimit,
@@ -1179,36 +1178,36 @@ func (a *WalletL1) prepareDepositNonBasedTokenToNonEthBasedChain(opts *TransactO
 	return depositTx, nil
 }
 
-func (a *WalletL1) populateDepositTxWithDefaults(opts *TransactOpts, tx *DepositTransaction) error {
+func (w *WalletL1) populateDepositTxWithDefaults(opts *TransactOpts, tx *DepositTransaction) error {
 	*opts = *ensureTransactOpts(opts)
 	if tx.Token == utils.LegacyEthAddress {
 		tx.Token = utils.EthAddressInContracts
 	}
-	tx.PopulateEmptyFields(a.auth.From)
+	tx.PopulateEmptyFields(w.auth.From)
 	if tx.L2GasLimit == nil {
-		if err := a.estimateL2GasLimit(opts, tx); err != nil {
+		if err := w.estimateL2GasLimit(opts, tx); err != nil {
 			return err
 		}
 	}
 
-	if err := a.insertGasPriceInTransactOpts(&opts); err != nil {
+	if err := w.insertGasPriceInTransactOpts(&opts); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *WalletL1) estimateL2GasLimit(auth *TransactOpts, tx *DepositTransaction) error {
+func (w *WalletL1) estimateL2GasLimit(auth *TransactOpts, tx *DepositTransaction) error {
 	if tx.BridgeAddress != nil {
-		err := a.estimateL2GasLimitFromCustomBridge(auth, tx)
+		err := w.estimateL2GasLimitFromCustomBridge(auth, tx)
 		if err != nil {
 			return err
 		}
 	} else {
-		gas, err := a.EstimateDepositL2GasFromDefaultBridge(
+		gas, err := w.EstimateDepositL2GasFromDefaultBridge(
 			auth.Context,
 			tx.Token,
 			tx.Amount,
-			tx.To, a.auth.From, tx.GasPerPubdataByte)
+			tx.To, w.auth.From, tx.GasPerPubdataByte)
 		if err != nil {
 			return err
 		}
@@ -1217,25 +1216,25 @@ func (a *WalletL1) estimateL2GasLimit(auth *TransactOpts, tx *DepositTransaction
 	return nil
 }
 
-func (a *WalletL1) estimateL2GasLimitFromCustomBridge(auth *TransactOpts, tx *DepositTransaction) error {
-	bridge, err := l1bridge.NewIL1Bridge(*tx.BridgeAddress, a.clientL1)
+func (w *WalletL1) estimateL2GasLimitFromCustomBridge(auth *TransactOpts, tx *DepositTransaction) error {
+	bridge, err := l1bridge.NewIL1Bridge(*tx.BridgeAddress, w.clientL1)
 	if err != nil {
 		return fmt.Errorf("failed to load custom bridge: %w", err)
 	}
 	if tx.CustomBridgeData == nil {
-		tx.CustomBridgeData, err = utils.Erc20DefaultBridgeData(tx.Token, a.clientL1)
+		tx.CustomBridgeData, err = utils.Erc20DefaultBridgeData(tx.Token, w.clientL1)
 		if err != nil {
 			return err
 		}
 	}
 
-	l2Address, errBridge := bridge.L2BridgeAddress(&bind.CallOpts{Context: auth.Context, From: a.auth.From}, a.l2ChainId)
+	l2Address, errBridge := bridge.L2BridgeAddress(&bind.CallOpts{Context: auth.Context, From: w.auth.From}, w.l2ChainId)
 	if errBridge != nil {
 		return errBridge
 	}
 
-	gas, errGas := a.EstimateDepositL2GasFromCustomBridge(auth.Context, *tx.BridgeAddress, l2Address, tx.Token,
-		tx.Amount, tx.To, tx.CustomBridgeData, a.auth.From, tx.GasPerPubdataByte, common.Big0)
+	gas, errGas := w.EstimateDepositL2GasFromCustomBridge(auth.Context, *tx.BridgeAddress, l2Address, tx.Token,
+		tx.Amount, tx.To, tx.CustomBridgeData, w.auth.From, tx.GasPerPubdataByte, common.Big0)
 	if errGas != nil {
 		return errGas
 	}
@@ -1243,8 +1242,8 @@ func (a *WalletL1) estimateL2GasLimitFromCustomBridge(auth *TransactOpts, tx *De
 	return nil
 }
 
-func (a *WalletL1) calculateBaseCost(opts *TransactOpts, tx *DepositTransaction) (*big.Int, error) {
-	err := a.populateDepositTxWithDefaults(opts, tx)
+func (w *WalletL1) calculateBaseCost(opts *TransactOpts, tx *DepositTransaction) (*big.Int, error) {
+	err := w.populateDepositTxWithDefaults(opts, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -1253,22 +1252,22 @@ func (a *WalletL1) calculateBaseCost(opts *TransactOpts, tx *DepositTransaction)
 		gasPriceForEstimation = opts.GasFeeCap
 	}
 
-	return a.BaseCost(&CallOpts{
+	return w.BaseCost(&CallOpts{
 		Context: opts.Context,
 	}, tx.L2GasLimit, tx.GasPerPubdataByte, gasPriceForEstimation)
 }
 
-func (a *WalletL1) calculateMintValue(opts *TransactOpts, tx *DepositTransaction) (*big.Int, error) {
-	baseCost, err := a.calculateBaseCost(opts, tx)
+func (w *WalletL1) calculateMintValue(opts *TransactOpts, tx *DepositTransaction) (*big.Int, error) {
+	baseCost, err := w.calculateBaseCost(opts, tx)
 	if err != nil {
 		return nil, err
 	}
-	return a.calculateMintValueFromBaseCost(baseCost, tx)
+	return w.calculateMintValueFromBaseCost(baseCost, tx)
 
 }
 
-func (a *WalletL1) calculateMintValueFromBaseCost(baseCost *big.Int, tx *DepositTransaction) (*big.Int, error) {
-	if tx.Token == a.baseToken || (a.isEthBasedChain && tx.Token == utils.EthAddressInContracts) {
+func (w *WalletL1) calculateMintValueFromBaseCost(baseCost *big.Int, tx *DepositTransaction) (*big.Int, error) {
+	if tx.Token == w.baseToken || (w.isEthBasedChain && tx.Token == utils.EthAddressInContracts) {
 		mintValue := new(big.Int).Add(baseCost, tx.OperatorTip)
 		mintValue.Add(mintValue, tx.Amount)
 		return mintValue, nil
@@ -1277,7 +1276,7 @@ func (a *WalletL1) calculateMintValueFromBaseCost(baseCost *big.Int, tx *Deposit
 	}
 }
 
-func (a *WalletL1) secondBridgeCalldata(token, to common.Address, amount *big.Int) ([]byte, error) {
+func (w *WalletL1) secondBridgeCalldata(token, to common.Address, amount *big.Int) ([]byte, error) {
 	addressAbiType, err := abi.NewType("address", "", nil)
 	if err != nil {
 		return nil, err
@@ -1293,23 +1292,23 @@ func (a *WalletL1) secondBridgeCalldata(token, to common.Address, amount *big.In
 	}.Pack(token, amount, to)
 }
 
-func (a *WalletL1) approveERC20(auth *TransactOpts, token common.Address, amount *big.Int, bridgeAddress common.Address) error {
+func (w *WalletL1) approveERC20(auth *TransactOpts, token common.Address, amount *big.Int, bridgeAddress common.Address) error {
 	// We only request the allowance if the current one is not enough.
 	auth = ensureTransactOpts(auth)
-	allowance, err := a.AllowanceL1(&CallOpts{
+	allowance, err := w.AllowanceL1(&CallOpts{
 		Context: auth.Context,
 	}, token, bridgeAddress)
 	if err != nil {
 		return err
 	}
 	if allowance.Cmp(amount) < 0 {
-		approveTx, errApprove := a.ApproveERC20(
+		approveTx, errApprove := w.ApproveERC20(
 			auth, token, amount, bridgeAddress,
 		)
 		if errApprove != nil {
 			return errApprove
 		}
-		_, err = bind.WaitMined(ensureContext(auth.Context), a.clientL1, approveTx)
+		_, err = bind.WaitMined(ensureContext(auth.Context), w.clientL1, approveTx)
 		if err != nil {
 			return err
 		}
@@ -1317,7 +1316,7 @@ func (a *WalletL1) approveERC20(auth *TransactOpts, token common.Address, amount
 	return nil
 }
 
-func (a *WalletL1) prepareRequestExecuteTx(auth *TransactOpts, tx *RequestExecuteTransaction) error {
+func (w *WalletL1) prepareRequestExecuteTx(auth *TransactOpts, tx *RequestExecuteTransaction) error {
 	opts := ensureTransactOpts(auth)
 	if tx.L2Value == nil {
 		tx.L2Value = big.NewInt(0)
@@ -1329,10 +1328,10 @@ func (a *WalletL1) prepareRequestExecuteTx(auth *TransactOpts, tx *RequestExecut
 		tx.GasPerPubdataByte = utils.RequiredL1ToL2GasPerPubdataLimit
 	}
 	if tx.RefundRecipient == (common.Address{}) {
-		tx.RefundRecipient = a.auth.From
+		tx.RefundRecipient = w.auth.From
 	}
 	if tx.L2GasLimit == nil {
-		gas, err := a.clientL2.EstimateL1ToL2Execute(opts.Context, tx.ToCallMsg(a.auth.From, opts))
+		gas, err := w.clientL2.EstimateL1ToL2Execute(opts.Context, tx.ToCallMsg(w.auth.From, opts))
 		if err != nil {
 			return err
 		}
@@ -1342,7 +1341,7 @@ func (a *WalletL1) prepareRequestExecuteTx(auth *TransactOpts, tx *RequestExecut
 		tx.MintValue = big.NewInt(0)
 	}
 
-	if err := a.insertGasPriceInTransactOpts(&opts); err != nil {
+	if err := w.insertGasPriceInTransactOpts(&opts); err != nil {
 		return err
 	}
 
@@ -1353,7 +1352,7 @@ func (a *WalletL1) prepareRequestExecuteTx(auth *TransactOpts, tx *RequestExecut
 		gasPriceForEstimation = opts.GasPrice
 	}
 
-	baseCost, err := a.BaseCost(&CallOpts{
+	baseCost, err := w.BaseCost(&CallOpts{
 		Context: opts.Context,
 	}, tx.L2GasLimit, tx.GasPerPubdataByte, gasPriceForEstimation)
 	if err != nil {
@@ -1362,12 +1361,12 @@ func (a *WalletL1) prepareRequestExecuteTx(auth *TransactOpts, tx *RequestExecut
 
 	l2Costs := new(big.Int).Add(baseCost, new(big.Int).Add(tx.OperatorTip, tx.L2Value))
 	providedValue := tx.MintValue
-	if a.isEthBasedChain {
+	if w.isEthBasedChain {
 		providedValue = opts.Value
 	}
 	if providedValue == nil || providedValue.Cmp(big.NewInt(0)) == 0 {
 		providedValue = l2Costs
-		if a.isEthBasedChain {
+		if w.isEthBasedChain {
 			opts.Value = providedValue
 		}
 	}
@@ -1383,16 +1382,16 @@ func (a *WalletL1) prepareRequestExecuteTx(auth *TransactOpts, tx *RequestExecut
 // Checks if the options contain a GasPrice or GasFeeCap, if not it will try to insert
 // the GasFeeCap (maxFeePerGas) and GasTipCap (maxPriorityFee) if chain supports EIP1559,
 // otherwise it sets GasPrice
-func (a *WalletL1) insertGasPriceInTransactOpts(opts **TransactOpts) error {
+func (w *WalletL1) insertGasPriceInTransactOpts(opts **TransactOpts) error {
 	if *opts == nil {
 		*opts = ensureTransactOpts(*opts)
 	}
 	if (*opts).GasFeeCap == nil && (*opts).GasPrice == nil {
-		if isReady, head, err := a.checkIfL1ChainIsLondonReady(ensureContext((*opts).Context)); err != nil {
+		if isReady, head, err := w.checkIfL1ChainIsLondonReady(ensureContext((*opts).Context)); err != nil {
 			return err
 		} else if isReady {
 			if (*opts).GasTipCap == nil {
-				gasTipCap, errGasTipCap := a.clientL1.SuggestGasTipCap(ensureContext((*opts).Context))
+				gasTipCap, errGasTipCap := w.clientL1.SuggestGasTipCap(ensureContext((*opts).Context))
 				if errGasTipCap != nil {
 					return errGasTipCap
 				}
@@ -1407,7 +1406,7 @@ func (a *WalletL1) insertGasPriceInTransactOpts(opts **TransactOpts) error {
 			)
 		} else {
 			// Chain is not London ready -> use legacy transaction
-			gasPrice, errGasPrice := a.clientL1.SuggestGasPrice(ensureContext((*opts).Context))
+			gasPrice, errGasPrice := w.clientL1.SuggestGasPrice(ensureContext((*opts).Context))
 			if errGasPrice != nil {
 				return errGasPrice
 			}
@@ -1420,16 +1419,16 @@ func (a *WalletL1) insertGasPriceInTransactOpts(opts **TransactOpts) error {
 // Checks if the options contain a GasPrice or GasFeeCap, if not it will try to insert
 // the GasFeeCap (maxFeePerGas) and GasTipCap (maxPriorityFee) if chain supports EIP1559,
 // otherwise it sets GasPrice
-func (a *WalletL1) insertGasPriceInDepositMsg(ctx context.Context, msg *DepositCallMsg) error {
+func (w *WalletL1) insertGasPriceInDepositMsg(ctx context.Context, msg *DepositCallMsg) error {
 	if msg == nil {
 		msg = new(DepositCallMsg)
 	}
 	if msg.GasFeeCap == nil && msg.GasPrice == nil {
-		if isReady, head, err := a.checkIfL1ChainIsLondonReady(ensureContext(ctx)); err != nil {
+		if isReady, head, err := w.checkIfL1ChainIsLondonReady(ensureContext(ctx)); err != nil {
 			return err
 		} else if isReady {
 			if msg.GasTipCap == nil {
-				gasTipCap, errGasTipCap := a.clientL1.SuggestGasTipCap(ensureContext(ctx))
+				gasTipCap, errGasTipCap := w.clientL1.SuggestGasTipCap(ensureContext(ctx))
 				if errGasTipCap != nil {
 					return errGasTipCap
 				}
@@ -1444,7 +1443,7 @@ func (a *WalletL1) insertGasPriceInDepositMsg(ctx context.Context, msg *DepositC
 			)
 		} else {
 			// Chain is not London ready -> use legacy transaction
-			gasPrice, errGasPrice := a.clientL1.SuggestGasPrice(ensureContext(ctx))
+			gasPrice, errGasPrice := w.clientL1.SuggestGasPrice(ensureContext(ctx))
 			if errGasPrice != nil {
 				return errGasPrice
 			}
@@ -1454,8 +1453,8 @@ func (a *WalletL1) insertGasPriceInDepositMsg(ctx context.Context, msg *DepositC
 	return nil
 }
 
-func (a *WalletL1) getWithdrawalLog(ctx context.Context, withdrawalHash common.Hash, index int) (*types.Log, *big.Int, error) {
-	receipt, err := a.clientL2.TransactionReceipt(ctx, withdrawalHash)
+func (w *WalletL1) getWithdrawalLog(ctx context.Context, withdrawalHash common.Hash, index int) (*types.Log, *big.Int, error) {
+	receipt, err := w.clientL2.TransactionReceipt(ctx, withdrawalHash)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
 	}
@@ -1475,8 +1474,8 @@ func (a *WalletL1) getWithdrawalLog(ctx context.Context, withdrawalHash common.H
 	return fLogs[index], receipt.L1BatchTxIndex.ToInt(), nil
 }
 
-func (a *WalletL1) getWithdrawalL2ToL1Log(ctx context.Context, withdrawalHash common.Hash, index int) (int, *types.L2ToL1Log, error) {
-	receipt, err := a.clientL2.TransactionReceipt(ctx, withdrawalHash)
+func (w *WalletL1) getWithdrawalL2ToL1Log(ctx context.Context, withdrawalHash common.Hash, index int) (int, *types.L2ToL1Log, error) {
+	receipt, err := w.clientL2.TransactionReceipt(ctx, withdrawalHash)
 	if err != nil {
 		return 0, nil, fmt.Errorf("failed to get TransactionReceipt: %w", err)
 	}
@@ -1501,9 +1500,9 @@ func (a *WalletL1) getWithdrawalL2ToL1Log(ctx context.Context, withdrawalHash co
 	return fLogs[index].i, fLogs[index].l, nil
 }
 
-func (a *WalletL1) checkIfL1ChainIsLondonReady(ctx context.Context) (bool, *ethTypes.Header, error) {
+func (w *WalletL1) checkIfL1ChainIsLondonReady(ctx context.Context) (bool, *ethTypes.Header, error) {
 	// Only query for block header not whole block with transactions
-	if head, err := a.clientL1.HeaderByNumber(ensureContext(ctx), nil); err != nil {
+	if head, err := w.clientL1.HeaderByNumber(ensureContext(ctx), nil); err != nil {
 		return false, nil, err
 	} else if head.BaseFee != nil {
 		return true, head, nil

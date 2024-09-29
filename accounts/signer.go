@@ -1,6 +1,7 @@
 package accounts
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/ethereum/go-ethereum/accounts"
@@ -9,41 +10,35 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/pkg/errors"
 	"github.com/stephenlacy/go-ethereum-hdwallet"
-	"github.com/zksync-sdk/zksync2-go/eip712"
+	"github.com/zksync-sdk/zksync2-go/types"
+	"math/big"
 )
 
-// Signer provides support for signing EIP-712 transactions as well as other types of transactions supported by
-// types.Signer.
+// Signer provides support for signing various types of payloads using some kind of secret.
 type Signer interface {
-	// Address returns the  address associated with the signer.
-	Address() common.Address
-	// Domain returns the EIP-712 domain used for signing.
-	Domain() *eip712.Domain
-	// PrivateKey returns the private key associated with the signer.
-	PrivateKey() *ecdsa.PrivateKey
-	// SignHash signs the given hash using the signer's private key and returns the signature.
-	// The hash should be the 32-byte hash of the data to be signed.
-	SignHash(msg []byte) ([]byte, error)
-	// SignTypedData signs the given EIP-712 typed data using the signer's private key and returns the signature.
-	// The domain parameter is the EIP-712 domain separator, and the data parameter is the EIP-712 typed data.
-	SignTypedData(typedData apitypes.TypedData) ([]byte, error)
+	// SignMessage sings an arbitrary message.
+	SignMessage(ctx context.Context, message []byte) ([]byte, error)
+	// SignTransaction signs the given transaction.
+	SignTransaction(ctx context.Context, tx *types.Transaction) ([]byte, error)
+	// SignTypedData signs the given EIP712 typed data.
+	SignTypedData(ctx context.Context, typedData *apitypes.TypedData) ([]byte, error)
 }
 
-// BaseSigner represents basis implementation of Signer interface.
-type BaseSigner struct {
+// ECDSASigner represents basis implementation of Signer interface.
+type ECDSASigner struct {
 	pk      *ecdsa.PrivateKey
 	address common.Address
-	domain  *eip712.Domain
+	chainId *big.Int
 }
 
-// NewBaseSignerFromMnemonic creates a new instance of BaseSigner based on the provided mnemonic phrase.
-func NewBaseSignerFromMnemonic(mnemonic string, chainId int64) (*BaseSigner, error) {
-	return NewBaseSignerFromMnemonicAndAccountId(mnemonic, 0, chainId)
+// NewECDSASignerFromMnemonic creates a new instance of ECDSASigner based on the provided mnemonic phrase.
+func NewECDSASignerFromMnemonic(mnemonic string, chainId *big.Int) (*ECDSASigner, error) {
+	return NewECDSASignerFromMnemonicAndAccountId(mnemonic, 0, chainId)
 }
 
-// NewBaseSignerFromMnemonicAndAccountId creates a new instance of BaseSigner based on the provided mnemonic phrase and
+// NewECDSASignerFromMnemonicAndAccountId creates a new instance of ECDSASigner based on the provided mnemonic phrase and
 // account ID.
-func NewBaseSignerFromMnemonicAndAccountId(mnemonic string, accountId uint32, chainId int64) (*BaseSigner, error) {
+func NewECDSASignerFromMnemonicAndAccountId(mnemonic string, accountId uint32, chainId *big.Int) (*ECDSASigner, error) {
 	wallet, err := hdwallet.NewFromMnemonic(mnemonic)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create HD wallet from mnemonic")
@@ -61,29 +56,29 @@ func NewBaseSignerFromMnemonicAndAccountId(mnemonic string, accountId uint32, ch
 		return nil, errors.Wrap(err, "failed to get account's private key from HD wallet")
 	}
 	pub := pk.Public().(*ecdsa.PublicKey)
-	return &BaseSigner{
+	return &ECDSASigner{
 		pk:      pk,
 		address: crypto.PubkeyToAddress(*pub),
-		domain:  eip712.ZkSyncEraEIP712Domain(chainId),
+		chainId: chainId,
 	}, nil
 }
 
-// NewBaseSignerFromRawPrivateKey creates a new instance of BaseSigner based on the provided raw private key.
-func NewBaseSignerFromRawPrivateKey(rawPk []byte, chainId int64) (*BaseSigner, error) {
+// NewECDSASignerFromRawPrivateKey creates a new instance of ECDSASigner based on the provided raw private key.
+func NewECDSASignerFromRawPrivateKey(rawPk []byte, chainId *big.Int) (*ECDSASigner, error) {
 	pk, err := crypto.ToECDSA(rawPk)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid raw private key")
 	}
 	pub := pk.Public().(*ecdsa.PublicKey)
-	return &BaseSigner{
+	return &ECDSASigner{
 		pk:      pk,
 		address: crypto.PubkeyToAddress(*pub),
-		domain:  eip712.ZkSyncEraEIP712Domain(chainId),
+		chainId: chainId,
 	}, nil
 }
 
 // NewRandomBaseSigner creates an instance of Signer with a randomly generated private key.
-func NewRandomBaseSigner(chainId int64) (*BaseSigner, error) {
+func NewRandomBaseSigner(chainId *big.Int) (*ECDSASigner, error) {
 	privateKey, err := crypto.GenerateKey()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate radnom private key: %w", err)
@@ -92,27 +87,43 @@ func NewRandomBaseSigner(chainId int64) (*BaseSigner, error) {
 	if !ok {
 		return nil, fmt.Errorf("failed to convert public key to ECDSA")
 	}
-	return &BaseSigner{
+	return &ECDSASigner{
 		pk:      privateKey,
 		address: crypto.PubkeyToAddress(*publicKey),
-		domain:  eip712.ZkSyncEraEIP712Domain(chainId),
+		chainId: chainId,
 	}, nil
 }
 
-func (s *BaseSigner) Address() common.Address {
+func (s *ECDSASigner) Address() common.Address {
 	return s.address
 }
 
-func (s *BaseSigner) Domain() *eip712.Domain {
-	return s.domain
+func (s *ECDSASigner) ChainID() *big.Int {
+	return s.chainId
 }
 
-func (s *BaseSigner) PrivateKey() *ecdsa.PrivateKey {
+func (s *ECDSASigner) PrivateKey() *ecdsa.PrivateKey {
 	return s.pk
 }
 
-func (s *BaseSigner) SignTypedData(typedData apitypes.TypedData) ([]byte, error) {
-	hash, err := s.HashTypedData(typedData)
+func (s *ECDSASigner) SignMessage(_ context.Context, msg []byte) ([]byte, error) {
+	sig, err := crypto.Sign(msg, s.pk)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to sign hash")
+	}
+	return sig, nil
+}
+
+func (s *ECDSASigner) SignTransaction(ctx context.Context, tx *types.Transaction) ([]byte, error) {
+	typedData, err := tx.TypedData()
+	if err != nil {
+		return nil, err
+	}
+	return s.SignTypedData(ctx, typedData)
+}
+
+func (s *ECDSASigner) SignTypedData(_ context.Context, typedData *apitypes.TypedData) ([]byte, error) {
+	hash, err := s.hashTypedData(typedData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hash of typed data: %w", err)
 	}
@@ -128,7 +139,7 @@ func (s *BaseSigner) SignTypedData(typedData apitypes.TypedData) ([]byte, error)
 	return sig, nil
 }
 
-func (s *BaseSigner) HashTypedData(data apitypes.TypedData) ([]byte, error) {
+func (s *ECDSASigner) hashTypedData(data *apitypes.TypedData) ([]byte, error) {
 	domain, err := data.HashStruct("EIP712Domain", data.Domain.Map())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hash of typed data domain: %w", err)
@@ -140,12 +151,4 @@ func (s *BaseSigner) HashTypedData(data apitypes.TypedData) ([]byte, error) {
 	prefixedData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domain), string(dataHash)))
 	prefixedDataHash := crypto.Keccak256(prefixedData)
 	return prefixedDataHash, nil
-}
-
-func (s *BaseSigner) SignHash(msg []byte) ([]byte, error) {
-	sig, err := crypto.Sign(msg, s.pk)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to sign hash")
-	}
-	return sig, nil
 }

@@ -34,7 +34,7 @@ func TestIntegration_NewWalletFromMnemonic(t *testing.T) {
 	chainId, err := client.ChainID(context.Background())
 	assert.NoError(t, err, "ChainID should not return an error")
 
-	wallet, err := accounts.NewWalletFromMnemonic(MNEMONIC, chainId.Int64(), client, ethClient)
+	wallet, err := accounts.NewWalletFromMnemonic(MNEMONIC, chainId, client, ethClient)
 	assert.NoError(t, err, "NewWalletFromMnemonic should not return an error")
 	assert.NotNil(t, wallet, "Wallet should not be nil")
 }
@@ -1337,7 +1337,7 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeNotEnoughBalance
 	chainId, err := client.ChainID(context.Background())
 	assert.NoError(t, err, "ChainID should not return an error")
 
-	wallet, err := accounts.NewRandomWallet(chainId.Int64(), client, ethClient)
+	wallet, err := accounts.NewRandomWallet(chainId, client, ethClient)
 	assert.NoError(t, err, "NewRandomWallet should not return an error")
 
 	_, err = wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
@@ -1756,7 +1756,7 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeNotEnoughBase
 	chainId, err := client.ChainID(context.Background())
 	assert.NoError(t, err, "ChainID should not return an error")
 
-	wallet, err := accounts.NewRandomWallet(chainId.Int64(), client, ethClient)
+	wallet, err := accounts.NewRandomWallet(chainId, client, ethClient)
 	assert.NoError(t, err, "NewRandomWallet should not return an error")
 
 	_, err = wallet.FullRequiredDepositFee(context.Background(), accounts.DepositCallMsg{
@@ -1913,7 +1913,7 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoug
 	l1ChainId, err := ethClient.ChainID(context.Background())
 	assert.NoError(t, err, "ethClient.ChainID should not return an error")
 
-	randomWallet, err := accounts.NewRandomWallet(l2ChainId.Int64(), client, ethClient)
+	randomWallet, err := accounts.NewRandomWallet(l2ChainId, client, ethClient)
 	assert.NoError(t, err, "NewRandomWallet should not return an error")
 
 	amount, ok := new(big.Int).SetString("500000000000000000", 10)
