@@ -324,42 +324,6 @@ func (tx *Transaction) getFactoryDepsHashes() ([]interface{}, error) {
 	return res, nil
 }
 
-// Eip712Meta L2-specific transaction metadata.
-type Eip712Meta struct {
-	// GasPerPubdata denotes the maximum amount of gas the user is willing
-	// to pay for a single byte of pubdata.
-	GasPerPubdata *hexutil.Big `json:"gasPerPubdata,omitempty"`
-	// CustomSignature is used for the cases in which the signer's account
-	// is not an EOA.
-	CustomSignature hexutil.Bytes `json:"customSignature,omitempty"`
-	// FactoryDeps is a non-empty array of bytes. For deployment transactions,
-	// it should contain the bytecode of the contract being deployed.
-	// If the contract is a factory contract, i.e. it can deploy other contracts,
-	// the array should also contain the bytecodes of the contracts which it can deploy.
-	FactoryDeps []hexutil.Bytes `json:"factoryDeps"`
-	// PaymasterParams contains parameters for configuring the custom paymaster
-	// for the transaction.
-	PaymasterParams *PaymasterParams `json:"paymasterParams,omitempty"`
-}
-
-func (m *Eip712Meta) MarshalJSON() ([]byte, error) {
-	type Alias Eip712Meta
-	fdb := make([][]uint, len(m.FactoryDeps))
-	for i, v := range m.FactoryDeps {
-		fdb[i] = make([]uint, len(v))
-		for j, b := range v {
-			fdb[i][j] = uint(b)
-		}
-	}
-	return json.Marshal(&struct {
-		FactoryDeps [][]uint `json:"factoryDeps"`
-		*Alias
-	}{
-		FactoryDeps: fdb,
-		Alias:       (*Alias)(m),
-	})
-}
-
 // PaymasterParams contains parameters for configuring the custom paymaster for the transaction.
 type PaymasterParams struct {
 	Paymaster      common.Address `json:"paymaster"`      // Address of the paymaster.

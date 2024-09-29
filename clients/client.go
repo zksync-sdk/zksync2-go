@@ -314,6 +314,9 @@ func (c *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNu
 // for EIP-712 transaction.
 func (c *Client) CallContractL2(ctx context.Context, msg types.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	var hex hexutil.Bytes
+	if msg.GasPerPubdata == nil {
+		msg.GasPerPubdata = utils.DefaultGasPerPubdataLimit
+	}
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, toBlockNumArg(blockNumber))
 	if err != nil {
 		return nil, err
@@ -336,6 +339,9 @@ func (c *Client) CallContractAtHash(ctx context.Context, msg ethereum.CallMsg, b
 // the block by block hash instead of block height.
 func (c *Client) CallContractAtHashL2(ctx context.Context, msg types.CallMsg, blockHash common.Hash) ([]byte, error) {
 	var hex hexutil.Bytes
+	if msg.GasPerPubdata == nil {
+		msg.GasPerPubdata = utils.DefaultGasPerPubdataLimit
+	}
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, rpc.BlockNumberOrHashWithHash(blockHash, false))
 	if err != nil {
 		return nil, err
@@ -358,6 +364,9 @@ func (c *Client) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) 
 // The state seen by the contract call is the pending state.
 func (c *Client) PendingCallContractL2(ctx context.Context, msg types.CallMsg) ([]byte, error) {
 	var hex hexutil.Bytes
+	if msg.GasPerPubdata == nil {
+		msg.GasPerPubdata = utils.DefaultGasPerPubdataLimit
+	}
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, "pending")
 	if err != nil {
 		return nil, err
@@ -422,6 +431,9 @@ func (c *Client) TransactionCountByTag(ctx context.Context, blockTag string) (ui
 // The state seen by the contract call is defined by blockTag.
 func (c *Client) CallContractByTag(ctx context.Context, msg types.CallMsg, blockTag string) ([]byte, error) {
 	var hex hexutil.Bytes
+	if msg.GasPerPubdata == nil {
+		msg.GasPerPubdata = utils.DefaultGasPerPubdataLimit
+	}
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_call", msg, blockTag)
 	if err != nil {
 		return nil, err
@@ -457,6 +469,9 @@ func (c *Client) EstimateGas(ctx context.Context, call ethereum.CallMsg) (uint64
 // EstimateGasL2 is almost the same as EstimateGas except that it executes an EIP-712 transaction.
 func (c *Client) EstimateGasL2(ctx context.Context, msg types.CallMsg) (uint64, error) {
 	var hex hexutil.Uint64
+	if msg.GasPerPubdata == nil {
+		msg.GasPerPubdata = utils.DefaultGasPerPubdataLimit
+	}
 	err := c.rpcClient.CallContext(ctx, &hex, "eth_estimateGas", msg)
 	if err != nil {
 		return 0, fmt.Errorf("failed to query eth_estimateGas: %w", err)
@@ -989,6 +1004,9 @@ func (c *Client) AllAccountBalances(ctx context.Context, address common.Address)
 // EstimateFee returns the fee for the transaction.
 func (c *Client) EstimateFee(ctx context.Context, msg types.CallMsg) (*types.Fee, error) {
 	var res types.Fee
+	if msg.GasPerPubdata == nil {
+		msg.GasPerPubdata = utils.DefaultGasPerPubdataLimit
+	}
 	err := c.rpcClient.CallContext(ctx, &res, "zks_estimateFee", msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query zks_estimateFee: %w", err)
@@ -1009,6 +1027,9 @@ func (c *Client) FeeParams(ctx context.Context) (*types.FeeParams, error) {
 // EstimateGasL1 estimates the amount of gas required to submit a transaction from L1 to L2.
 func (c *Client) EstimateGasL1(ctx context.Context, msg types.CallMsg) (uint64, error) {
 	var res hexutil.Uint64
+	if msg.GasPerPubdata == nil {
+		msg.GasPerPubdata = utils.RequiredL1ToL2GasPerPubdataLimit
+	}
 	err := c.rpcClient.CallContext(ctx, &res, "zks_estimateGasL1ToL2", msg)
 	if err != nil {
 		return 0, fmt.Errorf("failed to query zks_estimateGasL1ToL2: %w", err)
@@ -1056,8 +1077,8 @@ func (c *Client) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMsg)
 
 // EstimateL1ToL2Execute estimates the amount of gas required for an L1 to L2 execute operation.
 func (c *Client) EstimateL1ToL2Execute(ctx context.Context, msg types.CallMsg) (uint64, error) {
-	if msg.Meta == nil || msg.Meta.GasPerPubdata == nil {
-		msg.Meta = &types.Eip712Meta{GasPerPubdata: utils.NewBig(utils.RequiredL1ToL2GasPerPubdataLimit.Int64())}
+	if msg.GasPerPubdata == nil {
+		msg.GasPerPubdata = utils.RequiredL1ToL2GasPerPubdataLimit
 	}
 
 	// If the `from` address is not provided, we use a random address, because

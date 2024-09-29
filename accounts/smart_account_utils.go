@@ -124,18 +124,16 @@ var PopulateTransactionECDSA TransactionBuilder = func(ctx context.Context, tx *
 		}
 
 		fee, err := client.EstimateFee(ensureContext(ctx), types.CallMsg{
-			From:      from,
-			To:        tx.To,
-			GasFeeCap: tx.GasFeeCap,
-			GasTipCap: tx.GasTipCap,
-			Value:     tx.Value,
-			Data:      tx.Data,
-			Meta: &types.Eip712Meta{
-				GasPerPubdata:   (*hexutil.Big)(tx.GasPerPubdata),
-				CustomSignature: tx.CustomSignature,
-				FactoryDeps:     tx.FactoryDeps,
-				PaymasterParams: tx.PaymasterParams,
-			},
+			From:            from,
+			To:              tx.To,
+			GasFeeCap:       tx.GasFeeCap,
+			GasTipCap:       tx.GasTipCap,
+			Value:           tx.Value,
+			Data:            tx.Data,
+			GasPerPubdata:   tx.GasPerPubdata,
+			CustomSignature: tx.CustomSignature,
+			FactoryDeps:     tx.FactoryDeps,
+			PaymasterParams: tx.PaymasterParams,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to EstimateFee: %w", err)

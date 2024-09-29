@@ -1138,12 +1138,10 @@ func TestIntegrationBaseClient_EstimateGasL1(t *testing.T) {
 	assert.NoError(t, err, "clients.Dial should not return an error")
 
 	gas, err := client.EstimateGasL1(context.Background(), types.CallMsg{
-		From:  Address1,
-		To:    &Address2,
-		Value: big.NewInt(7_000_000_000),
-		Meta: &types.Eip712Meta{
-			GasPerPubdata: utils.NewBig(utils.RequiredL1ToL2GasPerPubdataLimit.Int64()),
-		},
+		From:          Address1,
+		To:            &Address2,
+		Value:         big.NewInt(7_000_000_000),
+		GasPerPubdata: utils.RequiredL1ToL2GasPerPubdataLimit,
 	})
 
 	assert.NoError(t, err, "EstimateGasL1 should not return an error")

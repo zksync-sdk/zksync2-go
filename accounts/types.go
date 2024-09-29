@@ -39,27 +39,44 @@ func (o *CallOpts) ToCallOpts(from common.Address) *bind.CallOpts {
 // Its primary purpose is to be transformed into types.CallMsg, wherein the 'From'
 // field represents the associated account.
 type CallMsg struct {
-	To        *common.Address   // The address of the recipient.
-	Gas       uint64            // If 0, the call executes with near-infinite gas.
-	GasPrice  *big.Int          // Wei <-> gas exchange ratio.
-	GasFeeCap *big.Int          // EIP-1559 fee cap per gas.
-	GasTipCap *big.Int          // EIP-1559 tip per gas.
-	Value     *big.Int          // Amount of wei sent along with the call.
-	Data      []byte            // Input data, usually an ABI-encoded contract method invocation
-	Meta      *types.Eip712Meta // EIP-712 metadata.
+	To        *common.Address // The address of the recipient.
+	Gas       uint64          // If 0, the call executes with near-infinite gas.
+	GasPrice  *big.Int        // Wei <-> gas exchange ratio.
+	GasFeeCap *big.Int        // EIP-1559 fee cap per gas.
+	GasTipCap *big.Int        // EIP-1559 tip per gas.
+	Value     *big.Int        // Amount of wei sent along with the call.
+	Data      []byte          // Input data, usually an ABI-encoded contract method invocation
+
+	// GasPerPubdata denotes the maximum amount of gas the user is willing
+	// to pay for a single byte of pubdata.
+	GasPerPubdata *big.Int
+	// CustomSignature is used for the cases in which the signer's account
+	// is not an EOA.
+	CustomSignature hexutil.Bytes
+	// FactoryDeps is a non-empty array of bytes. For deployment transactions,
+	// it should contain the bytecode of the contract being deployed.
+	// If the contract is a factory contract, i.e. it can deploy other contracts,
+	// the array should also contain the bytecodes of the contracts which it can deploy.
+	FactoryDeps []hexutil.Bytes
+	// PaymasterParams contains parameters for configuring the custom paymaster
+	// for the transaction.
+	PaymasterParams *types.PaymasterParams
 }
 
 func (m *CallMsg) ToCallMsg(from common.Address) types.CallMsg {
 	return types.CallMsg{
-		From:      from,
-		To:        m.To,
-		Gas:       m.Gas,
-		GasPrice:  m.GasPrice,
-		GasFeeCap: m.GasFeeCap,
-		GasTipCap: m.GasTipCap,
-		Value:     m.Value,
-		Data:      m.Data,
-		Meta:      m.Meta,
+		From:            from,
+		To:              m.To,
+		Gas:             m.Gas,
+		GasPrice:        m.GasPrice,
+		GasFeeCap:       m.GasFeeCap,
+		GasTipCap:       m.GasTipCap,
+		Value:           m.Value,
+		Data:            m.Data,
+		GasPerPubdata:   m.GasPerPubdata,
+		CustomSignature: m.CustomSignature,
+		FactoryDeps:     m.FactoryDeps,
+		PaymasterParams: m.PaymasterParams,
 	}
 }
 
@@ -397,19 +414,17 @@ func (t *Transaction) ToTransaction712(from common.Address) *types.Transaction {
 
 func (t *Transaction) ToCallMsg(from common.Address) types.CallMsg {
 	return types.CallMsg{
-		From:      from,
-		To:        t.To,
-		Gas:       t.Gas,
-		GasFeeCap: t.GasFeeCap,
-		GasTipCap: t.GasTipCap,
-		Value:     t.Value,
-		Data:      t.Data,
-		Meta: &types.Eip712Meta{
-			GasPerPubdata:   (*hexutil.Big)(t.GasPerPubdata),
-			CustomSignature: t.CustomSignature,
-			FactoryDeps:     t.FactoryDeps,
-			PaymasterParams: t.PaymasterParams,
-		},
+		From:            from,
+		To:              t.To,
+		Gas:             t.Gas,
+		GasFeeCap:       t.GasFeeCap,
+		GasTipCap:       t.GasTipCap,
+		Value:           t.Value,
+		Data:            t.Data,
+		GasPerPubdata:   t.GasPerPubdata,
+		CustomSignature: t.CustomSignature,
+		FactoryDeps:     t.FactoryDeps,
+		PaymasterParams: t.PaymasterParams,
 	}
 }
 
@@ -522,16 +537,14 @@ func (t *RequestExecuteTransaction) ToCallMsg(from common.Address, opts *Transac
 		}
 	}
 	return types.CallMsg{
-		From:     from,
-		To:       &t.ContractAddress,
-		Gas:      opts.GasLimit,
-		GasPrice: opts.GasPrice,
-		Value:    opts.Value,
-		Data:     t.Calldata,
-		Meta: &types.Eip712Meta{
-			GasPerPubdata: utils.NewBig(t.GasPerPubdataByte.Int64()),
-			FactoryDeps:   factoryDeps,
-		},
+		From:          from,
+		To:            &t.ContractAddress,
+		Gas:           opts.GasLimit,
+		GasPrice:      opts.GasPrice,
+		Value:         opts.Value,
+		Data:          t.Calldata,
+		GasPerPubdata: t.GasPerPubdataByte,
+		FactoryDeps:   factoryDeps,
 	}
 }
 

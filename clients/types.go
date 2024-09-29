@@ -71,7 +71,6 @@ func (m *TransferCallMsg) ToZkCallMsg() (*types.CallMsg, error) {
 		value *big.Int
 		data  []byte
 		to    *common.Address
-		meta  *types.Eip712Meta
 	)
 
 	if m.Token == utils.L2BaseTokenAddress {
@@ -90,23 +89,18 @@ func (m *TransferCallMsg) ToZkCallMsg() (*types.CallMsg, error) {
 			return nil, fmt.Errorf("failed to pack transfer function: %w", err)
 		}
 	}
-	if m.PaymasterParams != nil {
-		meta = &types.Eip712Meta{
-			GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
-			PaymasterParams: m.PaymasterParams,
-		}
-	}
 
 	return &types.CallMsg{
-		From:      m.From,
-		To:        to,
-		Gas:       m.Gas,
-		GasPrice:  m.GasPrice,
-		GasFeeCap: m.GasFeeCap,
-		GasTipCap: m.GasTipCap,
-		Value:     value,
-		Data:      data,
-		Meta:      meta,
+		From:            m.From,
+		To:              to,
+		Gas:             m.Gas,
+		GasPrice:        m.GasPrice,
+		GasFeeCap:       m.GasFeeCap,
+		GasTipCap:       m.GasTipCap,
+		Value:           value,
+		Data:            data,
+		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+		PaymasterParams: m.PaymasterParams,
 	}, nil
 }
 
@@ -175,29 +169,22 @@ func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereu
 }
 
 func (m *WithdrawalCallMsg) ToZkCallMsg(defaultL2Bridge *common.Address) (*types.CallMsg, error) {
-	var meta *types.Eip712Meta
-
 	msg, err := m.ToCallMsg(defaultL2Bridge)
 	if err != nil {
 		return nil, err
 	}
-	if m.PaymasterParams != nil {
-		meta = &types.Eip712Meta{
-			GasPerPubdata:   utils.NewBig(utils.DefaultGasPerPubdataLimit.Int64()),
-			PaymasterParams: m.PaymasterParams,
-		}
-	}
 
 	return &types.CallMsg{
-		From:      msg.From,
-		To:        msg.To,
-		Gas:       msg.Gas,
-		GasPrice:  msg.GasPrice,
-		GasFeeCap: msg.GasFeeCap,
-		GasTipCap: msg.GasTipCap,
-		Value:     msg.Value,
-		Data:      msg.Data,
-		Meta:      meta,
+		From:            msg.From,
+		To:              msg.To,
+		Gas:             msg.Gas,
+		GasPrice:        msg.GasPrice,
+		GasFeeCap:       msg.GasFeeCap,
+		GasTipCap:       msg.GasTipCap,
+		Value:           msg.Value,
+		Data:            msg.Data,
+		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+		PaymasterParams: m.PaymasterParams,
 	}, nil
 }
 
