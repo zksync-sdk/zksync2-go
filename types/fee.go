@@ -17,14 +17,14 @@ type FeeParams struct {
 	V2 struct {
 		// Settings related to transaction fee computation.
 		Config struct {
-			MinimalL2GasPrice   uint `json:"minimal_l2_gas_price"`  // Minimal gas price on L2.
-			ComputeOverheadPart uint `json:"compute_overhead_part"` // Compute overhead part in fee calculation.
-			PubdataOverheadPart uint `json:"pubdata_overhead_part"` // Public data overhead part in fee calculation.
-			BatchOverheadL1Gas  uint `json:"batch_overhead_l1_gas"` // Overhead in L1 gas for a batch of transactions.
-			MaxGasPerBatch      uint `json:"max_gas_per_batch"`     // Maximum gas allowed per batch.
-			MaxPubdataPerBatch  uint `json:"max_pubdata_per_batch"` // Maximum amount of public data allowed per batch.
+			MinimalL2GasPrice   uint64 `json:"minimal_l2_gas_price"`  // Minimal gas price on L2.
+			ComputeOverheadPart uint64 `json:"compute_overhead_part"` // Compute overhead part in fee calculation.
+			PubdataOverheadPart uint64 `json:"pubdata_overhead_part"` // Public data overhead part in fee calculation.
+			BatchOverheadL1Gas  uint64 `json:"batch_overhead_l1_gas"` // Overhead in L1 gas for a batch of transactions.
+			MaxGasPerBatch      uint64 `json:"max_gas_per_batch"`     // Maximum gas allowed per batch.
+			MaxPubdataPerBatch  uint64 `json:"max_pubdata_per_batch"` // Maximum amount of public data allowed per batch.
 		} `json:"config"`
-		L1GasPrice     uint `json:"l1_gas_price"`     // Current L1 gas price.
-		L1PubdataPrice uint `json:"l1_pubdata_price"` // Price of storing public data on L1.
+		L1GasPrice     uint64 `json:"l1_gas_price"`     // Current L1 gas price.
+		L1PubdataPrice uint64 `json:"l1_pubdata_price"` // Price of storing public data on L1.
 	} `json:"V2"`
 }
