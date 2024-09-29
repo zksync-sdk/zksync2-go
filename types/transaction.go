@@ -14,8 +14,8 @@ import (
 	"math/big"
 )
 
-// EIP712TxType represents an EIP-712 transaction type.
-const EIP712TxType = `0x71`
+// TxType represents a L2 transaction type.
+const TxType = `0x71`
 
 // Transaction provides support for ZKsync Era-specific features
 // such as account abstraction and paymasters.
@@ -275,7 +275,7 @@ func (tx *Transaction) typedDataMessage() (apitypes.TypedDataMessage, error) {
 		return nil, err
 	}
 	return apitypes.TypedDataMessage{
-		"txType":                 EIP712TxType,
+		"txType":                 TxType,
 		"from":                   big.NewInt(0).SetBytes(tx.From.Bytes()).String(),
 		"to":                     big.NewInt(0).SetBytes(tx.To.Bytes()).String(),
 		"gasLimit":               tx.Gas.String(),
