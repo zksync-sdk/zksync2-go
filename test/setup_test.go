@@ -162,7 +162,7 @@ func deployPaymasterAndToken(wallet *accounts.Wallet, client *clients.Client) {
 		log.Fatal(err)
 	}
 
-	opts, err := bind.NewKeyedTransactorWithChainID(wallet.Signer().PrivateKey(), wallet.Signer().Domain().ChainId)
+	opts, err := bind.NewKeyedTransactorWithChainID(wallet.Signer().PrivateKey(), wallet.Signer().ChainID())
 	if err != nil {
 		log.Fatal(err)
 	}
