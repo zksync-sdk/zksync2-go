@@ -7,14 +7,14 @@ import (
 
 // LogProof represents a log proof for an L2 to L1 transaction.
 type LogProof struct {
-	Id    int           `json:"id"`    // Identifier of the log within the transaction.
+	Id    int32         `json:"id"`    // Identifier of the log within the transaction.
 	Proof []common.Hash `json:"proof"` // Each element represents a piece of the proof for the specified log.
 	Root  common.Hash   `json:"root"`  // Root hash of the proof, anchoring it to a specific state in the blockchain.
 }
 
 // MessageProof represents a log proof for an L2 to L1 transaction.
 type MessageProof struct {
-	Id    int           `json:"id"`    // Identifier of the log within the transaction.
+	Id    int32         `json:"id"`    // Identifier of the log within the transaction.
 	Proof []common.Hash `json:"proof"` // Each element represents a piece of the proof for the specified log.
 	Root  common.Hash   `json:"root"`  // Root hash of the proof, anchoring it to a specific state in the blockchain.
 }
@@ -31,14 +31,14 @@ type StorageProof struct {
 		Value string   `json:"value"` // Value stored in the specified storage key at the time of the specified l1BatchNumber.
 		// A 1-based index representing the position of the tree entry within the Merkle tree.
 		// This index is used to help reconstruct the Merkle path during verification.
-		Index int `json:"index"`
+		Index int32 `json:"index"`
 	} `json:"storageProof"`
 }
 
 // PriorityOpConfirmation represents confirmation data that is part of L2->L1 message
 type PriorityOpConfirmation struct {
 	L1BatchNumber     *big.Int
-	L2MessageIndex    int
+	L2MessageIndex    int32
 	L2TxNumberInBlock *big.Int
 	Proof             []common.Hash
 }

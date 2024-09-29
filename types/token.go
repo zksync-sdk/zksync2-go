@@ -11,7 +11,7 @@ type Token struct {
 	L2Address common.Address `json:"l2Address"` // Token address on L2.
 	Name      string         `json:"name"`      // Token name.
 	Symbol    string         `json:"symbol"`    // Token symbol.
-	Decimals  uint           `json:"decimals"`  // Number of decimals for the token.
+	Decimals  uint8          `json:"decimals"`  // Number of decimals for the token.
 }
 
 func (t *Token) IsETH() bool {

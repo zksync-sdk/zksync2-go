@@ -111,8 +111,8 @@ type TransactionDetails struct {
 
 // ProtocolVersion represents the protocol version.
 type ProtocolVersion struct {
-	VersionId uint `json:"version_id"` // Protocol version ID.
-	Timestamp uint `json:"timestamp"`  // Unix timestamp of the version's activation.
+	VersionId uint8  `json:"version_id"` // Protocol version ID.
+	Timestamp uint64 `json:"timestamp"`  // Unix timestamp of the version's activation.
 	// Contains the hashes of various verification keys used in the protocol.
 	VerificationKeysHashes struct {
 		Params struct {

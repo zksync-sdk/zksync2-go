@@ -35,25 +35,25 @@ type BatchDetails struct {
 	CommittedAt    time.Time    `json:"committedAt"`    // The timestamp when the block was committed on L1.
 	ExecuteTxHash  *common.Hash `json:"executeTxHash"`  // The transaction hash of the execution on L1.
 	ExecutedAt     time.Time    `json:"executedAt"`     // The timestamp when the block execution was completed on L1.
-	L1GasPrice     uint         `json:"l1GasPrice"`     // L1 gas price at the time of the block's execution.
-	L1TxCount      uint         `json:"l1TxCount"`      // The number of L1 transactions included in the batch.
-	L2FairGasPrice uint         `json:"l2FairGasPrice"` // Fair gas price on L2 at the time of the block's execution.
-	L2TxCount      uint         `json:"l2TxCount"`      // The number of L2 transactions associated with this batch.
-	Number         uint         `json:"number"`         // L1 batch number.
+	L1GasPrice     uint64       `json:"l1GasPrice"`     // L1 gas price at the time of the block's execution.
+	L1TxCount      uint64       `json:"l1TxCount"`      // The number of L1 transactions included in the batch.
+	L2FairGasPrice uint64       `json:"l2FairGasPrice"` // Fair gas price on L2 at the time of the block's execution.
+	L2TxCount      uint64       `json:"l2TxCount"`      // The number of L2 transactions associated with this batch.
+	Number         uint64       `json:"number"`         // L1 batch number.
 	ProveTxHash    *common.Hash `json:"proveTxHash"`    // The transaction hash of the proof submission on L1.
 	ProvenAt       time.Time    `json:"provenAt"`       // The timestamp when the proof was submitted on L1.
 	RootHash       *common.Hash `json:"rootHash"`       // Root hash of the state after processing the batch.
 	Status         string       `json:"status"`         // Current status of the batch (e.g., verified).
-	Timestamp      uint         `json:"timestamp"`      // Unix timestamp when the batch was processed.
+	Timestamp      uint64       `json:"timestamp"`      // Unix timestamp when the batch was processed.
 }
 
 // BlockDetails contains block details.
 type BlockDetails struct {
-	Number         uint         `json:"number"`         // The number of the block.
-	L1BatchNumber  uint         `json:"l1BatchNumber"`  // Corresponding L1 batch number.
-	Timestamp      uint         `json:"timestamp"`      // Unix timestamp when the block was committed.
-	L1TxCount      uint         `json:"l1TxCount"`      // The number of L1 transactions included in the block.
-	L2TxCount      uint         `json:"l2TxCount"`      // The number of L2 transactions included in the block.
+	Number         uint64       `json:"number"`         // The number of the block.
+	L1BatchNumber  uint64       `json:"l1BatchNumber"`  // Corresponding L1 batch number.
+	Timestamp      uint64       `json:"timestamp"`      // Unix timestamp when the block was committed.
+	L1TxCount      uint64       `json:"l1TxCount"`      // The number of L1 transactions included in the block.
+	L2TxCount      uint64       `json:"l2TxCount"`      // The number of L2 transactions included in the block.
 	RootHash       common.Hash  `json:"rootHash"`       // Root hash of the block's state after execution.
 	Status         string       `json:"status"`         // Current status of the block (e.g., verified, executed).
 	CommitTxHash   *common.Hash `json:"commitTxHash"`   // The transaction hash of the commit operation on L1.
@@ -78,7 +78,7 @@ type RawBlockTransaction struct {
 	// General information about the L2 transaction.
 	CommonData struct {
 		L2 struct {
-			Nonce uint `json:"nonce"`
+			Nonce uint64 `json:"nonce"`
 			Fee   struct {
 				GasLimit             hexutil.Big `json:"gas_limit"`
 				MaxFeePerGas         hexutil.Big `json:"max_fee_per_gas"`
@@ -90,7 +90,7 @@ type RawBlockTransaction struct {
 			TransactionType  string         `json:"transactionType"`
 			Input            struct {
 				Hash common.Hash `json:"hash"`
-				Data []uint      `json:"data"`
+				Data []uint64    `json:"data"`
 			} `json:"input"`
 			PaymasterParams struct {
 				Paymaster      common.Address `json:"paymaster"`
@@ -106,7 +106,7 @@ type RawBlockTransaction struct {
 		FactoryDeps     []hexutil.Bytes `json:"factoryDeps"`
 	} `json:"execute"`
 	// Timestamp when the transaction was received, in milliseconds.
-	ReceivedTimestampMs uint `json:"received_timestamp_ms"`
+	ReceivedTimestampMs uint64 `json:"received_timestamp_ms"`
 	// Raw bytes of the transaction as a hexadecimal string.
 	RawBytes hexutil.Bytes `json:"raw_bytes"`
 }
