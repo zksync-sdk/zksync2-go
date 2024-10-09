@@ -60,7 +60,7 @@ func NewWalletL2FromSigner(signer *ECDSASigner, client *clients.Client) (*Wallet
 	if err != nil {
 		return nil, err
 	}
-	defaultL2Bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2Erc20DefaultBridge, client)
+	defaultL2Bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2Erc20Bridge, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
 	}
@@ -85,7 +85,7 @@ func NewWalletL2FromSigner(signer *ECDSASigner, client *clients.Client) (*Wallet
 		baseToken:              baseToken,
 		sharedL2BridgeAddress:  bridgeContracts.L2SharedBridge,
 		sharedL2Bridge:         sharedL2Bridge,
-		defaultL2BridgeAddress: bridgeContracts.L2Erc20DefaultBridge,
+		defaultL2BridgeAddress: bridgeContracts.L2Erc20Bridge,
 		defaultL2Bridge:        defaultL2Bridge,
 	}, nil
 }

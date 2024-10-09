@@ -101,7 +101,7 @@ func NewWalletL1FromSigner(signer *ECDSASigner, clientL1 *ethclient.Client, clie
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IL1SharedBridge: %w", err)
 	}
-	defaultL1Bridge, err := l1bridge.NewIL1Bridge(bridgeContracts.L1Erc20DefaultBridge, clientL1)
+	defaultL1Bridge, err := l1bridge.NewIL1Bridge(bridgeContracts.L1Erc20Bridge, clientL1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load IL1Bridge: %w", err)
 	}
@@ -144,7 +144,7 @@ func NewWalletL1FromSigner(signer *ECDSASigner, clientL1 *ethclient.Client, clie
 		bridgehub:              iBridgehub,
 		sharedL1BridgeAddress:  bridgeContracts.L1SharedBridge,
 		sharedL1Bridge:         sharedL1Bridge,
-		defaultL1BridgeAddress: bridgeContracts.L1Erc20DefaultBridge,
+		defaultL1BridgeAddress: bridgeContracts.L1Erc20Bridge,
 		defaultL1Bridge:        defaultL1Bridge,
 	}, nil
 }
