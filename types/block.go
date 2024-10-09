@@ -49,8 +49,8 @@ type BatchDetails struct {
 
 // BlockDetails contains block details.
 type BlockDetails struct {
-	Number         uint64       `json:"number"`         // The number of the block.
-	L1BatchNumber  uint64       `json:"l1BatchNumber"`  // Corresponding L1 batch number.
+	Number         *big.Int     `json:"number"`         // The number of the block.
+	L1BatchNumber  *big.Int     `json:"l1BatchNumber"`  // Corresponding L1 batch number.
 	Timestamp      uint64       `json:"timestamp"`      // Unix timestamp when the block was committed.
 	L1TxCount      uint64       `json:"l1TxCount"`      // The number of L1 transactions included in the block.
 	L2TxCount      uint64       `json:"l2TxCount"`      // The number of L2 transactions included in the block.
