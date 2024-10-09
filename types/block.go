@@ -35,11 +35,11 @@ type BatchDetails struct {
 	CommittedAt    time.Time    `json:"committedAt"`    // The timestamp when the block was committed on L1.
 	ExecuteTxHash  *common.Hash `json:"executeTxHash"`  // The transaction hash of the execution on L1.
 	ExecutedAt     time.Time    `json:"executedAt"`     // The timestamp when the block execution was completed on L1.
-	L1GasPrice     uint64       `json:"l1GasPrice"`     // L1 gas price at the time of the block's execution.
+	L1GasPrice     *big.Int     `json:"l1GasPrice"`     // L1 gas price at the time of the block's execution.
 	L1TxCount      uint64       `json:"l1TxCount"`      // The number of L1 transactions included in the batch.
-	L2FairGasPrice uint64       `json:"l2FairGasPrice"` // Fair gas price on L2 at the time of the block's execution.
+	L2FairGasPrice *big.Int     `json:"l2FairGasPrice"` // Fair gas price on L2 at the time of the block's execution.
 	L2TxCount      uint64       `json:"l2TxCount"`      // The number of L2 transactions associated with this batch.
-	Number         uint64       `json:"number"`         // L1 batch number.
+	Number         *big.Int     `json:"number"`         // L1 batch number.
 	ProveTxHash    *common.Hash `json:"proveTxHash"`    // The transaction hash of the proof submission on L1.
 	ProvenAt       time.Time    `json:"provenAt"`       // The timestamp when the proof was submitted on L1.
 	RootHash       *common.Hash `json:"rootHash"`       // Root hash of the state after processing the batch.
