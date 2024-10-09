@@ -7,16 +7,6 @@ import (
 	"math/big"
 )
 
-// TypedData represents typed data as defined by EIP-712.
-type TypedData interface {
-	// EIP712Type returns the EIP-712 type.
-	EIP712Type() string
-	// EIP712Types return the supported types.
-	EIP712Types() []apitypes.Type
-	// EIP712Message returns the EIP-712 message.
-	EIP712Message() (apitypes.TypedDataMessage, error)
-}
-
 // Domain represents the domain parameters used for EIP-712 signing.
 type Domain struct {
 	Name              string          `json:"name"`              // Name of the domain.
