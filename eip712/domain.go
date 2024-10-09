@@ -15,11 +15,13 @@ type Domain struct {
 	VerifyingContract *common.Address `json:"verifyingContract"` // Address of the verifying contract for the domain.
 }
 
-func (d *Domain) EIP712Type() string {
+// Type returns the name of the domain field.
+func (d *Domain) Type() string {
 	return "EIP712Domain"
 }
 
-func (d *Domain) EIP712Types() []apitypes.Type {
+// Types returns the domain field types.
+func (d *Domain) Types() []apitypes.Type {
 	types := []apitypes.Type{
 		{Name: "name", Type: "string"},
 		{Name: "version", Type: "string"},
@@ -31,7 +33,8 @@ func (d *Domain) EIP712Types() []apitypes.Type {
 	return types
 }
 
-func (d *Domain) EIP712Domain() apitypes.TypedDataDomain {
+// TypedData returns domain typed data.
+func (d *Domain) TypedData() apitypes.TypedDataDomain {
 	domain := apitypes.TypedDataDomain{
 		Name:    d.Name,
 		Version: d.Version,
@@ -48,6 +51,7 @@ const (
 	DomainDefaultVersion = `2`
 )
 
+// ZkSyncEraEIP712Domain represents the EIP-712 domain for ZKsync Era.
 func ZkSyncEraEIP712Domain(chainId int64) *Domain {
 	return &Domain{
 		Name:              DomainDefaultName,

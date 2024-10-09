@@ -150,11 +150,11 @@ func (tx *Transaction) TypedData() (*apitypes.TypedData, error) {
 	}
 	return &apitypes.TypedData{
 		Types: apitypes.Types{
-			"Transaction":       tx.types(),
-			domain.EIP712Type(): domain.EIP712Types(),
+			"Transaction": tx.types(),
+			domain.Type(): domain.Types(),
 		},
 		PrimaryType: "Transaction",
-		Domain:      domain.EIP712Domain(),
+		Domain:      domain.TypedData(),
 		Message:     message,
 	}, nil
 }
