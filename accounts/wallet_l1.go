@@ -37,18 +37,7 @@ type WalletL1 struct {
 	l2ChainId       *big.Int
 	baseToken       common.Address
 	isEthBasedChain bool
-
-	mainContractAddress common.Address
-	mainContract        *zksynchyperchain.IZkSyncHyperchain
-
-	bridgehubAddress common.Address
-	bridgehub        *bridgehub.IBridgehub
-
-	sharedL1BridgeAddress common.Address
-	sharedL1Bridge        *l1sharedbridge.IL1SharedBridge
-
-	defaultL1BridgeAddress common.Address
-	defaultL1Bridge        *l1bridge.IL1Bridge
+	cache           *Cache
 }
 
 // NewWalletL1 creates an instance of WalletL1 associated with the account provided by the raw private key.
@@ -72,38 +61,6 @@ func NewWalletL1FromSigner(signer *ECDSASigner, clientL1 *ethclient.Client, clie
 		return nil, errors.New("clientL1 is not provided")
 	} else if clientL2 == nil {
 		return nil, errors.New("clientL2 is not provided")
-	}
-
-	mainContractAddress, err := clientL2.MainContractAddress(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	iZkSync, err := zksynchyperchain.NewIZkSyncHyperchain(mainContractAddress, clientL1)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load IZkSync: %w", err)
-	}
-
-	bridgehubContractAddress, err := clientL2.BridgehubContractAddress(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	iBridgehub, err := bridgehub.NewIBridgehub(bridgehubContractAddress, clientL1)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load IBridgehub: %w", err)
-	}
-
-	bridgeContracts, err := clientL2.BridgeContracts(context.Background())
-	if err != nil {
-		return nil, err
-	}
-
-	sharedL1Bridge, err := l1sharedbridge.NewIL1SharedBridge(bridgeContracts.L1SharedBridge, clientL1)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load IL1SharedBridge: %w", err)
-	}
-	defaultL1Bridge, err := l1bridge.NewIL1Bridge(bridgeContracts.L1Erc20Bridge, clientL1)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load IL1Bridge: %w", err)
 	}
 
 	l1ChainId, err := clientL1.ChainID(context.Background())
@@ -131,43 +88,92 @@ func NewWalletL1FromSigner(signer *ECDSASigner, clientL1 *ethclient.Client, clie
 	}
 
 	return &WalletL1{
-		clientL1:               clientL1,
-		clientL2:               clientL2,
-		auth:                   auth,
-		l1ChainId:              l1ChainId,
-		l2ChainId:              l2ChainId,
-		baseToken:              baseToken,
-		isEthBasedChain:        isEthBasedChain,
-		mainContractAddress:    mainContractAddress,
-		mainContract:           iZkSync,
-		bridgehubAddress:       bridgehubContractAddress,
-		bridgehub:              iBridgehub,
-		sharedL1BridgeAddress:  bridgeContracts.L1SharedBridge,
-		sharedL1Bridge:         sharedL1Bridge,
-		defaultL1BridgeAddress: bridgeContracts.L1Erc20Bridge,
-		defaultL1Bridge:        defaultL1Bridge,
+		clientL1:        clientL1,
+		clientL2:        clientL2,
+		auth:            auth,
+		l1ChainId:       l1ChainId,
+		l2ChainId:       l2ChainId,
+		baseToken:       baseToken,
+		isEthBasedChain: isEthBasedChain,
+		cache:           NewCache(clientL2, clientL1),
+	}, nil
+}
+
+// NewWalletL1FromSignerAndCache creates an instance of WalletL1 associated with the account provided by the signer with cache.
+// The cache is optional and if it is not provided, new empty cache is used.
+func NewWalletL1FromSignerAndCache(signer *ECDSASigner, clientL1 *ethclient.Client, clientL2 *clients.Client, cache *Cache) (*WalletL1, error) {
+	if signer == nil {
+		return nil, errors.New("signer is not provided")
+	} else if clientL1 == nil {
+		return nil, errors.New("clientL1 is not provided")
+	} else if clientL2 == nil {
+		return nil, errors.New("clientL2 is not provided")
+	}
+
+	l1ChainId, err := clientL1.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	l2ChainId, err := clientL2.ChainID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	auth, err := newTransactorWithSigner(signer, l1ChainId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
+	}
+
+	baseToken, err := clientL2.BaseTokenContractAddress(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	isEthBasedChain, err := clientL2.IsEthBasedChain(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	c := cache
+	if c == nil {
+		c = NewCache(clientL2, clientL1)
+	}
+
+	return &WalletL1{
+		clientL1:        clientL1,
+		clientL2:        clientL2,
+		auth:            auth,
+		l1ChainId:       l1ChainId,
+		l2ChainId:       l2ChainId,
+		baseToken:       baseToken,
+		isEthBasedChain: isEthBasedChain,
+		cache:           c,
 	}, nil
 }
 
 // MainContract returns the ZKsync L1 smart contract.
 func (w *WalletL1) MainContract(_ context.Context) (*zksynchyperchain.IZkSyncHyperchain, error) {
-	return w.mainContract, nil
+	return w.cache.MainContract()
 }
 
 // BridgehubContract returns the Bridgehub L1 smart contract.
 func (w *WalletL1) BridgehubContract(_ context.Context) (*bridgehub.IBridgehub, error) {
-	return w.bridgehub, nil
+	return w.cache.Bridgehub()
 }
 
 // L1BridgeContracts returns L1 bridge contracts.
 func (w *WalletL1) L1BridgeContracts(_ context.Context) (*types.L1BridgeContracts, error) {
-	return &types.L1BridgeContracts{Erc20: w.defaultL1Bridge, Shared: w.sharedL1Bridge}, nil
+	return w.cache.L1BridgeContracts()
 }
 
 // BaseToken returns the address of the base token on L1.
 func (w *WalletL1) BaseToken(opts *CallOpts) (common.Address, error) {
 	callOpts := ensureCallOpts(opts).ToCallOpts(w.auth.From)
-	return w.bridgehub.BaseToken(callOpts, w.l2ChainId)
+	bridgehubContract, err := w.cache.Bridgehub()
+	if err != nil {
+		return common.Address{}, err
+	}
+	return bridgehubContract.BaseToken(callOpts, w.l2ChainId)
 }
 
 // IsEthBasedChain returns whether the chain is ETH-based.
@@ -196,7 +202,11 @@ func (w *WalletL1) AllowanceL1(opts *CallOpts, token common.Address, bridgeAddre
 		token = utils.LegacyEthAddress
 	}
 	if bridgeAddress == (common.Address{}) {
-		bridgeAddress = w.sharedL1BridgeAddress
+		l1SharedBridgeAddress, err := w.cache.L1SharedBridgeAddress()
+		if err != nil {
+			return nil, err
+		}
+		bridgeAddress = l1SharedBridgeAddress
 	}
 
 	erc20Contract, err := erc20.NewIERC20(token, w.clientL1)
@@ -224,7 +234,11 @@ func (w *WalletL1) ApproveERC20(auth *TransactOpts, token common.Address, amount
 	opts := ensureTransactOpts(auth).ToTransactOpts(w.auth.From, w.auth.Signer)
 	if bridgeAddress == (common.Address{}) {
 		if !w.isEthBasedChain && token == w.baseToken {
-			sharedBridge, err := w.bridgehub.SharedBridge(&bind.CallOpts{
+			bridgehubContract, err := w.cache.Bridgehub()
+			if err != nil {
+				return nil, err
+			}
+			sharedBridge, err := bridgehubContract.SharedBridge(&bind.CallOpts{
 				From:    opts.From,
 				Context: opts.Context,
 			})
@@ -233,7 +247,11 @@ func (w *WalletL1) ApproveERC20(auth *TransactOpts, token common.Address, amount
 			}
 			bridgeAddress = sharedBridge
 		} else {
-			bridgeAddress = w.sharedL1BridgeAddress
+			l1SharedBridgeAddress, err := w.cache.L1SharedBridgeAddress()
+			if err != nil {
+				return nil, err
+			}
+			bridgeAddress = l1SharedBridgeAddress
 		}
 	}
 
@@ -253,7 +271,11 @@ func (w *WalletL1) BaseCost(opts *CallOpts, gasLimit, gasPerPubdataByte, gasPric
 			return nil, err
 		}
 	}
-	return w.bridgehub.L2TransactionBaseCost(callOpts,
+	bridgehubContract, err := w.cache.Bridgehub()
+	if err != nil {
+		return nil, err
+	}
+	return bridgehubContract.L2TransactionBaseCost(callOpts,
 		w.l2ChainId,
 		gasPrice,
 		gasLimit,
@@ -419,7 +441,11 @@ func (w *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 		}
 
 		if msg.Token != utils.EthAddressInContracts {
-			bridgeAddress := w.sharedL1BridgeAddress
+			l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+			if addressError != nil {
+				return nil, addressError
+			}
+			bridgeAddress := l1SharedBridgeAddress
 			if msg.BridgeAddress != nil {
 				bridgeAddress = *msg.BridgeAddress
 			}
@@ -432,7 +458,11 @@ func (w *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 			}
 		}
 	} else {
-		allowance, allowanceErr := w.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, w.baseToken, w.sharedL1BridgeAddress)
+		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+		if addressError != nil {
+			return nil, addressError
+		}
+		allowance, allowanceErr := w.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, w.baseToken, l1SharedBridgeAddress)
 		if allowanceErr != nil {
 			return nil, allowanceErr
 		}
@@ -448,7 +478,7 @@ func (w *WalletL1) FullRequiredDepositFee(ctx context.Context, msg DepositCallMs
 			if msg.Value == nil {
 				msg.Value = big.NewInt(0)
 			}
-			allowance, allowanceErr = w.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, msg.Token, w.sharedL1BridgeAddress)
+			allowance, allowanceErr = w.AllowanceL1(&CallOpts{Context: ensureContext(ctx)}, msg.Token, l1SharedBridgeAddress)
 			if allowanceErr != nil {
 				return nil, allowanceErr
 			}
@@ -551,7 +581,12 @@ func (w *WalletL1) FinalizeWithdraw(auth *TransactOpts, withdrawalHash common.Ha
 	sender := common.BytesToAddress(log.Topics[1].Bytes()[12:])
 
 	if sender == utils.L2BaseTokenAddress {
-		return w.sharedL1Bridge.FinalizeWithdrawal(
+		l1SharedBridge, bridgeErr := w.cache.L1SharedBridge()
+		if bridgeErr != nil {
+			return nil, bridgeErr
+		}
+		fmt.Println(l1SharedBridge)
+		return l1SharedBridge.FinalizeWithdrawal(
 			opts,
 			w.l2ChainId,
 			log.L1BatchNumber.ToInt(),
@@ -622,7 +657,11 @@ func (w *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Has
 		return false, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
 	}
 
-	l1BridgeAddress := w.sharedL1BridgeAddress
+	l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+	if addressError != nil {
+		return false, addressError
+	}
+	l1BridgeAddress := l1SharedBridgeAddress
 	isBaseToken, err := w.clientL2.IsBaseToken(callOpts.Context, sender)
 	if err != nil {
 		return false, err
@@ -734,7 +773,11 @@ func (w *WalletL1) RequestExecute(auth *TransactOpts, tx RequestExecuteTransacti
 	if err != nil {
 		return nil, err
 	}
-	return w.bridgehub.RequestL2TransactionDirect(
+	bridgehubContract, err := w.cache.Bridgehub()
+	if err != nil {
+		return nil, err
+	}
+	return bridgehubContract.RequestL2TransactionDirect(
 		opts.ToTransactOpts(w.auth.From, w.auth.Signer),
 		bridgehub.L2TransactionRequestDirect{
 			ChainId:                  w.l2ChainId,
@@ -919,7 +962,11 @@ func (w *WalletL1) depositTokenToEthBasedChain(opts *TransactOpts, tx *DepositTr
 	}
 
 	if tx.ApproveERC20 {
-		bridge := w.sharedL1BridgeAddress
+		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+		if addressError != nil {
+			return nil, addressError
+		}
+		bridge := l1SharedBridgeAddress
 		if tx.BridgeAddress != nil {
 			bridge = *tx.BridgeAddress
 		}
@@ -947,7 +994,11 @@ func (w *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOpts, tx *De
 		opts.Value = mintValue
 	}
 
-	secondBridgeAddress := w.sharedL1BridgeAddress
+	l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+	if addressError != nil {
+		return nil, addressError
+	}
+	secondBridgeAddress := l1SharedBridgeAddress
 	if tx.BridgeAddress != nil {
 		secondBridgeAddress = *tx.BridgeAddress
 	}
@@ -959,7 +1010,11 @@ func (w *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOpts, tx *De
 
 	noSendOpts := opts.ToTransactOpts(w.auth.From, w.auth.Signer)
 	noSendOpts.NoSend = true
-	depositTx, err := w.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
+	bridgehubContract, err := w.cache.Bridgehub()
+	if err != nil {
+		return nil, err
+	}
+	depositTx, err := bridgehubContract.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
 		ChainId:                  w.l2ChainId,
 		MintValue:                mintValue,
 		L2Value:                  big.NewInt(0),
@@ -994,7 +1049,11 @@ func (w *WalletL1) depositEthToNonEthBasedChain(opts *TransactOpts, tx *DepositT
 	}
 
 	if tx.ApproveBaseERC20 {
-		approveErr := w.approveERC20(ensureTransactOpts(tx.ApproveBaseAuth), w.baseToken, mintValue, w.sharedL1BridgeAddress)
+		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+		if addressError != nil {
+			return nil, addressError
+		}
+		approveErr := w.approveERC20(ensureTransactOpts(tx.ApproveBaseAuth), w.baseToken, mintValue, l1SharedBridgeAddress)
 		if approveErr != nil {
 			return nil, approveErr
 		}
@@ -1023,14 +1082,22 @@ func (w *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOpts, tx *D
 		return nil, err
 	}
 
-	secondBridgeAddress := w.sharedL1BridgeAddress
+	l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+	if addressError != nil {
+		return nil, addressError
+	}
+	secondBridgeAddress := l1SharedBridgeAddress
 	if tx.BridgeAddress != nil {
 		secondBridgeAddress = *tx.BridgeAddress
 	}
 
 	noSendOpts := opts.ToTransactOpts(w.auth.From, w.auth.Signer)
 	noSendOpts.NoSend = true
-	depositTx, err := w.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
+	bridgehubContract, err := w.cache.Bridgehub()
+	if err != nil {
+		return nil, err
+	}
+	depositTx, err := bridgehubContract.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
 		ChainId:                  w.l2ChainId,
 		MintValue:                mintValue,
 		L2Value:                  big.NewInt(0),
@@ -1061,7 +1128,11 @@ func (w *WalletL1) depositBaseTokenToNonEthBasedChain(opts *TransactOpts, tx *De
 		if tx.ApproveBaseERC20 {
 			approveOpts = tx.ApproveAuth
 		}
-		approveErr := w.approveERC20(ensureTransactOpts(approveOpts), w.baseToken, mintValue, w.sharedL1BridgeAddress)
+		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+		if addressError != nil {
+			return nil, addressError
+		}
+		approveErr := w.approveERC20(ensureTransactOpts(approveOpts), w.baseToken, mintValue, l1SharedBridgeAddress)
 		if approveErr != nil {
 			return nil, approveErr
 		}
@@ -1110,14 +1181,22 @@ func (w *WalletL1) depositNonBaseTokenToNonEthBasedChain(opts *TransactOpts, tx 
 	}
 
 	if tx.ApproveBaseERC20 {
-		approveErr := w.approveERC20(ensureTransactOpts(tx.ApproveBaseAuth), w.baseToken, mintValue, w.sharedL1BridgeAddress)
+		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+		if addressError != nil {
+			return nil, addressError
+		}
+		approveErr := w.approveERC20(ensureTransactOpts(tx.ApproveBaseAuth), w.baseToken, mintValue, l1SharedBridgeAddress)
 		if approveErr != nil {
 			return nil, approveErr
 		}
 	}
 
 	if tx.ApproveERC20 {
-		bridge := w.sharedL1BridgeAddress
+		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+		if addressError != nil {
+			return nil, addressError
+		}
+		bridge := l1SharedBridgeAddress
 		if tx.BridgeAddress != nil {
 			bridge = *tx.BridgeAddress
 		}
@@ -1150,14 +1229,22 @@ func (w *WalletL1) prepareDepositNonBasedTokenToNonEthBasedChain(opts *TransactO
 		return nil, err
 	}
 
-	secondBridgeAddress := w.sharedL1BridgeAddress
+	l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
+	if addressError != nil {
+		return nil, addressError
+	}
+	secondBridgeAddress := l1SharedBridgeAddress
 	if tx.BridgeAddress != nil {
 		secondBridgeAddress = *tx.BridgeAddress
 	}
 
 	noSendOpts := opts.ToTransactOpts(w.auth.From, w.auth.Signer)
 	noSendOpts.NoSend = true
-	depositTx, err := w.bridgehub.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
+	bridgehubContract, err := w.cache.Bridgehub()
+	if err != nil {
+		return nil, err
+	}
+	depositTx, err := bridgehubContract.RequestL2TransactionTwoBridges(noSendOpts, bridgehub.L2TransactionRequestTwoBridgesOuter{
 		ChainId:                  w.l2ChainId,
 		MintValue:                mintValue,
 		L2Value:                  big.NewInt(0),

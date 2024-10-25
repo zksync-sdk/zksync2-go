@@ -12,7 +12,6 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
 	"github.com/zksync-sdk/zksync2-go/contracts/ethtoken"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
-	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/nonceholder"
 	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
@@ -22,16 +21,10 @@ import (
 // WalletL2 associated with an account and provides common operations on the
 // L2 network for the associated account.
 type WalletL2 struct {
-	client    *clients.Client
-	signer    *ECDSASigner
-	auth      *bind.TransactOpts
-	baseToken common.Address
-
-	sharedL2BridgeAddress common.Address
-	sharedL2Bridge        *l2sharedbridge.IL2SharedBridge
-
-	defaultL2BridgeAddress common.Address
-	defaultL2Bridge        *l2bridge.IL2Bridge
+	client *clients.Client
+	signer *ECDSASigner
+	auth   *bind.TransactOpts
+	cache  *Cache
 }
 
 // NewWalletL2 creates an instance of WalletL2 associated with the account provided by the raw private key.
@@ -48,45 +41,52 @@ func NewWalletL2(rawPrivateKey []byte, client *clients.Client) (*WalletL2, error
 }
 
 // NewWalletL2FromSigner creates an instance of WalletL2.
-// The client can be optional; if it is not provided, only AdapterL2.SignTransaction,
+// The client can be optional and if it is not provided, only AdapterL2.SignTransaction,
 // AdapterL2.Address, AdapterL2.Signer can be performed, as the rest of the
 // functionalities require communication to the network.
 func NewWalletL2FromSigner(signer *ECDSASigner, client *clients.Client) (*WalletL2, error) {
 	if client == nil {
 		return &WalletL2{signer: signer}, nil
 	}
+	chainId, err := client.ChainID(context.Background())
+	auth, err := newTransactorWithSigner(signer, chainId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
+	}
 
-	bridgeContracts, err := client.BridgeContracts(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	defaultL2Bridge, err := l2bridge.NewIL2Bridge(bridgeContracts.L2Erc20Bridge, client)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
-	}
-	sharedL2Bridge, err := l2sharedbridge.NewIL2SharedBridge(bridgeContracts.L2SharedBridge, client)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
+	return &WalletL2{
+		client: client,
+		signer: signer,
+		auth:   auth,
+		cache:  NewCache(client, nil),
+	}, nil
+}
+
+// NewWalletL2FromSignerAndCache creates an instance of WalletL2 with cache.
+// The cache is optional and if it is not provided, new empty cache is used.
+// The clientL2 can be optional and if it is not provided, only AdapterL2.SignTransaction,
+// AdapterL2.Address, AdapterL2.Signer can be performed, as the rest of the
+// functionalities require communication to the network.
+func NewWalletL2FromSignerAndCache(signer *ECDSASigner, client *clients.Client, cache *Cache) (*WalletL2, error) {
+	if client == nil {
+		return &WalletL2{signer: signer}, nil
 	}
 	chainId, err := client.ChainID(context.Background())
 	auth, err := newTransactorWithSigner(signer, chainId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
 	}
-	baseToken, err := client.BaseTokenContractAddress(context.Background())
-	if err != nil {
-		return nil, err
+
+	c := cache
+	if c == nil {
+		c = NewCache(client, nil)
 	}
 
 	return &WalletL2{
-		client:                 client,
-		signer:                 signer,
-		auth:                   auth,
-		baseToken:              baseToken,
-		sharedL2BridgeAddress:  bridgeContracts.L2SharedBridge,
-		sharedL2Bridge:         sharedL2Bridge,
-		defaultL2BridgeAddress: bridgeContracts.L2Erc20Bridge,
-		defaultL2Bridge:        defaultL2Bridge,
+		client: client,
+		signer: signer,
+		auth:   auth,
+		cache:  c,
 	}, nil
 }
 
@@ -132,7 +132,7 @@ func (w *WalletL2) AllBalances(ctx context.Context) (map[common.Address]*big.Int
 
 // L2BridgeContracts returns L2 bridge contracts.
 func (w *WalletL2) L2BridgeContracts(_ context.Context) (*types.L2BridgeContracts, error) {
-	return &types.L2BridgeContracts{Erc20: w.defaultL2Bridge, Shared: w.sharedL2Bridge}, nil
+	return w.cache.L2BridgeContracts()
 }
 
 // DeploymentNonce returns the deployment nonce of the account.
@@ -182,7 +182,11 @@ func (w *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*ethT
 		return withdrawTx, nil
 	} else {
 		if tx.BridgeAddress == nil {
-			tx.BridgeAddress = &w.sharedL2BridgeAddress
+			sharedL2BridgeAddress, err := w.cache.L2SharedBridgeAddress()
+			if err != nil {
+				return nil, err
+			}
+			tx.BridgeAddress = &sharedL2BridgeAddress
 		}
 		bridge, bridgeErr := l2bridge.NewIL2Bridge(*tx.BridgeAddress, w.client)
 		if bridgeErr != nil {
