@@ -7,13 +7,266 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/bridgehub"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l1sharedbridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/zksynchyperchain"
 	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"math/big"
 )
+
+// Cache holds cached bridge addresses and contracts for optimized access.
+// This cache uses a lazy-loading approach, meaning data is only fetched when needed.
+type Cache struct {
+	clientL1 *ethclient.Client
+	clientL2 *clients.Client
+
+	bridgeAddresses     *types.BridgeContracts
+	mainContractAddress *common.Address
+	bridgehubAddress    *common.Address
+
+	l2BridgeContracts *types.L2BridgeContracts
+	l1BridgeContracts *types.L1BridgeContracts
+	mainContract      *zksynchyperchain.IZkSyncHyperchain
+	bridgehub         *bridgehub.IBridgehub
+}
+
+// NewCache creates an instance of Cache with the provided clients.
+// Contracts returned from Cache are associated with the provided clients.
+func NewCache(clientL2 *clients.Client, clientL1 *ethclient.Client) *Cache {
+	return &Cache{clientL2: clientL2, clientL1: clientL1}
+}
+
+// MainContractAddress returns the main contract address from cache.
+// If not already cached, it fetches the addresses,
+// caches it, and then returns the value from the cache.
+func (c *Cache) MainContractAddress() (common.Address, error) {
+	if c.mainContractAddress == nil {
+		mainContractAddress, err := c.clientL2.MainContractAddress(context.Background())
+		if err != nil {
+			return common.Address{}, err
+		}
+		c.mainContractAddress = &mainContractAddress
+	}
+	return *c.mainContractAddress, nil
+}
+
+// BridgehubAddress returns the Bridgehub contract address from cache.
+// If not already cached, it fetches the addresses,
+// caches it, and then returns the value from the cache.
+func (c *Cache) BridgehubAddress() (common.Address, error) {
+	if c.bridgehubAddress == nil {
+		bridgehubContractAddress, err := c.clientL2.BridgehubContractAddress(context.Background())
+		if err != nil {
+			return common.Address{}, err
+		}
+		c.bridgehubAddress = &bridgehubContractAddress
+	}
+	return *c.bridgehubAddress, nil
+}
+
+// L2DefaultBridgeAddress returns the L2 default bridge address from cache.
+// If not already cached, it fetches the bridge addresses,
+// caches them, and then returns the value from the cache.
+func (c *Cache) L2DefaultBridgeAddress() (common.Address, error) {
+	if c.bridgeAddresses == nil {
+		bridgeAddresses, err := c.clientL2.BridgeContracts(context.Background())
+		if err != nil {
+			return common.Address{}, err
+		}
+		c.bridgeAddresses = bridgeAddresses
+	}
+	return c.bridgeAddresses.L2Erc20Bridge, nil
+}
+
+// L1DefaultBridgeAddress returns the L1 default bridge address from cache.
+// If not already cached, it fetches the bridge addresses,
+// caches them, and then returns the value from the cache.
+func (c *Cache) L1DefaultBridgeAddress() (common.Address, error) {
+	if c.bridgeAddresses == nil {
+		bridgeAddresses, err := c.clientL2.BridgeContracts(context.Background())
+		if err != nil {
+			return common.Address{}, err
+		}
+		c.bridgeAddresses = bridgeAddresses
+	}
+	return c.bridgeAddresses.L1Erc20Bridge, nil
+}
+
+// L2SharedBridgeAddress returns the L2 shared bridge address from cache.
+// If not already cached, it fetches the bridge addresses,
+// caches them, and then returns the value from the cache.
+func (c *Cache) L2SharedBridgeAddress() (common.Address, error) {
+	if c.bridgeAddresses == nil {
+		bridgeAddresses, err := c.clientL2.BridgeContracts(context.Background())
+		if err != nil {
+			return common.Address{}, err
+		}
+		c.bridgeAddresses = bridgeAddresses
+	}
+	return c.bridgeAddresses.L2SharedBridge, nil
+}
+
+// L1SharedBridgeAddress returns the L1  shared bridge address from cache.
+// If not already cached, it fetches the bridge addresses,
+// caches them, and then returns the value from the cache.
+func (c *Cache) L1SharedBridgeAddress() (common.Address, error) {
+	if c.bridgeAddresses == nil {
+		bridgeAddresses, err := c.clientL2.BridgeContracts(context.Background())
+		if err != nil {
+			return common.Address{}, err
+		}
+		c.bridgeAddresses = bridgeAddresses
+	}
+	return c.bridgeAddresses.L1SharedBridge, nil
+}
+
+// MainContract returns the main contract from cache.
+// It is not cached, fetches the contract, cache it and
+// returns the value from cache.
+func (c *Cache) MainContract() (*zksynchyperchain.IZkSyncHyperchain, error) {
+	if c.bridgehub == nil {
+		mainContractAddress, err := c.MainContractAddress()
+		if err != nil {
+			return nil, err
+		}
+		c.mainContract, err = zksynchyperchain.NewIZkSyncHyperchain(mainContractAddress, c.clientL1)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load IBridgehub: %w", err)
+		}
+	}
+	return c.mainContract, nil
+}
+
+// Bridgehub returns the Bridgehub contract from cache.
+// It is not cached, fetches the contract, cache it and
+// returns the value from cache.
+func (c *Cache) Bridgehub() (*bridgehub.IBridgehub, error) {
+	if c.bridgehub == nil {
+		bridgehubAddress, err := c.BridgehubAddress()
+		if err != nil {
+			return nil, err
+		}
+		c.bridgehub, err = bridgehub.NewIBridgehub(bridgehubAddress, c.clientL1)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load IBridgehub: %w", err)
+		}
+	}
+	return c.bridgehub, nil
+}
+
+// L2BridgeContracts returns the L2 bridge contracts from cache.
+// It is not cached, fetches the contracts, cache them and
+// returns the value from cache.
+func (c *Cache) L2BridgeContracts() (*types.L2BridgeContracts, error) {
+	if c.l2BridgeContracts == nil {
+		defaultBridge, err := c.L2DefaultBridge()
+		if err != nil {
+			return nil, err
+		}
+		sharedBridge, err := c.L2SharedBridge()
+		if err != nil {
+			return nil, err
+		}
+		c.l2BridgeContracts = &types.L2BridgeContracts{Erc20: defaultBridge, Shared: sharedBridge}
+	}
+	return c.l2BridgeContracts, nil
+}
+
+// L1BridgeContracts returns the L1 bridge contracts from cache.
+// It is not cached, fetches the contracts, cache them and
+// returns the value from cache.
+func (c *Cache) L1BridgeContracts() (*types.L1BridgeContracts, error) {
+	if c.l2BridgeContracts == nil {
+		defaultBridge, err := c.L1DefaultBridge()
+		if err != nil {
+			return nil, err
+		}
+		sharedBridge, err := c.L1SharedBridge()
+		if err != nil {
+			return nil, err
+		}
+		c.l1BridgeContracts = &types.L1BridgeContracts{Erc20: defaultBridge, Shared: sharedBridge}
+	}
+	return c.l1BridgeContracts, nil
+}
+
+// L2DefaultBridge returns the L2 default bridge contract from cache.
+// It is not cached, fetches the contract, cache it and
+// returns the value from cache.
+func (c *Cache) L2DefaultBridge() (*l2bridge.IL2Bridge, error) {
+	if c.l2BridgeContracts == nil || c.l2BridgeContracts.Erc20 == nil {
+		c.l2BridgeContracts = &types.L2BridgeContracts{}
+		defaultL2BridgeAddress, err := c.L2DefaultBridgeAddress()
+		if err != nil {
+			return nil, err
+		}
+		c.l2BridgeContracts.Erc20, err = l2bridge.NewIL2Bridge(defaultL2BridgeAddress, c.clientL2)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load IL2Bridge: %w", err)
+		}
+	}
+	return c.l2BridgeContracts.Erc20, nil
+}
+
+// L1DefaultBridge returns the L1 default bridge contract from cache.
+// It is not cached, fetches the contract, cache it and
+// returns the value from cache.
+func (c *Cache) L1DefaultBridge() (*l1bridge.IL1Bridge, error) {
+	if c.l1BridgeContracts == nil || c.l1BridgeContracts.Erc20 == nil {
+		c.l1BridgeContracts = &types.L1BridgeContracts{}
+		defaultL1BridgeAddress, err := c.L1DefaultBridgeAddress()
+		if err != nil {
+			return nil, err
+		}
+		c.l1BridgeContracts.Erc20, err = l1bridge.NewIL1Bridge(defaultL1BridgeAddress, c.clientL1)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load IL1Bridge: %w", err)
+		}
+	}
+	return c.l1BridgeContracts.Erc20, nil
+}
+
+// L2SharedBridge returns the L2 shared bridge contract from cache.
+// It is not cached, fetches the contract, cache it and
+// returns the value from cache.
+func (c *Cache) L2SharedBridge() (*l2sharedbridge.IL2SharedBridge, error) {
+	if c.l2BridgeContracts == nil || c.l2BridgeContracts.Shared == nil {
+		c.l2BridgeContracts = &types.L2BridgeContracts{}
+		sharedL2BridgeAddress, err := c.L2SharedBridgeAddress()
+		if err != nil {
+			return nil, err
+		}
+		c.l2BridgeContracts.Shared, err = l2sharedbridge.NewIL2SharedBridge(sharedL2BridgeAddress, c.clientL2)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load IL2SharedBridge: %w", err)
+		}
+	}
+	return c.l2BridgeContracts.Shared, nil
+}
+
+// L1SharedBridge returns the L2 shared bridge contract from cache.
+// It is not cached, fetches the contract, cache it and
+// returns the value from cache.
+func (c *Cache) L1SharedBridge() (*l1sharedbridge.IL1SharedBridge, error) {
+	if c.l1BridgeContracts == nil || c.l1BridgeContracts.Shared == nil {
+		c.l1BridgeContracts = &types.L1BridgeContracts{}
+		sharedL1BridgeAddress, err := c.L1SharedBridgeAddress()
+		if err != nil {
+			return nil, err
+		}
+		c.l1BridgeContracts.Shared, err = l1sharedbridge.NewIL1SharedBridge(sharedL1BridgeAddress, c.clientL1)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load IL1SharedBridge: %w", err)
+		}
+	}
+	return c.l1BridgeContracts.Shared, nil
+}
 
 // CallOpts is the collection of options to fine tune a contract call request from
 // a specific account associated with AdapterL1.
@@ -773,9 +1026,9 @@ type AllowanceParams struct {
 
 // PayloadSigner signs various types of payloads, optionally using a some kind of secret.
 // Returns the serialized signature.
-// The client is used to fetch data from the network if it is required for signing.
+// The clientL2 is used to fetch data from the network if it is required for signing.
 type PayloadSigner func(ctx context.Context, payload []byte, secret interface{}, client *clients.Client) ([]byte, error)
 
 // TransactionBuilder populates missing fields in a tx with default values.
-// The client is used to fetch data from the network if it is required.
+// The clientL2 is used to fetch data from the network if it is required.
 type TransactionBuilder func(ctx context.Context, tx *types.Transaction, secret interface{}, client *clients.Client) error
