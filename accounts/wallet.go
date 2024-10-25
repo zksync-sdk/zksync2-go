@@ -51,13 +51,15 @@ func NewWalletFromSigner(signer *ECDSASigner, clientL2 *clients.Client, clientL1
 		err      error
 	)
 
+	cache := NewCache(clientL2, clientL1)
+
 	walletL1 = new(WalletL1)
 	if clientL1 != nil {
-		if walletL1, err = NewWalletL1FromSigner(signer, clientL1, clientL2); err != nil {
+		if walletL1, err = NewWalletL1FromSignerAndCache(signer, clientL1, clientL2, cache); err != nil {
 			return nil, err
 		}
 	}
-	if walletL2, err = NewWalletL2FromSigner(signer, clientL2); err != nil {
+	if walletL2, err = NewWalletL2FromSignerAndCache(signer, clientL2, cache); err != nil {
 		return nil, err
 	}
 	return &Wallet{
@@ -115,12 +117,12 @@ func (w *Wallet) PendingNonce(ctx context.Context) (uint64, error) {
 	return w.clientL2.PendingNonceAt(ctx, w.Address())
 }
 
-// Connect returns a new instance of Wallet with the provided client for the L2 network.
+// Connect returns a new instance of Wallet with the provided clientL2 for the L2 network.
 func (w *Wallet) Connect(client *clients.Client) (*Wallet, error) {
 	return NewWalletFromSigner(w.Signer(), client, w.clientL1)
 }
 
-// ConnectL1 returns a new instance of Wallet with the provided client for the L1 network.
+// ConnectL1 returns a new instance of Wallet with the provided clientL2 for the L1 network.
 func (w *Wallet) ConnectL1(client *ethclient.Client) (*Wallet, error) {
 	return NewWalletFromSigner(w.Signer(), w.clientL2, client)
 }
