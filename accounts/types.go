@@ -345,19 +345,26 @@ type WithdrawalCallMsg struct {
 	GasPrice  *big.Int // Wei <-> gas exchange ratio.
 	GasFeeCap *big.Int // EIP-1559 fee cap per gas.
 	GasTipCap *big.Int // EIP-1559 tip per gas.
+
+	PaymasterParams *types.PaymasterParams // The paymaster parameters.
+	// GasPerPubdata denotes the maximum amount of gas the user is willing
+	// to pay for a single byte of pubdata.
+	GasPerPubdata *big.Int
 }
 
 func (m *WithdrawalCallMsg) ToWithdrawalCallMsg(from common.Address) clients.WithdrawalCallMsg {
 	return clients.WithdrawalCallMsg{
-		To:            m.To,
-		Amount:        m.Amount,
-		Token:         m.Token,
-		BridgeAddress: m.BridgeAddress,
-		From:          from,
-		Gas:           m.Gas,
-		GasPrice:      m.GasPrice,
-		GasFeeCap:     m.GasFeeCap,
-		GasTipCap:     m.GasTipCap,
+		To:              m.To,
+		Amount:          m.Amount,
+		Token:           m.Token,
+		BridgeAddress:   m.BridgeAddress,
+		From:            from,
+		Gas:             m.Gas,
+		GasPrice:        m.GasPrice,
+		GasFeeCap:       m.GasFeeCap,
+		GasTipCap:       m.GasTipCap,
+		PaymasterParams: m.PaymasterParams,
+		GasPerPubdata:   m.GasPerPubdata,
 	}
 }
 
