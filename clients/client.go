@@ -1195,10 +1195,6 @@ func (c *Client) getBlock(ctx context.Context, method string, args ...interface{
 	if block.TxHash == ethTypes.EmptyTxsHash && len(block.Transactions) > 0 {
 		return nil, errors.New("server returned non-empty transaction list but block header indicates no transactions")
 	}
-	// TODO use this validation when transaction root is fixed on zksync node
-	//if head.TxHash != ethTypes.EmptyTxsHash && len(body.Transactions) == 0 {
-	//	return nil, errors.New("server returned empty transaction list but block header indicates transactions")
-	//}
 	// Load uncles because they are not included in the block response.
 	var uncles []*ethTypes.Header
 	if len(block.Uncles) > 0 {
