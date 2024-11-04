@@ -1065,9 +1065,9 @@ func (c *Client) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMsg)
 		if errBridge != nil {
 			return 0, fmt.Errorf("failed to getBridgeContracts: %w", errBridge)
 		}
-		callMsg, err = msg.ToZkCallMsg(&contracts.L2SharedBridge)
+		callMsg, err = msg.ToCallMsg(&contracts.L2SharedBridge)
 	} else {
-		callMsg, err = msg.ToZkCallMsg(nil)
+		callMsg, err = msg.ToCallMsg(nil)
 		if err != nil {
 			return 0, err
 		}
