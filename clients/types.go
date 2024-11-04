@@ -28,6 +28,12 @@ type TransferCallMsg struct {
 	GasTipCap *big.Int // EIP-1559 tip per gas.
 
 	PaymasterParams *types.PaymasterParams // The paymaster parameters.
+	// GasPerPubdata denotes the maximum amount of gas the user is willing
+	// to pay for a single byte of pubdata.
+	GasPerPubdata *big.Int
+	// CustomSignature is used for the cases in which the signer's account
+	// is not an EOA.
+	CustomSignature hexutil.Bytes
 }
 
 func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
@@ -68,9 +74,10 @@ func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
 
 func (m *TransferCallMsg) ToZkCallMsg() (*types.CallMsg, error) {
 	var (
-		value *big.Int
-		data  []byte
-		to    *common.Address
+		value         *big.Int
+		data          []byte
+		to            *common.Address
+		gasPerPubdata *big.Int
 	)
 
 	if m.Token == utils.L2BaseTokenAddress {
@@ -90,6 +97,10 @@ func (m *TransferCallMsg) ToZkCallMsg() (*types.CallMsg, error) {
 		}
 	}
 
+	if m.GasPerPubdata == nil {
+		gasPerPubdata = utils.DefaultGasPerPubdataLimit
+	}
+
 	return &types.CallMsg{
 		From:            m.From,
 		To:              to,
@@ -99,8 +110,9 @@ func (m *TransferCallMsg) ToZkCallMsg() (*types.CallMsg, error) {
 		GasTipCap:       m.GasTipCap,
 		Value:           value,
 		Data:            data,
-		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+		GasPerPubdata:   gasPerPubdata,
 		PaymasterParams: m.PaymasterParams,
+		CustomSignature: m.CustomSignature,
 	}, nil
 }
 
