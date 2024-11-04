@@ -1039,7 +1039,7 @@ func (c *Client) EstimateGasL1(ctx context.Context, msg types.CallMsg) (uint64, 
 
 // EstimateGasTransfer estimates the amount of gas required for a transfer transaction.
 func (c *Client) EstimateGasTransfer(ctx context.Context, msg TransferCallMsg) (uint64, error) {
-	callMsg, err := msg.ToZkCallMsg()
+	callMsg, err := msg.ToCallMsg()
 	if err != nil {
 		return 0, err
 	}

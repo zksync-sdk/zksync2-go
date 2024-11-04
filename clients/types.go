@@ -36,7 +36,7 @@ type TransferCallMsg struct {
 	CustomSignature hexutil.Bytes
 }
 
-func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
+func (m *TransferCallMsg) ToL1CallMsg() (*ethereum.CallMsg, error) {
 	var (
 		value *big.Int
 		data  []byte
@@ -72,7 +72,7 @@ func (m *TransferCallMsg) ToCallMsg() (*ethereum.CallMsg, error) {
 	}, nil
 }
 
-func (m *TransferCallMsg) ToZkCallMsg() (*types.CallMsg, error) {
+func (m *TransferCallMsg) ToCallMsg() (*types.CallMsg, error) {
 	var (
 		value         *big.Int
 		data          []byte
