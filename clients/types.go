@@ -138,7 +138,7 @@ type WithdrawalCallMsg struct {
 	CustomSignature hexutil.Bytes
 }
 
-func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereum.CallMsg, error) {
+func (m *WithdrawalCallMsg) ToL1CallMsg(defaultL2Bridge *common.Address) (*ethereum.CallMsg, error) {
 	if m.Token == utils.L2BaseTokenAddress {
 		ethTokenAbi, err := ethtoken.IEthTokenMetaData.GetAbi()
 		if err != nil {
@@ -186,8 +186,8 @@ func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereu
 	}
 }
 
-func (m *WithdrawalCallMsg) ToZkCallMsg(defaultL2Bridge *common.Address) (*types.CallMsg, error) {
-	msg, err := m.ToCallMsg(defaultL2Bridge)
+func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*types.CallMsg, error) {
+	msg, err := m.ToL1CallMsg(defaultL2Bridge)
 	if err != nil {
 		return nil, err
 	}
