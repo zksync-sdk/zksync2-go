@@ -130,6 +130,12 @@ type WithdrawalCallMsg struct {
 	GasTipCap *big.Int // EIP-1559 tip per gas.
 
 	PaymasterParams *types.PaymasterParams // The paymaster parameters.
+	// GasPerPubdata denotes the maximum amount of gas the user is willing
+	// to pay for a single byte of pubdata.
+	GasPerPubdata *big.Int
+	// CustomSignature is used for the cases in which the signer's account
+	// is not an EOA.
+	CustomSignature hexutil.Bytes
 }
 
 func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*ethereum.CallMsg, error) {
@@ -186,6 +192,11 @@ func (m *WithdrawalCallMsg) ToZkCallMsg(defaultL2Bridge *common.Address) (*types
 		return nil, err
 	}
 
+	gasPerPubdata := m.GasPerPubdata
+	if gasPerPubdata == nil {
+		gasPerPubdata = utils.DefaultGasPerPubdataLimit
+	}
+
 	return &types.CallMsg{
 		From:            msg.From,
 		To:              msg.To,
@@ -195,8 +206,9 @@ func (m *WithdrawalCallMsg) ToZkCallMsg(defaultL2Bridge *common.Address) (*types
 		GasTipCap:       msg.GasTipCap,
 		Value:           msg.Value,
 		Data:            msg.Data,
-		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+		GasPerPubdata:   gasPerPubdata,
 		PaymasterParams: m.PaymasterParams,
+		CustomSignature: m.CustomSignature,
 	}, nil
 }
 
