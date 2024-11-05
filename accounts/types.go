@@ -937,7 +937,7 @@ type CreateTransaction struct {
 	Dependencies [][]byte // The bytecode of dependent smart contracts or smart accounts.
 }
 
-func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *TransactOptsL1) (*Transaction, error) {
+func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *TransactOpts) (*Transaction, error) {
 	var (
 		data []byte
 		err  error
@@ -968,18 +968,24 @@ func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *T
 
 	auth := opts
 	if auth == nil {
-		auth = &TransactOptsL1{Context: context.Background()}
+		auth = &TransactOpts{Context: context.Background()}
+	}
+
+	gasPerPubdata := auth.GasPerPubdata
+	if gasPerPubdata == nil {
+		gasPerPubdata = utils.DefaultGasPerPubdataLimit
 	}
 
 	return &Transaction{
-		To:            &utils.ContractDeployerAddress,
-		Data:          data,
-		Nonce:         auth.Nonce,
-		GasFeeCap:     auth.GasFeeCap,
-		GasTipCap:     auth.GasTipCap,
-		Gas:           auth.GasLimit,
-		GasPerPubdata: utils.DefaultGasPerPubdataLimit,
-		FactoryDeps:   factoryDeps,
+		To:              &utils.ContractDeployerAddress,
+		Data:            data,
+		Nonce:           auth.Nonce,
+		GasFeeCap:       auth.GasFeeCap,
+		GasTipCap:       auth.GasTipCap,
+		Gas:             auth.GasLimit,
+		GasPerPubdata:   gasPerPubdata,
+		PaymasterParams: auth.PaymasterParams,
+		FactoryDeps:     factoryDeps,
 	}, nil
 }
 
@@ -992,7 +998,7 @@ type Create2Transaction struct {
 	Dependencies [][]byte // The bytecode of dependent smart contracts or smart accounts.
 }
 
-func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *TransactOptsL1) (*Transaction, error) {
+func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *TransactOpts) (*Transaction, error) {
 	var (
 		data []byte
 		err  error
@@ -1023,18 +1029,24 @@ func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *
 
 	auth := opts
 	if auth == nil {
-		auth = &TransactOptsL1{Context: context.Background()}
+		auth = &TransactOpts{Context: context.Background()}
+	}
+
+	gasPerPubdata := auth.GasPerPubdata
+	if gasPerPubdata == nil {
+		gasPerPubdata = utils.DefaultGasPerPubdataLimit
 	}
 
 	return &Transaction{
-		To:            &utils.ContractDeployerAddress,
-		Data:          data,
-		Nonce:         auth.Nonce,
-		GasFeeCap:     auth.GasFeeCap,
-		GasTipCap:     auth.GasTipCap,
-		Gas:           auth.GasLimit,
-		GasPerPubdata: utils.DefaultGasPerPubdataLimit,
-		FactoryDeps:   factoryDeps,
+		To:              &utils.ContractDeployerAddress,
+		Data:            data,
+		Nonce:           auth.Nonce,
+		GasFeeCap:       auth.GasFeeCap,
+		GasTipCap:       auth.GasTipCap,
+		Gas:             auth.GasLimit,
+		GasPerPubdata:   gasPerPubdata,
+		PaymasterParams: auth.PaymasterParams,
+		FactoryDeps:     factoryDeps,
 	}, nil
 }
 
