@@ -266,8 +266,8 @@ func sendTokenToL2(wallet *accounts.Wallet, client *clients.Client, ethClient *e
 		Token:            l1Token,
 		Amount:           amount,
 		To:               wallet.Address(),
-		ApproveERC20:     true,
-		ApproveBaseERC20: true,
+		ApproveToken:     true,
+		ApproveBaseToken: true,
 		RefundRecipient:  wallet.Address(),
 	})
 	if err != nil {

@@ -321,8 +321,8 @@ func (w *WalletL1) DepositAllowanceParams(opts *CallOpts, msg DepositCallMsg) ([
 // to the target account on the L2 network. The token can be either ETH or any ERC20 token.
 // For ERC20 tokens, enough approved tokens must be associated with the specified L1 bridge
 // (default one or the one defined in DepositTransaction.BridgeAddress).
-// In this case, depending on is the chain ETH-based or not DepositTransaction.ApproveERC20 or
-// DepositTransaction.ApproveBaseERC20 can be enabled to perform token approval.
+// In this case, depending on is the chain ETH-based or not DepositTransaction.ApproveToken or
+// DepositTransaction.ApproveBaseToken can be enabled to perform token approval.
 // If there are already enough approved tokens for the L1 bridge, token approval will be skipped.
 // To check the amount of approved tokens for a specific bridge, use the AdapterL1.AllowanceL1 method.
 func (w *WalletL1) Deposit(auth *TransactOptsL1, tx DepositTransaction) (*ethTypes.Transaction, error) {
@@ -961,7 +961,7 @@ func (w *WalletL1) depositTokenToEthBasedChain(opts *TransactOptsL1, tx *Deposit
 		return nil, checkErr
 	}
 
-	if tx.ApproveERC20 {
+	if tx.ApproveToken {
 		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
 		if addressError != nil {
 			return nil, addressError
@@ -1048,7 +1048,7 @@ func (w *WalletL1) depositEthToNonEthBasedChain(opts *TransactOptsL1, tx *Deposi
 		return nil, checkErr
 	}
 
-	if tx.ApproveBaseERC20 {
+	if tx.ApproveBaseToken {
 		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
 		if addressError != nil {
 			return nil, addressError
@@ -1123,9 +1123,9 @@ func (w *WalletL1) depositBaseTokenToNonEthBasedChain(opts *TransactOptsL1, tx *
 		return nil, err
 	}
 
-	if tx.ApproveBaseERC20 || tx.ApproveERC20 {
+	if tx.ApproveBaseToken || tx.ApproveToken {
 		approveOpts := tx.ApproveBaseAuth
-		if tx.ApproveBaseERC20 {
+		if tx.ApproveBaseToken {
 			approveOpts = tx.ApproveAuth
 		}
 		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
@@ -1180,7 +1180,7 @@ func (w *WalletL1) depositNonBaseTokenToNonEthBasedChain(opts *TransactOptsL1, t
 		return nil, checkErr
 	}
 
-	if tx.ApproveBaseERC20 {
+	if tx.ApproveBaseToken {
 		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
 		if addressError != nil {
 			return nil, addressError
@@ -1191,7 +1191,7 @@ func (w *WalletL1) depositNonBaseTokenToNonEthBasedChain(opts *TransactOptsL1, t
 		}
 	}
 
-	if tx.ApproveERC20 {
+	if tx.ApproveToken {
 		l1SharedBridgeAddress, addressError := w.cache.L1SharedBridgeAddress()
 		if addressError != nil {
 			return nil, addressError

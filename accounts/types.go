@@ -849,12 +849,12 @@ type DepositTransaction struct {
 	BridgeAddress *common.Address
 
 	// Whether should the token approval be performed under the hood. Set this flag to true if you
-	// bridge an ERC20 token and didn't call the approveERC20 function beforehand.
-	ApproveERC20 bool
+	// bridge an ERC20 token and didn't call the ApproveToken function beforehand.
+	ApproveToken bool
 
 	// Whether should the base token approval be performed under the hood. Set this flag to true if you
-	// bridge an ERC20 token and didn't call the approveERC20 function beforehand.
-	ApproveBaseERC20 bool
+	// bridge an ERC20 token and didn't call the ApproveToken function beforehand.
+	ApproveBaseToken bool
 
 	L2GasLimit *big.Int // Maximum amount of L2 gas that transaction can consume during execution on L2.
 
@@ -913,10 +913,10 @@ func (t *DepositTransaction) PopulateEmptyFields(from common.Address) {
 	if t.Token == (common.Address{}) {
 		t.Token = utils.LegacyEthAddress
 	}
-	if t.ApproveERC20 && t.ApproveAuth == nil {
+	if t.ApproveToken && t.ApproveAuth == nil {
 		t.ApproveAuth = ensureTransactOptsL1(t.ApproveAuth)
 	}
-	if t.ApproveBaseERC20 && t.ApproveBaseAuth == nil {
+	if t.ApproveBaseToken && t.ApproveBaseAuth == nil {
 		t.ApproveAuth = ensureTransactOptsL1(t.ApproveBaseAuth)
 	}
 }
