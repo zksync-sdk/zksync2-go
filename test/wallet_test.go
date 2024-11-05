@@ -423,22 +423,78 @@ func TestIntegration_EthBasedChain_Wallet_WithdrawEth(t *testing.T) {
 	l2BalanceBeforeWithdrawal, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	withdrawTx, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
+	withdrawTxHash, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
 		To:     wallet.Address(),
 		Amount: amount,
 		Token:  utils.LegacyEthAddress,
 	})
 	assert.NoError(t, err, "Withdraw should not return an error")
 
-	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx.Hash())
+	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTxHash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
-	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTxHash, 0)
 	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
 	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
 
-	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
+	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTxHash, 0)
+	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
+
+	finalizeWithdrawReceipt, err := bind.WaitMined(context.Background(), ethClient, finalizeWithdrawTx)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
+
+	l2BalanceAfterWithdrawal, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
+}
+
+func TestIntegration_EthBasedChain_Wallet_WithdrawEthUsingPaymaster(t *testing.T) {
+	amount := big.NewInt(7_000_000_000)
+	minimalAllowance := big.NewInt(1)
+
+	client, err := clients.Dial(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(L1ChainURL)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	l2BalanceBeforeWithdrawal, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	paymasterParams, err := utils.GetPaymasterParams(
+		Paymaster,
+		&types.ApprovalBasedPaymasterInput{
+			Token:            ApprovalToken,
+			MinimalAllowance: minimalAllowance,
+			InnerInput:       []byte{},
+		})
+	assert.NoError(t, err, "GetPaymasterParams should not return an error")
+
+	withdrawTxHash, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
+		To:              wallet.Address(),
+		Amount:          amount,
+		Token:           utils.LegacyEthAddress,
+		PaymasterParams: paymasterParams,
+	})
+	assert.NoError(t, err, "Withdraw should not return an error")
+
+	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTxHash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
+
+	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTxHash, 0)
+	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
+	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
+
+	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTxHash, 0)
 	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
 
 	finalizeWithdrawReceipt, err := bind.WaitMined(context.Background(), ethClient, finalizeWithdrawTx)
@@ -478,15 +534,74 @@ func TestIntegration_NonEthBasedChain_Wallet_WithdrawEth(t *testing.T) {
 	})
 	assert.NoError(t, err, "Withdraw should not return an error")
 
-	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx.Hash())
+	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
-	isWithdrawFinalized, err := sender.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	isWithdrawFinalized, err := sender.IsWithdrawFinalized(nil, withdrawTx, 0)
 	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
 	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
 
-	finalizeWithdrawTx, err := sender.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
+	finalizeWithdrawTx, err := sender.FinalizeWithdraw(nil, withdrawTx, 0)
+	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
+
+	finalizeWithdrawReceipt, err := bind.WaitMined(context.Background(), ethClient, finalizeWithdrawTx)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
+
+	l2BalanceAfterWithdrawal, err := sender.Balance(context.Background(), l2EthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
+}
+
+func TestIntegration_NonEthBasedChain_Wallet_WithdrawEthUsingPaymaster(t *testing.T) {
+	amount := big.NewInt(7_000_000_000)
+	minimalAllowance := big.NewInt(1)
+
+	client, err := clients.Dial(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(L1ChainURL)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	sender, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	l2EthAddress, err := client.L2TokenAddress(context.Background(), utils.EthAddressInContracts)
+	assert.NoError(t, err, "L2TokenAddress should not return an error")
+
+	l2BalanceBeforeWithdrawal, err := sender.Balance(context.Background(), l2EthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	paymasterParams, err := utils.GetPaymasterParams(
+		Paymaster,
+		&types.ApprovalBasedPaymasterInput{
+			Token:            ApprovalToken,
+			MinimalAllowance: minimalAllowance,
+			InnerInput:       []byte{},
+		})
+	assert.NoError(t, err, "GetPaymasterParams should not return an error")
+
+	withdrawTx, err := sender.Withdraw(nil, accounts.WithdrawalTransaction{
+		To:              sender.Address(),
+		Amount:          amount,
+		Token:           utils.LegacyEthAddress, // or l2EthAddress
+		PaymasterParams: paymasterParams,
+	})
+	assert.NoError(t, err, "Withdraw should not return an error")
+
+	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
+
+	isWithdrawFinalized, err := sender.IsWithdrawFinalized(nil, withdrawTx, 0)
+	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
+	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
+
+	finalizeWithdrawTx, err := sender.FinalizeWithdraw(nil, withdrawTx, 0)
 	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
 
 	finalizeWithdrawReceipt, err := bind.WaitMined(context.Background(), ethClient, finalizeWithdrawTx)
@@ -523,15 +638,15 @@ func TestIntegration_NonEthBasedChain_Wallet_WithdrawBaseToken(t *testing.T) {
 	})
 	assert.NoError(t, err, "Withdraw should not return an error")
 
-	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx.Hash())
+	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
-	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx, 0)
 	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
 	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
 
-	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
+	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx, 0)
 	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
 
 	finalizeWithdrawReceipt, err := bind.WaitMined(context.Background(), ethClient, finalizeWithdrawTx)
@@ -568,15 +683,71 @@ func TestIntegrationWallet_WithdrawToken(t *testing.T) {
 	})
 	assert.NoError(t, err, "Withdraw should not return an error")
 
-	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx.Hash())
+	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
 
-	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx.Hash(), 0)
+	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx, 0)
 	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
 	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
 
-	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx.Hash(), 0)
+	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx, 0)
+	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
+
+	finalizeWithdrawReceipt, err := bind.WaitMined(context.Background(), ethClient, finalizeWithdrawTx)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
+
+	l2BalanceAfterWithdrawal, err := wallet.Balance(context.Background(), L2Dai, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
+}
+
+func TestIntegrationWallet_WithdrawTokenUsingPaymaster(t *testing.T) {
+	amount := big.NewInt(5)
+	minimalAllowance := big.NewInt(1)
+
+	client, err := clients.Dial(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	ethClient, err := ethclient.Dial(L1ChainURL)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	l2BalanceBeforeWithdrawal, err := wallet.Balance(context.Background(), L2Dai, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	paymasterParams, err := utils.GetPaymasterParams(
+		Paymaster,
+		&types.ApprovalBasedPaymasterInput{
+			Token:            ApprovalToken,
+			MinimalAllowance: minimalAllowance,
+			InnerInput:       []byte{},
+		})
+	assert.NoError(t, err, "GetPaymasterParams should not return an error")
+
+	withdrawTx, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
+		To:              wallet.Address(),
+		Amount:          amount,
+		Token:           L2Dai,
+		PaymasterParams: paymasterParams,
+	})
+	assert.NoError(t, err, "Withdraw should not return an error")
+
+	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NotNil(t, withdrawReceipt.BlockHash, "Withdraw transaction should be mined")
+
+	isWithdrawFinalized, err := wallet.IsWithdrawFinalized(nil, withdrawTx, 0)
+	assert.NoError(t, err, "IsWithdrawFinalized should not return an error")
+	assert.False(t, isWithdrawFinalized, "Withdraw transaction should not be finalized")
+
+	finalizeWithdrawTx, err := wallet.FinalizeWithdraw(nil, withdrawTx, 0)
 	assert.NoError(t, err, "FinalizeWithdraw should not return an error")
 
 	finalizeWithdrawReceipt, err := bind.WaitMined(context.Background(), ethClient, finalizeWithdrawTx)
@@ -605,14 +776,62 @@ func TestIntegration_EthBasedChain_Wallet_TransferEth(t *testing.T) {
 	balanceBeforeTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
-	tx, err := wallet.Transfer(nil, accounts.TransferTransaction{
+	txHash, err := wallet.Transfer(nil, accounts.TransferTransaction{
 		To:     Address2,
 		Amount: amount,
 		Token:  utils.LegacyEthAddress,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
-	receipt, err := client.WaitMined(context.Background(), tx.Hash())
+	receipt, err := client.WaitMined(context.Background(), txHash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
+
+	balanceAfterTransferSender, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	balanceAfterTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
+	assert.NoError(t, err, "BalanceAt should not return an error")
+
+	assert.True(t, new(big.Int).Sub(balanceBeforeTransferSender, balanceAfterTransferSender).Cmp(amount) >= 0, "Sender balance should be decreased")
+	assert.True(t, new(big.Int).Sub(balanceAfterTransferReceiver, balanceBeforeTransferReceiver).Cmp(amount) >= 0, "Address2 balance should be increased")
+}
+
+func TestIntegration_EthBasedChain_Wallet_TransferEthUsingPaymaster(t *testing.T) {
+	amount := big.NewInt(7_000_000_000)
+	minimalAllowance := big.NewInt(1)
+
+	client, err := clients.Dial(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	balanceBeforeTransferSender, err := wallet.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	balanceBeforeTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
+	assert.NoError(t, err, "BalanceAt should not return an error")
+
+	paymasterParams, err := utils.GetPaymasterParams(
+		Paymaster,
+		&types.ApprovalBasedPaymasterInput{
+			Token:            ApprovalToken,
+			MinimalAllowance: minimalAllowance,
+			InnerInput:       []byte{},
+		})
+	assert.NoError(t, err, "GetPaymasterParams should not return an error")
+
+	txHash, err := wallet.Transfer(nil, accounts.TransferTransaction{
+		To:              Address2,
+		Amount:          amount,
+		Token:           utils.LegacyEthAddress,
+		PaymasterParams: paymasterParams,
+	})
+	assert.NoError(t, err, "Transfer should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), txHash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
@@ -645,14 +864,14 @@ func TestIntegration_NonEthBasedChain_Wallet_TransferBaseToken(t *testing.T) {
 	balanceBeforeTransferReceiver, err := receiver.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	tx, err := sender.Transfer(nil, accounts.TransferTransaction{
+	txHash, err := sender.Transfer(nil, accounts.TransferTransaction{
 		To:     Address2,
 		Amount: amount,
 		Token:  utils.L2BaseTokenAddress,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
-	receipt, err := client.WaitMined(context.Background(), tx.Hash())
+	receipt, err := client.WaitMined(context.Background(), txHash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
@@ -688,14 +907,68 @@ func TestIntegration_NonEthBasedChain_Wallet_TransferEth(t *testing.T) {
 	balanceBeforeTransferReceiver, err := receiver.Balance(context.Background(), l2EthAddress, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	tx, err := sender.Transfer(nil, accounts.TransferTransaction{
+	txHash, err := sender.Transfer(nil, accounts.TransferTransaction{
 		To:     Address2,
 		Amount: amount,
 		Token:  utils.LegacyEthAddress, // or l2EthAddress
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
-	receipt, err := client.WaitMined(context.Background(), tx.Hash())
+	receipt, err := client.WaitMined(context.Background(), txHash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
+
+	balanceAfterTransferSender, err := sender.Balance(context.Background(), l2EthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	balanceAfterTransferReceiver, err := receiver.Balance(context.Background(), l2EthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	assert.True(t, new(big.Int).Sub(balanceBeforeTransferSender, balanceAfterTransferSender).Cmp(amount) >= 0, "Sender balance should be decreased")
+	assert.True(t, new(big.Int).Sub(balanceAfterTransferReceiver, balanceBeforeTransferReceiver).Cmp(amount) >= 0, "Address2 balance should be increased")
+}
+
+func TestIntegration_NonEthBasedChain_Wallet_TransferEthUsingPaymaster(t *testing.T) {
+	amount := big.NewInt(7_000_000_000)
+	minimalAllowance := big.NewInt(1)
+
+	client, err := clients.Dial(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	sender, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	receiver, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey2), client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	l2EthAddress, err := client.L2TokenAddress(context.Background(), utils.EthAddressInContracts)
+	assert.NoError(t, err, "L2TokenAddress should not return an error")
+
+	balanceBeforeTransferSender, err := sender.Balance(context.Background(), l2EthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	balanceBeforeTransferReceiver, err := receiver.Balance(context.Background(), l2EthAddress, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	paymasterParams, err := utils.GetPaymasterParams(
+		Paymaster,
+		&types.ApprovalBasedPaymasterInput{
+			Token:            ApprovalToken,
+			MinimalAllowance: minimalAllowance,
+			InnerInput:       []byte{},
+		})
+	assert.NoError(t, err, "GetPaymasterParams should not return an error")
+
+	txHash, err := sender.Transfer(nil, accounts.TransferTransaction{
+		To:              Address2,
+		Amount:          amount,
+		Token:           utils.LegacyEthAddress, // or l2EthAddress
+		PaymasterParams: paymasterParams,
+	})
+	assert.NoError(t, err, "Transfer should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), txHash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
@@ -728,14 +1001,65 @@ func TestIntegration_Wallet_TransferToken(t *testing.T) {
 	balanceBeforeTransferReceiver, err := receiver.Balance(context.Background(), L2Dai, nil)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	tx, err := sender.Transfer(nil, accounts.TransferTransaction{
+	txHash, err := sender.Transfer(nil, accounts.TransferTransaction{
 		To:     Address2,
 		Amount: amount,
 		Token:  L2Dai,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
-	receipt, err := client.WaitMined(context.Background(), tx.Hash())
+	receipt, err := client.WaitMined(context.Background(), txHash)
+	assert.NoError(t, err, "client.WaitMined should not return an error")
+	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
+
+	balanceAfterTransferSender, err := sender.Balance(context.Background(), L2Dai, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	balanceAfterTransferReceiver, err := receiver.Balance(context.Background(), L2Dai, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	assert.True(t, new(big.Int).Sub(balanceBeforeTransferSender, balanceAfterTransferSender).Cmp(amount) >= 0, "Sender balance should be decreased")
+	assert.True(t, new(big.Int).Sub(balanceAfterTransferReceiver, balanceBeforeTransferReceiver).Cmp(amount) >= 0, "Address2 balance should be increased")
+}
+
+func TestIntegration_Wallet_TransferTokenUsingPaymaster(t *testing.T) {
+	amount := big.NewInt(5)
+	minimalAllowance := big.NewInt(1)
+
+	client, err := clients.Dial(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
+
+	sender, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	receiver, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey2), client, nil)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	balanceBeforeTransferSender, err := sender.Balance(context.Background(), L2Dai, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	balanceBeforeTransferReceiver, err := receiver.Balance(context.Background(), L2Dai, nil)
+	assert.NoError(t, err, "Balance should not return an error")
+
+	paymasterParams, err := utils.GetPaymasterParams(
+		Paymaster,
+		&types.ApprovalBasedPaymasterInput{
+			Token:            ApprovalToken,
+			MinimalAllowance: minimalAllowance,
+			InnerInput:       []byte{},
+		})
+	assert.NoError(t, err, "GetPaymasterParams should not return an error")
+
+	txHash, err := sender.Transfer(nil, accounts.TransferTransaction{
+		To:              Address2,
+		Amount:          amount,
+		Token:           L2Dai,
+		PaymasterParams: paymasterParams,
+	})
+	assert.NoError(t, err, "Transfer should not return an error")
+
+	receipt, err := client.WaitMined(context.Background(), txHash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 

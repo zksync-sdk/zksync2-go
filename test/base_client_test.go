@@ -819,14 +819,14 @@ func TestIntegrationBaseClient_WaitMined(t *testing.T) {
 	w, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	tx, err := w.Transfer(nil, accounts.TransferTransaction{
+	txHash, err := w.Transfer(nil, accounts.TransferTransaction{
 		To:     Address2,
 		Amount: big.NewInt(7_000_000_000),
 		Token:  utils.LegacyEthAddress,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
-	txReceipt, err := client.WaitMined(context.Background(), tx.Hash())
+	txReceipt, err := client.WaitMined(context.Background(), txHash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 
 	assert.NotNil(t, txReceipt.BlockHash, "Transaction should be mined")
@@ -840,14 +840,14 @@ func TestIntegrationBaseClient_WaitFinalized(t *testing.T) {
 	w, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, nil)
 	assert.NoError(t, err, "NewWallet should not return an error")
 
-	tx, err := w.Transfer(nil, accounts.TransferTransaction{
+	txHash, err := w.Transfer(nil, accounts.TransferTransaction{
 		To:     Address2,
 		Amount: big.NewInt(7_000_000_000),
 		Token:  utils.LegacyEthAddress,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
-	txReceipt, err := client.WaitFinalized(context.Background(), tx.Hash())
+	txReceipt, err := client.WaitFinalized(context.Background(), txHash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 
 	assert.NotNil(t, txReceipt.BlockHash, "Transaction should be mined")

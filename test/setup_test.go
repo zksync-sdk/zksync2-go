@@ -65,7 +65,7 @@ func deployMultisigAccount(wallet *accounts.Wallet, client *clients.Client) {
 	}
 
 	// transfer ETH to multisig account
-	transferTx, err := wallet.Transfer(nil, accounts.TransferTransaction{
+	transferTxHash, err := wallet.Transfer(nil, accounts.TransferTransaction{
 		To:     multisigAccountAddress,
 		Amount: big.NewInt(2_000_000_000_000_000_000),
 		Token:  utils.LegacyEthAddress,
@@ -74,13 +74,13 @@ func deployMultisigAccount(wallet *accounts.Wallet, client *clients.Client) {
 		log.Fatal(err)
 	}
 
-	_, err = client.WaitMined(context.Background(), transferTx.Hash())
+	_, err = client.WaitMined(context.Background(), transferTxHash)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// transfer token to multisig account
-	transferTx, err = wallet.Transfer(nil, accounts.TransferTransaction{
+	transferTxHash, err = wallet.Transfer(nil, accounts.TransferTransaction{
 		To:     multisigAccountAddress,
 		Amount: big.NewInt(20),
 		Token:  L2Dai,
@@ -89,13 +89,13 @@ func deployMultisigAccount(wallet *accounts.Wallet, client *clients.Client) {
 		log.Fatal(err)
 	}
 
-	_, err = client.WaitMined(context.Background(), transferTx.Hash())
+	_, err = client.WaitMined(context.Background(), transferTxHash)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// transfer approval token to multisig account
-	transferTx, err = wallet.Transfer(nil, accounts.TransferTransaction{
+	transferTxHash, err = wallet.Transfer(nil, accounts.TransferTransaction{
 		To:     multisigAccountAddress,
 		Amount: big.NewInt(5),
 		Token:  ApprovalToken,
@@ -104,14 +104,14 @@ func deployMultisigAccount(wallet *accounts.Wallet, client *clients.Client) {
 		log.Fatal(err)
 	}
 
-	_, err = client.WaitMined(context.Background(), transferTx.Hash())
+	_, err = client.WaitMined(context.Background(), transferTxHash)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if !IsEthBasedChain {
 		// transfer base token to multisig account
-		transferTx, err = wallet.Transfer(nil, accounts.TransferTransaction{
+		transferTxHash, err = wallet.Transfer(nil, accounts.TransferTransaction{
 			To:     multisigAccountAddress,
 			Amount: big.NewInt(2_000_000_000_000_000_000),
 			Token:  utils.L2BaseTokenAddress,
@@ -120,7 +120,7 @@ func deployMultisigAccount(wallet *accounts.Wallet, client *clients.Client) {
 			log.Fatal(err)
 		}
 
-		_, err = client.WaitMined(context.Background(), transferTx.Hash())
+		_, err = client.WaitMined(context.Background(), transferTxHash)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -207,7 +207,7 @@ func deployPaymasterAndToken(wallet *accounts.Wallet, client *clients.Client) {
 	}
 
 	// transfer base token to paymaster so it could pay fee
-	transferTx, err := wallet.Transfer(nil, accounts.TransferTransaction{
+	transferTxHash, err := wallet.Transfer(nil, accounts.TransferTransaction{
 		To:     paymasterAddress,
 		Amount: big.NewInt(2_000_000_000_000_000_000),
 		Token:  utils.L2BaseTokenAddress,
@@ -216,7 +216,7 @@ func deployPaymasterAndToken(wallet *accounts.Wallet, client *clients.Client) {
 		log.Fatal(err)
 	}
 
-	_, err = client.WaitMined(context.Background(), transferTx.Hash())
+	_, err = client.WaitMined(context.Background(), transferTxHash)
 	if err != nil {
 		log.Fatal(err)
 	}
