@@ -41,8 +41,8 @@ func NewWalletL2(rawPrivateKey []byte, client *clients.Client) (*WalletL2, error
 }
 
 // NewWalletL2FromSigner creates an instance of WalletL2.
-// The client can be optional and if it is not provided, only AdapterL2.SignTransaction,
-// AdapterL2.Address, AdapterL2.Signer can be performed, as the rest of the
+// The client can be optional and if it is not provided, only WalletL2.SignTransaction,
+// WalletL2.Address, WalletL2.Signer can be performed, as the rest of the
 // functionalities require communication to the network.
 func NewWalletL2FromSigner(signer *ECDSASigner, client *clients.Client) (*WalletL2, error) {
 	if client == nil {
@@ -64,8 +64,8 @@ func NewWalletL2FromSigner(signer *ECDSASigner, client *clients.Client) (*Wallet
 
 // NewWalletL2FromSignerAndCache creates an instance of WalletL2 with cache.
 // The cache is optional and if it is not provided, new empty cache is used.
-// The clientL2 can be optional and if it is not provided, only AdapterL2.SignTransaction,
-// AdapterL2.Address, AdapterL2.Signer can be performed, as the rest of the
+// The clientL2 can be optional and if it is not provided, only WalletL2.SignTransaction,
+// WalletL2.Address, WalletL2.Signer can be performed, as the rest of the
 // functionalities require communication to the network.
 func NewWalletL2FromSignerAndCache(signer *ECDSASigner, client *clients.Client, cache *Cache) (*WalletL2, error) {
 	if client == nil {

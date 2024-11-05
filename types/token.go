@@ -14,6 +14,7 @@ type Token struct {
 	Decimals  uint8          `json:"decimals"`  // Number of decimals for the token.
 }
 
+// IsETH checks weather the token is ETH.
 func (t *Token) IsETH() bool {
 	return bytes.Equal(t.L2Address.Bytes(), common.Address{}.Bytes()) && t.Symbol == "ETH"
 }

@@ -35,6 +35,7 @@ var (
 	L1ToL2AliasOffset = common.HexToAddress("0x1111000000000000000000000000000000001111")
 	AddressModulo     = new(big.Int).Exp(big.NewInt(2), big.NewInt(160), nil)
 
+	// Eip1271MagicValue indicates the signature used by EIP-1271 is valid.
 	Eip1271MagicValue = [4]byte(common.FromHex("0x1626ba7e"))
 )
 

@@ -20,7 +20,7 @@ type Wallet struct {
 }
 
 // NewWallet creates an instance of Wallet associated with the account provided by the rawPrivateKey.
-// The clientL1 parameters is optional; if not provided, only method form AdapterL2 and Deployer can be used,
+// The clientL1 parameters is optional; if not provided, only method form WalletL2 and Deployer can be used,
 // as the rest of the functionalities require communication with the L1 network.
 // A Wallet can be configured to communicate with L1 networks by using and Wallet.ConnectL1 method.
 func NewWallet(rawPrivateKey []byte, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
@@ -36,8 +36,8 @@ func NewWallet(rawPrivateKey []byte, clientL2 *clients.Client, clientL1 *ethclie
 }
 
 // NewWalletFromSigner creates an instance of Wallet associated with the account provided by the signer.
-// The clientL2 and clientL1 parameters are optional; if not provided, only AdapterL2.SignTransaction,
-// AdapterL2.Address, AdapterL2.Signer methods can be used, as the rest of the functionalities
+// The clientL2 and clientL1 parameters are optional; if not provided, only WalletL2.SignTransaction,
+// WalletL2.Address, WalletL2.Signer methods can be used, as the rest of the functionalities
 // require communication with the network.
 // A runner that contains only a signer can be configured to communicate with L2 and L1 networks by
 // using Wallet.Connect and Wallet.ConnectL1, respectively.
