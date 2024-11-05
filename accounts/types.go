@@ -691,8 +691,8 @@ type Transaction struct {
 	PaymasterParams *types.PaymasterParams `json:"paymasterParams,omitempty"`
 }
 
-// ToTransaction712 transforms Transaction to types.Transaction.
-func (t *Transaction) ToTransaction712(from common.Address) *types.Transaction {
+// ToTransaction transforms Transaction to types.Transaction.
+func (t *Transaction) ToTransaction(from common.Address) *types.Transaction {
 	return &types.Transaction{
 		Nonce:           t.Nonce,
 		GasTipCap:       t.GasTipCap,

@@ -341,7 +341,7 @@ func (w *WalletL2) PopulateTransaction(ctx context.Context, tx Transaction) (*ty
 	if tx.Data == nil {
 		tx.Data = hexutil.Bytes{}
 	}
-	return tx.ToTransaction712(w.auth.From), nil
+	return tx.ToTransaction(w.auth.From), nil
 }
 
 // SignTransaction returns a signed transaction that is ready to be broadcast to
