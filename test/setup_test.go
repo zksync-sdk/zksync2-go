@@ -353,7 +353,7 @@ func prepare() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	l2BaseTokenBalance, err := wallet.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	l2BaseTokenBalance, err := wallet.Balance(nil, utils.L2BaseTokenAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -371,7 +371,7 @@ func prepare() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	l2BaseTokenBalance, err = wallet.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	l2BaseTokenBalance, err = wallet.Balance(nil, utils.L2BaseTokenAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -388,7 +388,7 @@ func prepare() {
 		if l1EthTokenBalanceErr != nil {
 			log.Fatal(l1EthTokenBalanceErr)
 		}
-		l2EthTokenBalance, l2EthTokenBalanceErr := wallet.Balance(context.Background(), l2EthAddress, nil)
+		l2EthTokenBalance, l2EthTokenBalanceErr := wallet.Balance(nil, l2EthAddress)
 		if l2EthTokenBalanceErr != nil && l2EthTokenBalanceErr.Error() != "no contract code at given address" {
 			log.Fatal(l2EthTokenBalanceErr)
 		} else {
@@ -408,7 +408,7 @@ func prepare() {
 		if l1EthTokenBalanceErr != nil {
 			log.Fatal(l1EthTokenBalanceErr)
 		}
-		l2EthTokenBalance, l2EthTokenBalanceErr = wallet.Balance(context.Background(), l2EthAddress, nil)
+		l2EthTokenBalance, l2EthTokenBalanceErr = wallet.Balance(nil, l2EthAddress)
 		if l2EthTokenBalanceErr != nil {
 			log.Fatal(l2EthTokenBalanceErr)
 		}
@@ -424,7 +424,7 @@ func prepare() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	l2DaiTokenBalance, err := wallet.Balance(context.Background(), L2Dai, nil)
+	l2DaiTokenBalance, err := wallet.Balance(nil, L2Dai)
 	if err != nil {
 		log.Fatal(err)
 	}
