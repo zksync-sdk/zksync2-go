@@ -191,7 +191,7 @@ func (a *SmartAccount) SignTypedData(ctx context.Context, typedData apitypes.Typ
 // Withdraw initiates the withdrawal process which withdraws ETH or any ERC20
 // token from the associated account on L2 network to the target account on L1
 // network.
-func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (common.Hash, error) {
+func (a *SmartAccount) Withdraw(auth *TransactOptsL1, tx WithdrawalTransaction) (common.Hash, error) {
 	from := a.Address()
 
 	opts := ensureTransactOpts(auth)
@@ -270,7 +270,7 @@ func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (c
 }
 
 // Transfer moves the ETH or any ERC20 token from the associated account to the target account.
-func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (common.Hash, error) {
+func (a *SmartAccount) Transfer(auth *TransactOptsL1, tx TransferTransaction) (common.Hash, error) {
 	from := a.Address()
 
 	opts := ensureTransactOpts(auth)
@@ -353,7 +353,7 @@ func (a *SmartAccount) cacheData(ctx context.Context) error {
 	return nil
 }
 
-func (a *SmartAccount) insertGasPrice(opts *TransactOpts) {
+func (a *SmartAccount) insertGasPrice(opts *TransactOptsL1) {
 	if opts.GasPrice != nil {
 		opts.GasFeeCap = opts.GasPrice
 		opts.GasTipCap = nil
