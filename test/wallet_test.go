@@ -266,8 +266,8 @@ func TestIntegrationWallet_ApproveERC20(t *testing.T) {
 	allowanceBefore, err := wallet.AllowanceL1(nil, l1TokenAddress, bridgeContracts.L1SharedBridge)
 	assert.NoError(t, err, "AllowanceL1 should not return an error")
 
-	tx, err := wallet.ApproveERC20(nil, L1Dai, approveAmount, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	tx, err := wallet.ApproveToken(nil, L1Dai, approveAmount, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	txReceipt, err := bind.WaitMined(context.Background(), ethClient, tx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -1434,7 +1434,7 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 //		Token:            L1Dai,
 //		To:               wallet.Address1(),
 //		Amount:           big.NewInt(5),
-//		ApproveERC20:     true,
+//		ApproveToken:     true,
 //		ApproveBaseERC20: true,
 //		L2GasLimit:       big.NewInt(255_000), // make it fail because of low gas
 //	})
@@ -1517,8 +1517,8 @@ func TestIntegration_EthBasedChain_Wallet_EstimateGasDepositToken(t *testing.T) 
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, L1Dai, big.NewInt(5), bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, L1Dai, big.NewInt(5), bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -1715,8 +1715,8 @@ func TestIntegration_EthBasedChain_Wallet_FullRequiredDepositFeeToken(t *testing
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, L1Dai, big.NewInt(5), bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, L1Dai, big.NewInt(5), bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -1832,8 +1832,8 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositEth(t *testing.T)
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -1870,8 +1870,8 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositBaseToken(t *test
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -1905,14 +1905,14 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasDepositNonBasedToken(t *
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 
-	approveTx, err = wallet.ApproveERC20(nil, allowanceParams[1].Token, allowanceParams[1].Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err = wallet.ApproveToken(nil, allowanceParams[1].Token, allowanceParams[1].Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -2121,8 +2121,8 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeEth(t *testin
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -2164,8 +2164,8 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeBaseToken(t *
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -2203,14 +2203,14 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeNonBaseToken(
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 
-	approveTx, err = wallet.ApproveERC20(nil, allowanceParams[1].Token, allowanceParams[1].Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err = wallet.ApproveToken(nil, allowanceParams[1].Token, allowanceParams[1].Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -2292,8 +2292,8 @@ func TestIntegration_NonEthBasedChain_Wallet_FullRequiredDepositFeeTokenNotEnoug
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := randomWallet.ApproveERC20(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := randomWallet.ApproveToken(nil, allowanceParams[0].Token, allowanceParams[0].Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -2326,8 +2326,8 @@ func TestIntegration_NonEthBasedChain_Wallet_EstimateGasRequestExecute(t *testin
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, allowanceParams.Token, allowanceParams.Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, allowanceParams.Token, allowanceParams.Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
@@ -2372,8 +2372,8 @@ func TestIntegration_NonEthBasedChain_Wallet_RequestExecute(t *testing.T) {
 	bridgeContracts, err := client.BridgeContracts(context.Background())
 	assert.NoError(t, err, "BridgeContracts should not return an error")
 
-	approveTx, err := wallet.ApproveERC20(nil, allowanceParams.Token, allowanceParams.Allowance, bridgeContracts.L1SharedBridge)
-	assert.NoError(t, err, "ApproveERC20 should not return an error")
+	approveTx, err := wallet.ApproveToken(nil, allowanceParams.Token, allowanceParams.Allowance, bridgeContracts.L1SharedBridge)
+	assert.NoError(t, err, "ApproveToken should not return an error")
 
 	_, err = bind.WaitMined(context.Background(), ethClient, approveTx)
 	assert.NoError(t, err, "bind.WaitMined should not return an error")

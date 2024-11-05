@@ -221,8 +221,8 @@ func (w *WalletL1) L2TokenAddress(ctx context.Context, token common.Address) (co
 	return w.clientL2.L2TokenAddress(ensureContext(ctx), token)
 }
 
-// ApproveERC20 approves the specified amount of tokens for the specified L1 bridge.
-func (w *WalletL1) ApproveERC20(auth *TransactOptsL1, token common.Address, amount *big.Int,
+// ApproveToken approves the specified amount of tokens for the specified L1 bridge.
+func (w *WalletL1) ApproveToken(auth *TransactOptsL1, token common.Address, amount *big.Int,
 	bridgeAddress common.Address) (*ethTypes.Transaction, error) {
 	if token == (common.Address{}) {
 		return nil, errors.New("token L1 address must be provided")
@@ -1385,7 +1385,7 @@ func (w *WalletL1) approveERC20(auth *TransactOptsL1, token common.Address, amou
 		return err
 	}
 	if allowance.Cmp(amount) < 0 {
-		approveTx, errApprove := w.ApproveERC20(
+		approveTx, errApprove := w.ApproveToken(
 			auth, token, amount, bridgeAddress,
 		)
 		if errApprove != nil {
