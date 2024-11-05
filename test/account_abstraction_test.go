@@ -82,14 +82,14 @@ func TestIntegration_ApprovalPaymaster(t *testing.T) {
 	assert.NotNil(t, paymasterAddress, "Contract should be deployed")
 
 	// ===== Transfer some base token to paymaster, so it can pay fee with it =====
-	transferTx, err := wallet.Transfer(nil, accounts.TransferTransaction{
+	transferTxHash, err := wallet.Transfer(nil, accounts.TransferTransaction{
 		To:     paymasterAddress,
 		Amount: big.NewInt(1_000_000_000_000_000_000),
 		Token:  utils.L2BaseTokenAddress,
 	})
 	assert.NoError(t, err, "Transfer should not return an error")
 
-	_, err = client.WaitMined(context.Background(), transferTx.Hash())
+	_, err = client.WaitMined(context.Background(), transferTxHash)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 
 	// Read token and base token balances from user and paymaster accounts

@@ -153,51 +153,79 @@ func (w *WalletL2) IsBaseToken(ctx context.Context, token common.Address) (bool,
 // Withdraw initiates the withdrawal process which withdraws ETH or any ERC20
 // token from the associated account on L2 network to the target account on L1
 // network.
-func (w *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (*ethTypes.Transaction, error) {
-	opts := ensureTransactOpts(auth).ToTransactOpts(w.Address(), w.auth.Signer)
+func (w *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (common.Hash, error) {
+	opts := ensureTransactOpts(auth)
+	w.insertGasPrice(opts)
 
 	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
 		var err error
 		tx.Token, err = w.client.L2TokenAddress(opts.Context, tx.Token)
 		if err != nil {
-			return nil, err
+			return common.Hash{}, err
 		}
 	}
 
 	if tx.Token == utils.L2BaseTokenAddress {
 		if opts.Value != nil && opts.Value != tx.Amount {
-			return nil, errors.New("the tx.value is not equal to the value withdrawn")
+			return common.Hash{}, errors.New("the tx.value is not equal to the value withdrawn")
 		} else {
 			opts.Value = tx.Amount
 		}
 
-		eth, ethTokenErr := ethtoken.NewIEthToken(utils.L2BaseTokenAddress, w.client)
-		if ethTokenErr != nil {
-			return nil, ethTokenErr
+		abi, abiErr := ethtoken.IEthTokenMetaData.GetAbi()
+		if abiErr != nil {
+			return common.Hash{}, abiErr
 		}
-		withdrawTx, withdrawErr := eth.Withdraw(opts, tx.To)
-		if withdrawErr != nil {
-			return nil, withdrawErr
+
+		data, packErr := abi.Pack("withdraw", tx.To)
+		if packErr != nil {
+			return common.Hash{}, packErr
 		}
-		return withdrawTx, nil
-	} else {
-		if tx.BridgeAddress == nil {
-			sharedL2BridgeAddress, err := w.cache.L2SharedBridgeAddress()
-			if err != nil {
-				return nil, err
-			}
-			tx.BridgeAddress = &sharedL2BridgeAddress
-		}
-		bridge, bridgeErr := l2bridge.NewIL2Bridge(*tx.BridgeAddress, w.client)
-		if bridgeErr != nil {
-			return nil, bridgeErr
-		}
-		withdrawTx, withdrawErr := bridge.Withdraw(opts, tx.To, tx.Token, tx.Amount)
-		if withdrawErr != nil {
-			return nil, withdrawErr
-		}
-		return withdrawTx, nil
+
+		return w.SendTransaction(opts.Context, &Transaction{
+			Nonce:           opts.Nonce,
+			GasTipCap:       opts.GasTipCap,
+			GasFeeCap:       opts.GasFeeCap,
+			Gas:             opts.GasLimit,
+			To:              &utils.L2BaseTokenAddress,
+			Value:           opts.Value,
+			Data:            data,
+			ChainID:         w.signer.ChainID(),
+			GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+			PaymasterParams: tx.PaymasterParams,
+		})
 	}
+
+	if tx.BridgeAddress == nil {
+		sharedL2BridgeAddress, err := w.cache.L2SharedBridgeAddress()
+		if err != nil {
+			return common.Hash{}, err
+		}
+		tx.BridgeAddress = &sharedL2BridgeAddress
+	}
+
+	abi, abiErr := l2bridge.IL2BridgeMetaData.GetAbi()
+	if abiErr != nil {
+		return common.Hash{}, abiErr
+	}
+
+	data, abiPack := abi.Pack("withdraw", tx.To, tx.Token, tx.Amount)
+	if abiPack != nil {
+		return common.Hash{}, abiPack
+	}
+
+	return w.SendTransaction(opts.Context, &Transaction{
+		Nonce:           opts.Nonce,
+		GasTipCap:       opts.GasTipCap,
+		GasFeeCap:       opts.GasFeeCap,
+		Gas:             opts.GasLimit,
+		To:              tx.BridgeAddress,
+		Value:           opts.Value,
+		Data:            data,
+		ChainID:         w.signer.ChainID(),
+		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+		PaymasterParams: tx.PaymasterParams,
+	})
 }
 
 // EstimateGasWithdraw estimates the amount of gas required for a withdrawal transaction.
@@ -206,37 +234,54 @@ func (w *WalletL2) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMs
 }
 
 // Transfer moves the base token or any ERC20 token from the associated account to the target account.
-func (w *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (*ethTypes.Transaction, error) {
-	// returns types.Transaction
-	// check the type of the transaction
-
+func (w *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (common.Hash, error) {
 	opts := ensureTransactOpts(auth)
+	w.insertGasPrice(opts)
 
 	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
 		var err error
 		tx.Token, err = w.client.L2TokenAddress(opts.Context, tx.Token)
 		if err != nil {
-			return nil, err
+			return common.Hash{}, err
 		}
-	}
-
-	if opts.GasLimit == 0 {
-		gas, gasErr := w.client.EstimateGasTransfer(opts.Context, tx.ToTransferCallMsg(w.Address(), opts))
-		if gasErr != nil {
-			return nil, gasErr
-		}
-		opts.GasLimit = gas
 	}
 
 	if tx.Token == utils.L2BaseTokenAddress {
-		return w.transferBaseToken(opts, tx)
+		return w.SendTransaction(opts.Context, &Transaction{
+			Nonce:           opts.Nonce,
+			GasTipCap:       opts.GasTipCap,
+			GasFeeCap:       opts.GasFeeCap,
+			Gas:             opts.GasLimit,
+			To:              &tx.To,
+			Value:           tx.Amount,
+			ChainID:         w.signer.ChainID(),
+			GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+			PaymasterParams: tx.PaymasterParams,
+		})
 	}
-	token, err := erc20.NewIERC20(tx.Token, w.client)
+
+	abi, err := erc20.IERC20MetaData.GetAbi()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load erc20 contract: %w", err)
+		return common.Hash{}, err
 	}
-	opts.Value = big.NewInt(0)
-	return token.Transfer(opts.ToTransactOpts(w.Address(), w.auth.Signer), tx.To, tx.Amount)
+
+	data, err := abi.Pack("transfer", tx.To, tx.Amount)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	return w.SendTransaction(opts.Context, &Transaction{
+		Nonce:           opts.Nonce,
+		GasTipCap:       opts.GasTipCap,
+		GasFeeCap:       opts.GasFeeCap,
+		Gas:             opts.GasLimit,
+		To:              &tx.Token,
+		Value:           big.NewInt(0),
+		Data:            data,
+		ChainID:         w.signer.ChainID(),
+		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+		PaymasterParams: tx.PaymasterParams,
+	})
 }
 
 // EstimateGasTransfer estimates the amount of gas required for a transfer transaction.
@@ -400,5 +445,13 @@ func (w *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction)
 			return nil, err
 		}
 		return signedTx, nil
+	}
+}
+
+func (w *WalletL2) insertGasPrice(opts *TransactOpts) {
+	if opts.GasPrice != nil {
+		opts.GasFeeCap = opts.GasPrice
+		opts.GasTipCap = nil
+		opts.GasPrice = nil
 	}
 }
