@@ -283,7 +283,7 @@ func (o *CallOpts) ToCallOpts(from common.Address) *bind.CallOpts {
 		Pending:     o.Pending,
 		From:        from,
 		BlockNumber: o.BlockNumber,
-		Context:     o.Context,
+		Context:     ensureContext(o.Context),
 	}
 }
 

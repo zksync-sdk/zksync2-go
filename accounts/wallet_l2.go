@@ -102,27 +102,24 @@ func (w *WalletL2) Signer() *ECDSASigner {
 
 // Balance returns the balance of the specified token that can be either base token or any ERC20 token.
 // The block number can be nil, in which case the balance is taken from the latest known block.
-func (w *WalletL2) Balance(ctx context.Context, token common.Address, at *big.Int) (*big.Int, error) {
+func (w *WalletL2) Balance(opts *CallOpts, token common.Address) (*big.Int, error) {
+	callOpts := ensureCallOpts(opts).ToCallOpts(w.auth.From)
 	if token == utils.LegacyEthAddress || token == utils.EthAddressInContracts {
 		var err error
-		token, err = w.client.L2TokenAddress(ctx, token)
+		token, err = w.client.L2TokenAddress(callOpts.Context, token)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if token == utils.L2BaseTokenAddress {
-		return w.client.BalanceAt(ensureContext(ctx), w.Address(), at)
+		return w.client.BalanceAt(callOpts.Context, w.Address(), callOpts.BlockNumber)
 	}
 	erc20Token, err := erc20.NewIERC20(token, w.client)
 	if err != nil {
 		return nil, err
 	}
-	return erc20Token.BalanceOf(&bind.CallOpts{
-		From:        w.Address(),
-		BlockNumber: at,
-		Context:     ensureContext(ctx),
-	}, w.Address())
+	return erc20Token.BalanceOf(callOpts, w.Address())
 }
 
 // AllBalances returns all balances for confirmed tokens given by an associated account.
