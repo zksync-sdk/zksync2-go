@@ -631,6 +631,25 @@ func (t *TransactOptsL1) ToTransactOpts(from common.Address, signer bind.SignerF
 	}
 }
 
+// TransactOpts contains common data required to create a valid transaction on L2
+// using the account associated with WalletL2 and Deployer.
+// Its primary purpose is to enrich bind.TransactOpts with ZKsync features,
+// wherein the 'From' and 'Signer' fields are linked to the associated account.
+type TransactOpts struct {
+	Nonce     *big.Int        // Nonce to use for the transaction execution (nil = use pending state).
+	Value     *big.Int        // Funds to transfer along the transaction (nil = 0 = no funds).
+	GasPrice  *big.Int        // Gas price to use for the transaction execution (nil = gas price oracle).
+	GasFeeCap *big.Int        // Gas fee cap to use for the 1559 transaction execution (nil = gas price oracle).
+	GasTipCap *big.Int        // Gas priority fee cap to use for the 1559 transaction execution (nil = gas price oracle).
+	GasLimit  uint64          // Gas limit to set for the transaction execution (0 = estimate).
+	Context   context.Context // Network context to support cancellation and timeouts (nil = no timeout).
+
+	PaymasterParams *types.PaymasterParams // The paymaster parameters.
+	// GasPerPubdata denotes the maximum amount of gas the user is willing
+	// to pay for a single byte of pubdata.
+	GasPerPubdata *big.Int
+}
+
 // Transaction is similar to types.Transaction but does not include the From field. This design is intended for use
 // with entities which already have an associated account. The From field is bound to
 // their associated account, and thus, it is not included in this type.
@@ -897,10 +916,10 @@ func (t *DepositTransaction) PopulateEmptyFields(from common.Address) {
 		t.Token = utils.LegacyEthAddress
 	}
 	if t.ApproveERC20 && t.ApproveAuth == nil {
-		t.ApproveAuth = ensureTransactOpts(t.ApproveAuth)
+		t.ApproveAuth = ensureTransactOptsL1(t.ApproveAuth)
 	}
 	if t.ApproveBaseERC20 && t.ApproveBaseAuth == nil {
-		t.ApproveAuth = ensureTransactOpts(t.ApproveBaseAuth)
+		t.ApproveAuth = ensureTransactOptsL1(t.ApproveBaseAuth)
 	}
 }
 
