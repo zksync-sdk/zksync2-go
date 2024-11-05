@@ -191,11 +191,11 @@ func (a *SmartAccount) SignTypedData(ctx context.Context, typedData apitypes.Typ
 // Withdraw initiates the withdrawal process which withdraws ETH or any ERC20
 // token from the associated account on L2 network to the target account on L1
 // network.
-func (a *SmartAccount) Withdraw(auth *TransactOptsL1, tx WithdrawalTransaction) (common.Hash, error) {
+func (a *SmartAccount) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (common.Hash, error) {
 	from := a.Address()
 
 	opts := ensureTransactOpts(auth)
-	a.insertGasPrice(opts)
+	insertGasPrice(opts)
 	err := a.cacheData(opts.Context)
 	if err != nil {
 		return common.Hash{}, err
@@ -236,7 +236,7 @@ func (a *SmartAccount) Withdraw(auth *TransactOptsL1, tx WithdrawalTransaction) 
 			From:            &from,
 			ChainID:         a.chainId,
 			GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
-			PaymasterParams: tx.PaymasterParams,
+			PaymasterParams: opts.PaymasterParams,
 		})
 	}
 
@@ -265,16 +265,16 @@ func (a *SmartAccount) Withdraw(auth *TransactOptsL1, tx WithdrawalTransaction) 
 		ChainID:         a.chainId,
 		From:            &from,
 		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
-		PaymasterParams: tx.PaymasterParams,
+		PaymasterParams: opts.PaymasterParams,
 	})
 }
 
 // Transfer moves the ETH or any ERC20 token from the associated account to the target account.
-func (a *SmartAccount) Transfer(auth *TransactOptsL1, tx TransferTransaction) (common.Hash, error) {
+func (a *SmartAccount) Transfer(auth *TransactOpts, tx TransferTransaction) (common.Hash, error) {
 	from := a.Address()
 
 	opts := ensureTransactOpts(auth)
-	a.insertGasPrice(opts)
+	insertGasPrice(opts)
 	err := a.cacheData(opts.Context)
 	if err != nil {
 		return common.Hash{}, err
@@ -298,7 +298,7 @@ func (a *SmartAccount) Transfer(auth *TransactOptsL1, tx TransferTransaction) (c
 			ChainID:         a.chainId,
 			From:            &from,
 			GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
-			PaymasterParams: tx.PaymasterParams,
+			PaymasterParams: opts.PaymasterParams,
 		})
 	}
 
@@ -323,7 +323,7 @@ func (a *SmartAccount) Transfer(auth *TransactOptsL1, tx TransferTransaction) (c
 		ChainID:         a.chainId,
 		From:            &from,
 		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
-		PaymasterParams: tx.PaymasterParams,
+		PaymasterParams: opts.PaymasterParams,
 	})
 }
 
@@ -351,14 +351,6 @@ func (a *SmartAccount) cacheData(ctx context.Context) error {
 		a.sharedL2BridgeAddress = bridges.L2SharedBridge
 	}
 	return nil
-}
-
-func (a *SmartAccount) insertGasPrice(opts *TransactOptsL1) {
-	if opts.GasPrice != nil {
-		opts.GasFeeCap = opts.GasPrice
-		opts.GasTipCap = nil
-		opts.GasPrice = nil
-	}
 }
 
 func (a *SmartAccount) isBaseToken(ctx context.Context, token common.Address) (bool, error) {

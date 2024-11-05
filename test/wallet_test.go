@@ -478,12 +478,13 @@ func TestIntegration_EthBasedChain_Wallet_WithdrawEthUsingPaymaster(t *testing.T
 		})
 	assert.NoError(t, err, "GetPaymasterParams should not return an error")
 
-	withdrawTxHash, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
-		To:              wallet.Address(),
-		Amount:          amount,
-		Token:           utils.LegacyEthAddress,
-		PaymasterParams: paymasterParams,
-	})
+	withdrawTxHash, err := wallet.Withdraw(
+		&accounts.TransactOpts{PaymasterParams: paymasterParams},
+		accounts.WithdrawalTransaction{
+			To:     wallet.Address(),
+			Amount: amount,
+			Token:  utils.LegacyEthAddress,
+		})
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTxHash)
@@ -585,12 +586,13 @@ func TestIntegration_NonEthBasedChain_Wallet_WithdrawEthUsingPaymaster(t *testin
 		})
 	assert.NoError(t, err, "GetPaymasterParams should not return an error")
 
-	withdrawTx, err := sender.Withdraw(nil, accounts.WithdrawalTransaction{
-		To:              sender.Address(),
-		Amount:          amount,
-		Token:           utils.LegacyEthAddress, // or l2EthAddress
-		PaymasterParams: paymasterParams,
-	})
+	withdrawTx, err := sender.Withdraw(
+		&accounts.TransactOpts{PaymasterParams: paymasterParams},
+		accounts.WithdrawalTransaction{
+			To:     sender.Address(),
+			Amount: amount,
+			Token:  utils.LegacyEthAddress, // or l2EthAddress
+		})
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx)
@@ -731,12 +733,13 @@ func TestIntegrationWallet_WithdrawTokenUsingPaymaster(t *testing.T) {
 		})
 	assert.NoError(t, err, "GetPaymasterParams should not return an error")
 
-	withdrawTx, err := wallet.Withdraw(nil, accounts.WithdrawalTransaction{
-		To:              wallet.Address(),
-		Amount:          amount,
-		Token:           L2Dai,
-		PaymasterParams: paymasterParams,
-	})
+	withdrawTx, err := wallet.Withdraw(
+		&accounts.TransactOpts{PaymasterParams: paymasterParams},
+		accounts.WithdrawalTransaction{
+			To:     wallet.Address(),
+			Amount: amount,
+			Token:  L2Dai,
+		})
 	assert.NoError(t, err, "Withdraw should not return an error")
 
 	withdrawReceipt, err := client.WaitFinalized(context.Background(), withdrawTx)
@@ -823,12 +826,13 @@ func TestIntegration_EthBasedChain_Wallet_TransferEthUsingPaymaster(t *testing.T
 		})
 	assert.NoError(t, err, "GetPaymasterParams should not return an error")
 
-	txHash, err := wallet.Transfer(nil, accounts.TransferTransaction{
-		To:              Address2,
-		Amount:          amount,
-		Token:           utils.LegacyEthAddress,
-		PaymasterParams: paymasterParams,
-	})
+	txHash, err := wallet.Transfer(
+		&accounts.TransactOpts{PaymasterParams: paymasterParams},
+		accounts.TransferTransaction{
+			To:     Address2,
+			Amount: amount,
+			Token:  utils.LegacyEthAddress,
+		})
 	assert.NoError(t, err, "Transfer should not return an error")
 
 	receipt, err := client.WaitMined(context.Background(), txHash)
@@ -960,12 +964,13 @@ func TestIntegration_NonEthBasedChain_Wallet_TransferEthUsingPaymaster(t *testin
 		})
 	assert.NoError(t, err, "GetPaymasterParams should not return an error")
 
-	txHash, err := sender.Transfer(nil, accounts.TransferTransaction{
-		To:              Address2,
-		Amount:          amount,
-		Token:           utils.LegacyEthAddress, // or l2EthAddress
-		PaymasterParams: paymasterParams,
-	})
+	txHash, err := sender.Transfer(
+		&accounts.TransactOpts{PaymasterParams: paymasterParams},
+		accounts.TransferTransaction{
+			To:     Address2,
+			Amount: amount,
+			Token:  utils.LegacyEthAddress, // or l2EthAddress
+		})
 	assert.NoError(t, err, "Transfer should not return an error")
 
 	receipt, err := client.WaitMined(context.Background(), txHash)
@@ -1051,12 +1056,13 @@ func TestIntegration_Wallet_TransferTokenUsingPaymaster(t *testing.T) {
 		})
 	assert.NoError(t, err, "GetPaymasterParams should not return an error")
 
-	txHash, err := sender.Transfer(nil, accounts.TransferTransaction{
-		To:              Address2,
-		Amount:          amount,
-		Token:           L2Dai,
-		PaymasterParams: paymasterParams,
-	})
+	txHash, err := sender.Transfer(
+		&accounts.TransactOpts{PaymasterParams: paymasterParams},
+		accounts.TransferTransaction{
+			To:     Address2,
+			Amount: amount,
+			Token:  L2Dai,
+		})
 	assert.NoError(t, err, "Transfer should not return an error")
 
 	receipt, err := client.WaitMined(context.Background(), txHash)
