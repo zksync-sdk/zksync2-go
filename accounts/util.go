@@ -26,9 +26,21 @@ func ensureCallOpts(opts *CallOpts) *CallOpts {
 	return opts
 }
 
-func ensureTransactOpts(auth *TransactOptsL1) *TransactOptsL1 {
+func ensureTransactOptsL1(auth *TransactOptsL1) *TransactOptsL1 {
 	if auth == nil {
 		return &TransactOptsL1{
+			Context: context.Background(),
+		}
+	}
+	if auth.Context == nil {
+		auth.Context = context.Background()
+	}
+	return auth
+}
+
+func ensureTransactOpts(auth *TransactOpts) *TransactOpts {
+	if auth == nil {
+		return &TransactOpts{
 			Context: context.Background(),
 		}
 	}
@@ -57,4 +69,12 @@ func newTransactorWithSigner(signer *ECDSASigner, chainID *big.Int) (*bind.Trans
 			return tx.WithSignature(latestSigner, signature)
 		},
 	}, nil
+}
+
+func insertGasPrice(opts *TransactOpts) {
+	if opts.GasPrice != nil {
+		opts.GasFeeCap = opts.GasPrice
+		opts.GasTipCap = nil
+		opts.GasPrice = nil
+	}
 }
