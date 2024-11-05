@@ -1435,7 +1435,7 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 //		To:               wallet.Address1(),
 //		Amount:           big.NewInt(5),
 //		ApproveToken:     true,
-//		ApproveBaseERC20: true,
+//		ApproveBaseToken: true,
 //		L2GasLimit:       big.NewInt(255_000), // make it fail because of low gas
 //	})
 //
@@ -1460,8 +1460,8 @@ func TestIntegration_Wallet_ClaimFailedDepositSuccessfulDeposit(t *testing.T) {
 		To:               wallet.Address(),
 		Token:            L1Dai,
 		Amount:           big.NewInt(5),
-		ApproveERC20:     true,
-		ApproveBaseERC20: true,
+		ApproveToken:     true,
+		ApproveBaseToken: true,
 		RefundRecipient:  wallet.Address(),
 	})
 	assert.NoError(t, err, "Deposit should not return an error")
@@ -1605,7 +1605,7 @@ func TestIntegration_EthBasedChain_Wallet_DepositToken(t *testing.T) {
 		To:              wallet.Address(),
 		Token:           L1Dai,
 		Amount:          amount,
-		ApproveERC20:    true,
+		ApproveToken:    true,
 		RefundRecipient: wallet.Address(),
 	})
 	assert.NoError(t, err, "Deposit should not return an error")
@@ -1947,7 +1947,7 @@ func TestIntegration_NonEthBasedChain_Wallet_DepositEth(t *testing.T) {
 		To:               wallet.Address(),
 		Token:            utils.LegacyEthAddress,
 		Amount:           amount,
-		ApproveBaseERC20: true,
+		ApproveBaseToken: true,
 		RefundRecipient:  wallet.Address(),
 	})
 	assert.NoError(t, err, "Deposit should not return an error")
@@ -1999,7 +1999,7 @@ func TestIntegration_NonEthBasedChain_Wallet_DepositBaseToken(t *testing.T) {
 		To:               wallet.Address(),
 		Token:            baseToken,
 		Amount:           amount,
-		ApproveBaseERC20: true,
+		ApproveBaseToken: true,
 		RefundRecipient:  wallet.Address(),
 	})
 	assert.NoError(t, err, "Deposit should not return an error")
@@ -2048,8 +2048,8 @@ func TestIntegration_NonEthBasedChain_Wallet_DepositNonBaseToken(t *testing.T) {
 		To:               wallet.Address(),
 		Token:            L1Dai,
 		Amount:           amount,
-		ApproveERC20:     true,
-		ApproveBaseERC20: true,
+		ApproveToken:     true,
+		ApproveBaseToken: true,
 		RefundRecipient:  wallet.Address(),
 	})
 	assert.NoError(t, err, "Deposit should not return an error")
