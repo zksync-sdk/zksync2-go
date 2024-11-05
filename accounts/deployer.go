@@ -16,7 +16,7 @@ func NewDeployer(adapter *WalletL2) *Deployer {
 }
 
 // Deploy deploys smart contract using CREATE2 opcode.
-func (a *Deployer) Deploy(auth *TransactOpts, tx Create2Transaction) (common.Hash, error) {
+func (a *Deployer) Deploy(auth *TransactOptsL1, tx Create2Transaction) (common.Hash, error) {
 	opts := ensureTransactOpts(auth)
 	preparedTx, err := tx.ToTransaction(DeployContract, opts)
 	if err != nil {
@@ -26,7 +26,7 @@ func (a *Deployer) Deploy(auth *TransactOpts, tx Create2Transaction) (common.Has
 }
 
 // DeployWithCreate deploys smart contract using CREATE opcode.
-func (a *Deployer) DeployWithCreate(auth *TransactOpts, tx CreateTransaction) (common.Hash, error) {
+func (a *Deployer) DeployWithCreate(auth *TransactOptsL1, tx CreateTransaction) (common.Hash, error) {
 	opts := ensureTransactOpts(auth)
 	preparedTx, err := tx.ToTransaction(DeployContract, opts)
 	if err != nil {
@@ -36,7 +36,7 @@ func (a *Deployer) DeployWithCreate(auth *TransactOpts, tx CreateTransaction) (c
 }
 
 // DeployAccount deploys smart account using CREATE2 opcode.
-func (a *Deployer) DeployAccount(auth *TransactOpts, tx Create2Transaction) (common.Hash, error) {
+func (a *Deployer) DeployAccount(auth *TransactOptsL1, tx Create2Transaction) (common.Hash, error) {
 	opts := ensureTransactOpts(auth)
 	preparedTx, err := tx.ToTransaction(DeployAccount, opts)
 	if err != nil {
@@ -46,7 +46,7 @@ func (a *Deployer) DeployAccount(auth *TransactOpts, tx Create2Transaction) (com
 }
 
 // DeployAccountWithCreate deploys smart account using CREATE opcode.
-func (a *Deployer) DeployAccountWithCreate(auth *TransactOpts, tx CreateTransaction) (common.Hash, error) {
+func (a *Deployer) DeployAccountWithCreate(auth *TransactOptsL1, tx CreateTransaction) (common.Hash, error) {
 	opts := ensureTransactOpts(auth)
 	preparedTx, err := tx.ToTransaction(DeployAccount, opts)
 	if err != nil {

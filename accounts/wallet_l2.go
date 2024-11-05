@@ -51,7 +51,7 @@ func NewWalletL2FromSigner(signer *ECDSASigner, client *clients.Client) (*Wallet
 	chainId, err := client.ChainID(context.Background())
 	auth, err := newTransactorWithSigner(signer, chainId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
+		return nil, fmt.Errorf("failed to init TransactOptsL1: %w", err)
 	}
 
 	return &WalletL2{
@@ -74,7 +74,7 @@ func NewWalletL2FromSignerAndCache(signer *ECDSASigner, client *clients.Client, 
 	chainId, err := client.ChainID(context.Background())
 	auth, err := newTransactorWithSigner(signer, chainId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to init TransactOpts: %w", err)
+		return nil, fmt.Errorf("failed to init TransactOptsL1: %w", err)
 	}
 
 	c := cache
@@ -153,7 +153,7 @@ func (w *WalletL2) IsBaseToken(ctx context.Context, token common.Address) (bool,
 // Withdraw initiates the withdrawal process which withdraws ETH or any ERC20
 // token from the associated account on L2 network to the target account on L1
 // network.
-func (w *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (common.Hash, error) {
+func (w *WalletL2) Withdraw(auth *TransactOptsL1, tx WithdrawalTransaction) (common.Hash, error) {
 	opts := ensureTransactOpts(auth)
 	w.insertGasPrice(opts)
 
@@ -234,7 +234,7 @@ func (w *WalletL2) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMs
 }
 
 // Transfer moves the base token or any ERC20 token from the associated account to the target account.
-func (w *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (common.Hash, error) {
+func (w *WalletL2) Transfer(auth *TransactOptsL1, tx TransferTransaction) (common.Hash, error) {
 	opts := ensureTransactOpts(auth)
 	w.insertGasPrice(opts)
 
@@ -399,7 +399,7 @@ func (w *WalletL2) SendTransaction(ctx context.Context, tx *Transaction) (common
 	return w.client.SendRawTransaction(ensureContext(ctx), rawTx)
 }
 
-func (w *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction) (*ethTypes.Transaction, error) {
+func (w *WalletL2) transferBaseToken(auth *TransactOptsL1, tx TransferTransaction) (*ethTypes.Transaction, error) {
 	if auth.GasPrice != nil {
 		if auth.Nonce == nil {
 			nonce, err := w.client.NonceAt(auth.Context, w.Address(), nil)
@@ -448,7 +448,7 @@ func (w *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction)
 	}
 }
 
-func (w *WalletL2) insertGasPrice(opts *TransactOpts) {
+func (w *WalletL2) insertGasPrice(opts *TransactOptsL1) {
 	if opts.GasPrice != nil {
 		opts.GasFeeCap = opts.GasPrice
 		opts.GasTipCap = nil

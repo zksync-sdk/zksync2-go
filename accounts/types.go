@@ -493,8 +493,8 @@ func (m *DepositCallMsg) ToCallMsg(from, l1Bridge common.Address) (ethereum.Call
 	}, nil
 }
 
-func (m *DepositCallMsg) ToTransactOpts() TransactOpts {
-	return TransactOpts{
+func (m *DepositCallMsg) ToTransactOpts() TransactOptsL1 {
+	return TransactOptsL1{
 		Value:     m.Value,
 		GasPrice:  m.GasPrice,
 		GasFeeCap: m.GasFeeCap,
@@ -593,8 +593,8 @@ func (m *RequestExecuteCallMsg) ToCallMsgWithChainID(from common.Address, chainI
 	}, nil
 }
 
-func (m *RequestExecuteCallMsg) ToTransactOpts() TransactOpts {
-	return TransactOpts{
+func (m *RequestExecuteCallMsg) ToTransactOpts() TransactOptsL1 {
+	return TransactOptsL1{
 		Value:     m.Value,
 		GasPrice:  m.GasPrice,
 		GasFeeCap: m.GasFeeCap,
@@ -603,11 +603,11 @@ func (m *RequestExecuteCallMsg) ToTransactOpts() TransactOpts {
 	}
 }
 
-// TransactOpts contains common data required to create a valid transaction on both L1 and L2
-// using the account associated with AdapterL1, AdapterL2 or Deployer.
+// TransactOptsL1 contains common data required to create a valid transaction on L1
+// using the account associated with WalletL1.
 // Its primary purpose is to be transformed into bind.TransactOpts, wherein the 'From' and 'Signer'
 // fields are linked to the associated account.
-type TransactOpts struct {
+type TransactOptsL1 struct {
 	Nonce     *big.Int        // Nonce to use for the transaction execution (nil = use pending state).
 	Value     *big.Int        // Funds to transfer along the transaction (nil = 0 = no funds).
 	GasPrice  *big.Int        // Gas price to use for the transaction execution (nil = gas price oracle).
@@ -617,7 +617,7 @@ type TransactOpts struct {
 	Context   context.Context // Network context to support cancellation and timeouts (nil = no timeout).
 }
 
-func (t *TransactOpts) ToTransactOpts(from common.Address, signer bind.SignerFn) *bind.TransactOpts {
+func (t *TransactOptsL1) ToTransactOpts(from common.Address, signer bind.SignerFn) *bind.TransactOpts {
 	return &bind.TransactOpts{
 		From:      from,
 		Nonce:     t.Nonce,
@@ -704,7 +704,7 @@ type TransferTransaction struct {
 	PaymasterParams *types.PaymasterParams // The paymaster parameters.
 }
 
-func (t *TransferTransaction) ToTransaction(opts *TransactOpts) *Transaction {
+func (t *TransferTransaction) ToTransaction(opts *TransactOptsL1) *Transaction {
 	return &Transaction{
 		To:        &t.To,
 		Value:     t.Amount,
@@ -715,7 +715,7 @@ func (t *TransferTransaction) ToTransaction(opts *TransactOpts) *Transaction {
 	}
 }
 
-func (t *TransferTransaction) ToTransferCallMsg(from common.Address, opts *TransactOpts) clients.TransferCallMsg {
+func (t *TransferTransaction) ToTransferCallMsg(from common.Address, opts *TransactOptsL1) clients.TransferCallMsg {
 	return clients.TransferCallMsg{
 		To:        t.To,
 		Amount:    t.Amount,
@@ -741,7 +741,7 @@ type WithdrawalTransaction struct {
 	BridgeAddress *common.Address
 }
 
-func (t *WithdrawalTransaction) ToWithdrawalCallMsg(from common.Address, opts *TransactOpts) *clients.WithdrawalCallMsg {
+func (t *WithdrawalTransaction) ToWithdrawalCallMsg(from common.Address, opts *TransactOptsL1) *clients.WithdrawalCallMsg {
 	return &clients.WithdrawalCallMsg{
 		To:            t.To,
 		Amount:        t.Amount,
@@ -778,7 +778,7 @@ type RequestExecuteTransaction struct {
 	RefundRecipient common.Address
 }
 
-func (t *RequestExecuteTransaction) ToRequestExecuteCallMsg(opts *TransactOpts) RequestExecuteCallMsg {
+func (t *RequestExecuteTransaction) ToRequestExecuteCallMsg(opts *TransactOptsL1) RequestExecuteCallMsg {
 	return RequestExecuteCallMsg{
 		ContractAddress:   t.ContractAddress,
 		Calldata:          t.Calldata,
@@ -796,7 +796,7 @@ func (t *RequestExecuteTransaction) ToRequestExecuteCallMsg(opts *TransactOpts) 
 	}
 }
 
-func (t *RequestExecuteTransaction) ToCallMsg(from common.Address, opts *TransactOpts) types.CallMsg {
+func (t *RequestExecuteTransaction) ToCallMsg(from common.Address, opts *TransactOptsL1) types.CallMsg {
 	factoryDeps := make([]hexutil.Bytes, len(t.FactoryDeps))
 	if len(t.FactoryDeps) > 0 {
 		for i, d := range t.FactoryDeps {
@@ -850,8 +850,8 @@ type DepositTransaction struct {
 
 	CustomBridgeData []byte // Additional data that can be sent to the bridge.
 
-	ApproveAuth     *TransactOpts // Authorization data for the token approval transaction.
-	ApproveBaseAuth *TransactOpts // Authorization data for the base token approval transaction.
+	ApproveAuth     *TransactOptsL1 // Authorization data for the token approval transaction.
+	ApproveBaseAuth *TransactOptsL1 // Authorization data for the base token approval transaction.
 
 }
 
@@ -865,7 +865,7 @@ func (t *DepositTransaction) ToRequestExecuteTransaction() *RequestExecuteTransa
 	}
 }
 
-func (t *DepositTransaction) ToDepositCallMsg(opts *TransactOpts) DepositCallMsg {
+func (t *DepositTransaction) ToDepositCallMsg(opts *TransactOptsL1) DepositCallMsg {
 	return DepositCallMsg{
 		To:                t.To,
 		Token:             t.Token,
@@ -920,7 +920,7 @@ type CreateTransaction struct {
 	Dependencies [][]byte // The bytecode of dependent smart contracts or smart accounts.
 }
 
-func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *TransactOpts) (*Transaction, error) {
+func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *TransactOptsL1) (*Transaction, error) {
 	var (
 		data []byte
 		err  error
@@ -951,7 +951,7 @@ func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *T
 
 	auth := opts
 	if auth == nil {
-		auth = &TransactOpts{Context: context.Background()}
+		auth = &TransactOptsL1{Context: context.Background()}
 	}
 
 	return &Transaction{
@@ -975,7 +975,7 @@ type Create2Transaction struct {
 	Dependencies [][]byte // The bytecode of dependent smart contracts or smart accounts.
 }
 
-func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *TransactOpts) (*Transaction, error) {
+func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *TransactOptsL1) (*Transaction, error) {
 	var (
 		data []byte
 		err  error
@@ -1006,7 +1006,7 @@ func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *
 
 	auth := opts
 	if auth == nil {
-		auth = &TransactOpts{Context: context.Background()}
+		auth = &TransactOptsL1{Context: context.Background()}
 	}
 
 	return &Transaction{
