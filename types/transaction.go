@@ -48,6 +48,7 @@ type Transaction struct {
 	PaymasterParams *PaymasterParams `json:"paymasterParams"`
 }
 
+// Encode uses RLP encoding to transforms transaction to sequence of bytes.
 func (tx *Transaction) Encode(sig []byte) ([]byte, error) {
 	// use custom struct to get right RLP sequence and types to use default rlp encoder
 	zkSyncTxRLP := struct {
@@ -96,6 +97,7 @@ func (tx *Transaction) Encode(sig []byte) ([]byte, error) {
 	return append([]byte{0x71}, res...), nil
 }
 
+// Decode creates the transaction form sequence of bytes using RLP encoding.
 func (tx *Transaction) Decode(input []byte) error {
 	type zkSyncTxRLP struct {
 		Nonce                uint64
@@ -139,6 +141,7 @@ func (tx *Transaction) Decode(input []byte) error {
 	return nil
 }
 
+// TypedData transforms Transaction to apitypes.TypedData.
 func (tx *Transaction) TypedData() (*apitypes.TypedData, error) {
 	domain := eip712.ZkSyncEraEIP712Domain(tx.ChainID.Int64())
 	message, err := tx.typedDataMessage()
@@ -159,6 +162,7 @@ func (tx *Transaction) TypedData() (*apitypes.TypedData, error) {
 	}, nil
 }
 
+// Hash gets the hash of the transaction.
 func (tx *Transaction) Hash() ([]byte, error) {
 	typedData, err := tx.TypedData()
 	if err != nil {
@@ -171,6 +175,7 @@ func (tx *Transaction) Hash() ([]byte, error) {
 	return hash, nil
 }
 
+// Copy creates a copy of the transaction.
 func (tx *Transaction) Copy() *Transaction {
 	if tx == nil {
 		return nil

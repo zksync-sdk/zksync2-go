@@ -94,18 +94,22 @@ func NewRandomBaseSigner(chainId *big.Int) (*ECDSASigner, error) {
 	}, nil
 }
 
+// Address returns the address of the associated account.
 func (s *ECDSASigner) Address() common.Address {
 	return s.address
 }
 
+// ChainID returns the chain ID of the associated account.
 func (s *ECDSASigner) ChainID() *big.Int {
 	return s.chainId
 }
 
+// PrivateKey returns the private key of the associated account.
 func (s *ECDSASigner) PrivateKey() *ecdsa.PrivateKey {
 	return s.pk
 }
 
+// SignMessage signs the message using the private key.
 func (s *ECDSASigner) SignMessage(_ context.Context, msg []byte) ([]byte, error) {
 	sig, err := crypto.Sign(msg, s.pk)
 	if err != nil {
@@ -114,6 +118,7 @@ func (s *ECDSASigner) SignMessage(_ context.Context, msg []byte) ([]byte, error)
 	return sig, nil
 }
 
+// SignTransaction signs the ZKsync transaction.
 func (s *ECDSASigner) SignTransaction(ctx context.Context, tx *types.Transaction) ([]byte, error) {
 	typedData, err := tx.TypedData()
 	if err != nil {
@@ -122,6 +127,7 @@ func (s *ECDSASigner) SignTransaction(ctx context.Context, tx *types.Transaction
 	return s.SignTypedData(ctx, typedData)
 }
 
+// SignTypedData signs the typed data.
 func (s *ECDSASigner) SignTypedData(_ context.Context, typedData *apitypes.TypedData) ([]byte, error) {
 	hash, err := s.hashTypedData(typedData)
 	if err != nil {

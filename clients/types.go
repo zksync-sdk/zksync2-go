@@ -36,6 +36,7 @@ type TransferCallMsg struct {
 	CustomSignature hexutil.Bytes
 }
 
+// ToL1CallMsg transforms TransferCallMsg to ethereum.CallMsg.
 func (m *TransferCallMsg) ToL1CallMsg() (*ethereum.CallMsg, error) {
 	var (
 		value *big.Int
@@ -72,6 +73,7 @@ func (m *TransferCallMsg) ToL1CallMsg() (*ethereum.CallMsg, error) {
 	}, nil
 }
 
+// ToCallMsg transforms TransferCallMsg to types.CallMsg.
 func (m *TransferCallMsg) ToCallMsg() (*types.CallMsg, error) {
 	var (
 		value         *big.Int
@@ -138,6 +140,7 @@ type WithdrawalCallMsg struct {
 	CustomSignature hexutil.Bytes
 }
 
+// ToL1CallMsg transforms WithdrawalCallMsg to ethereum.CallMsg.
 func (m *WithdrawalCallMsg) ToL1CallMsg(defaultL2Bridge *common.Address) (*ethereum.CallMsg, error) {
 	if m.Token == utils.L2BaseTokenAddress {
 		ethTokenAbi, err := ethtoken.IEthTokenMetaData.GetAbi()
@@ -186,6 +189,7 @@ func (m *WithdrawalCallMsg) ToL1CallMsg(defaultL2Bridge *common.Address) (*ether
 	}
 }
 
+// ToCallMsg transforms WithdrawalCallMsg to types.CallMsg.
 func (m *WithdrawalCallMsg) ToCallMsg(defaultL2Bridge *common.Address) (*types.CallMsg, error) {
 	msg, err := m.ToL1CallMsg(defaultL2Bridge)
 	if err != nil {

@@ -269,7 +269,7 @@ func (c *Cache) L1SharedBridge() (*l1sharedbridge.IL1SharedBridge, error) {
 }
 
 // CallOpts is the collection of options to fine tune a contract call request from
-// a specific account associated with AdapterL1.
+// a specific associated account.
 // Its primary purpose is to be transformed into bind.CallOpts, wherein the 'From'
 // field represents the associated account.
 type CallOpts struct {
@@ -278,6 +278,7 @@ type CallOpts struct {
 	Context     context.Context // Network context to support cancellation and timeouts (nil = no timeout)
 }
 
+// ToCallOpts transforms CallOpts to bind.CallOpts.
 func (o *CallOpts) ToCallOpts(from common.Address) *bind.CallOpts {
 	return &bind.CallOpts{
 		Pending:     o.Pending,
@@ -288,7 +289,7 @@ func (o *CallOpts) ToCallOpts(from common.Address) *bind.CallOpts {
 }
 
 // CallMsg contains parameters for contract call from a specific account associated
-// with AdapterL1, AdapterL2 or Deployer.
+// with WalletL1, WalletL2 or Deployer.
 // Its primary purpose is to be transformed into types.CallMsg, wherein the 'From'
 // field represents the associated account.
 type CallMsg struct {
@@ -316,6 +317,7 @@ type CallMsg struct {
 	PaymasterParams *types.PaymasterParams
 }
 
+// ToCallMsg transforms CallMsg to types.CallMsg.
 func (m *CallMsg) ToCallMsg(from common.Address) types.CallMsg {
 	return types.CallMsg{
 		From:            from,
@@ -334,7 +336,7 @@ func (m *CallMsg) ToCallMsg(from common.Address) types.CallMsg {
 }
 
 // WithdrawalCallMsg contains the common data required to execute a withdrawal call on L1 from L2.
-// This execution is initiated by the account associated with AdapterL2.
+// This execution is initiated by the account associated with WalletL2.
 type WithdrawalCallMsg struct {
 	To            common.Address  // The address of the recipient on L1.
 	Amount        *big.Int        // The amount of the token to transfer.
@@ -352,6 +354,7 @@ type WithdrawalCallMsg struct {
 	GasPerPubdata *big.Int
 }
 
+// ToWithdrawalCallMsg transforms WithdrawalCallMsg to clients.WithdrawalCallMsg.
 func (m *WithdrawalCallMsg) ToWithdrawalCallMsg(from common.Address) clients.WithdrawalCallMsg {
 	return clients.WithdrawalCallMsg{
 		To:              m.To,
@@ -369,7 +372,7 @@ func (m *WithdrawalCallMsg) ToWithdrawalCallMsg(from common.Address) clients.Wit
 }
 
 // TransferCallMsg contains the common data required to execute a transfer call on L2.
-// This execution is initiated by the account associated with AdapterL2.
+// This execution is initiated by the account associated with WalletL2.
 type TransferCallMsg struct {
 	To     common.Address // The address of the recipient.
 	Amount *big.Int       // The amount of the token to transfer.
@@ -386,6 +389,7 @@ type TransferCallMsg struct {
 	GasPerPubdata *big.Int
 }
 
+// ToTransferCallMsg transforms TransferCallMsg to clients.TransferCallMsg.
 func (m *TransferCallMsg) ToTransferCallMsg(from common.Address) clients.TransferCallMsg {
 	return clients.TransferCallMsg{
 		To:              m.To,
@@ -402,7 +406,7 @@ func (m *TransferCallMsg) ToTransferCallMsg(from common.Address) clients.Transfe
 }
 
 // DepositCallMsg contains the common data required to execute a deposit call on L2 from L1.
-// This execution is initiated by the account associated with AdapterL1.
+// This execution is initiated by the account associated with WalletL1.
 type DepositCallMsg struct {
 	To     common.Address // The address that will receive the deposited tokens on L2.
 	Token  common.Address // The address of the token to deposit.
@@ -413,9 +417,7 @@ type DepositCallMsg struct {
 	// of the transaction.
 	OperatorTip *big.Int
 
-	// The address of the bridge contract to be used. Defaults to the default ZKsync bridge
-	// (either L1EthBridge or L1Erc20Bridge).
-	BridgeAddress *common.Address
+	BridgeAddress *common.Address // The address of the bridge contract to be used.
 
 	L2GasLimit *big.Int // Maximum amount of L2 gas that transaction can consume during execution on L2.
 
@@ -435,6 +437,7 @@ type DepositCallMsg struct {
 	GasTipCap *big.Int // EIP-1559 tip per gas.
 }
 
+// ToDepositTransaction transforms DepositCallMsg to DepositTransaction.
 func (m *DepositCallMsg) ToDepositTransaction() DepositTransaction {
 	return DepositTransaction{
 		Token:             m.Token,
@@ -449,6 +452,7 @@ func (m *DepositCallMsg) ToDepositTransaction() DepositTransaction {
 	}
 }
 
+// ToRequestExecuteCallMsg transforms DepositCallMsg to RequestExecuteCallMsg.
 func (m *DepositCallMsg) ToRequestExecuteCallMsg() RequestExecuteCallMsg {
 	return RequestExecuteCallMsg{
 		ContractAddress:   m.To,
@@ -465,6 +469,7 @@ func (m *DepositCallMsg) ToRequestExecuteCallMsg() RequestExecuteCallMsg {
 	}
 }
 
+// ToCallMsg transforms DepositCallMsg to ethereum.CallMsg.
 func (m *DepositCallMsg) ToCallMsg(from, l1Bridge common.Address) (ethereum.CallMsg, error) {
 	l1BridgeAbi, err := l1bridge.IL1BridgeMetaData.GetAbi()
 	if err != nil {
@@ -493,6 +498,7 @@ func (m *DepositCallMsg) ToCallMsg(from, l1Bridge common.Address) (ethereum.Call
 	}, nil
 }
 
+// ToTransactOpts transforms DepositCallMsg to TransactOptsL1.
 func (m *DepositCallMsg) ToTransactOpts() TransactOptsL1 {
 	return TransactOptsL1{
 		Value:     m.Value,
@@ -503,6 +509,7 @@ func (m *DepositCallMsg) ToTransactOpts() TransactOptsL1 {
 	}
 }
 
+// PopulateEmptyFields populates required empty fields with default values.
 func (m *DepositCallMsg) PopulateEmptyFields(from common.Address) {
 	if m.To == (common.Address{}) {
 		m.To = from
@@ -519,7 +526,7 @@ func (m *DepositCallMsg) PopulateEmptyFields(from common.Address) {
 }
 
 // RequestExecuteCallMsg contains the common data required to execute a call for a request execution of an L2
-// transaction from L1. This execution is initiated by the account associated with AdapterL1.
+// transaction from L1. This execution is initiated by the account associated with WalletL1.
 type RequestExecuteCallMsg struct {
 	ContractAddress common.Address // The L2 receiver address.
 	Calldata        []byte         // The input of the L2 transaction.
@@ -547,6 +554,7 @@ type RequestExecuteCallMsg struct {
 	GasTipCap *big.Int // EIP-1559 tip per gas.
 }
 
+// ToRequestExecuteTransaction transforms RequestExecuteCallMsg to RequestExecuteTransaction.
 func (m *RequestExecuteCallMsg) ToRequestExecuteTransaction() RequestExecuteTransaction {
 	return RequestExecuteTransaction{
 		ContractAddress:   m.ContractAddress,
@@ -561,6 +569,7 @@ func (m *RequestExecuteCallMsg) ToRequestExecuteTransaction() RequestExecuteTran
 	}
 }
 
+// ToCallMsgWithChainID transforms RequestExecuteCallMsg to ethereum.CallMsg.
 func (m *RequestExecuteCallMsg) ToCallMsgWithChainID(from common.Address, chainID *big.Int) (ethereum.CallMsg, error) {
 	bridgehubAbi, err := bridgehub.IBridgehubMetaData.GetAbi()
 	if err != nil {
@@ -593,6 +602,7 @@ func (m *RequestExecuteCallMsg) ToCallMsgWithChainID(from common.Address, chainI
 	}, nil
 }
 
+// ToTransactOpts transforms RequestExecuteCallMsg to TransactOptsL1.
 func (m *RequestExecuteCallMsg) ToTransactOpts() TransactOptsL1 {
 	return TransactOptsL1{
 		Value:     m.Value,
@@ -617,6 +627,7 @@ type TransactOptsL1 struct {
 	Context   context.Context // Network context to support cancellation and timeouts (nil = no timeout).
 }
 
+// ToTransactOpts transforms TransactOptsL1 to bind.TransactOpts.
 func (t *TransactOptsL1) ToTransactOpts(from common.Address, signer bind.SignerFn) *bind.TransactOpts {
 	return &bind.TransactOpts{
 		From:      from,
@@ -680,6 +691,7 @@ type Transaction struct {
 	PaymasterParams *types.PaymasterParams `json:"paymasterParams,omitempty"`
 }
 
+// ToTransaction712 transforms Transaction to types.Transaction.
 func (t *Transaction) ToTransaction712(from common.Address) *types.Transaction {
 	return &types.Transaction{
 		Nonce:           t.Nonce,
@@ -698,6 +710,7 @@ func (t *Transaction) ToTransaction712(from common.Address) *types.Transaction {
 	}
 }
 
+// ToCallMsg transforms Transaction to types.CallMsg.
 func (t *Transaction) ToCallMsg(from common.Address) types.CallMsg {
 	return types.CallMsg{
 		From:            from,
@@ -715,13 +728,14 @@ func (t *Transaction) ToCallMsg(from common.Address) types.CallMsg {
 }
 
 // TransferTransaction represents a transfer transaction on L2
-// initiated by the account associated with AdapterL2.
+// initiated by the account associated with WalletL2.
 type TransferTransaction struct {
 	To     common.Address // The address of the recipient.
 	Amount *big.Int       // The amount of the token to transfer.
 	Token  common.Address // The address of the token. ETH by default.
 }
 
+// ToTransaction transforms TransferTransaction to Transaction.
 func (t *TransferTransaction) ToTransaction(opts *TransactOptsL1) *Transaction {
 	return &Transaction{
 		To:        &t.To,
@@ -733,6 +747,7 @@ func (t *TransferTransaction) ToTransaction(opts *TransactOptsL1) *Transaction {
 	}
 }
 
+// ToTransferCallMsg transforms TransferTransaction to clients.TransferCallMsg.
 func (t *TransferTransaction) ToTransferCallMsg(from common.Address, opts *TransactOptsL1) clients.TransferCallMsg {
 	return clients.TransferCallMsg{
 		To:        t.To,
@@ -747,17 +762,15 @@ func (t *TransferTransaction) ToTransferCallMsg(from common.Address, opts *Trans
 }
 
 // WithdrawalTransaction represents a withdrawal transaction on L1 from L2
-// initiated by the account associated with AdapterL2.
+// initiated by the account associated with WalletL2.
 type WithdrawalTransaction struct {
-	To     common.Address // The address that will receive the withdrawn tokens on L1.
-	Token  common.Address // The address of the token to withdraw.
-	Amount *big.Int       // The amount of the token to withdraw.
-
-	// The address of the bridge contract to be used. Defaults to the default ZKsync bridge
-	// (either L2EthBridge or L2Erc20Bridge).
-	BridgeAddress *common.Address
+	To            common.Address  // The address that will receive the withdrawn tokens on L1.
+	Token         common.Address  // The address of the token to withdraw.
+	Amount        *big.Int        // The amount of the token to withdraw.
+	BridgeAddress *common.Address // The address of the bridge contract to be used.
 }
 
+// ToWithdrawalCallMsg transforms WithdrawalTransaction to clients.WithdrawalCallMsg.
 func (t *WithdrawalTransaction) ToWithdrawalCallMsg(from common.Address, opts *TransactOptsL1) *clients.WithdrawalCallMsg {
 	return &clients.WithdrawalCallMsg{
 		To:            t.To,
@@ -773,7 +786,7 @@ func (t *WithdrawalTransaction) ToWithdrawalCallMsg(from common.Address, opts *T
 }
 
 // RequestExecuteTransaction represents a request execution of L2 transaction from L1
-// initiated by the account associated with AdapterL1.
+// initiated by the account associated with WalletL1.
 type RequestExecuteTransaction struct {
 	ContractAddress common.Address // The L2 receiver address.
 	Calldata        []byte         // The input of the L2 transaction.
@@ -795,6 +808,7 @@ type RequestExecuteTransaction struct {
 	RefundRecipient common.Address
 }
 
+// ToRequestExecuteCallMsg transforms RequestExecuteTransaction to RequestExecuteCallMsg.
 func (t *RequestExecuteTransaction) ToRequestExecuteCallMsg(opts *TransactOptsL1) RequestExecuteCallMsg {
 	return RequestExecuteCallMsg{
 		ContractAddress:   t.ContractAddress,
@@ -813,6 +827,7 @@ func (t *RequestExecuteTransaction) ToRequestExecuteCallMsg(opts *TransactOptsL1
 	}
 }
 
+// ToCallMsg transforms RequestExecuteTransaction to types.CallMsg.
 func (t *RequestExecuteTransaction) ToCallMsg(from common.Address, opts *TransactOptsL1) types.CallMsg {
 	factoryDeps := make([]hexutil.Bytes, len(t.FactoryDeps))
 	if len(t.FactoryDeps) > 0 {
@@ -833,7 +848,7 @@ func (t *RequestExecuteTransaction) ToCallMsg(from common.Address, opts *Transac
 }
 
 // DepositTransaction represents a deposit transaction on L2 from L1
-// initiated by the account associated with AdapterL1.
+// initiated by the account associated with WalletL1.
 type DepositTransaction struct {
 	To     common.Address // The address of the token to deposit.
 	Token  common.Address // The address of the token to deposit.
@@ -844,9 +859,7 @@ type DepositTransaction struct {
 	// of the transaction.
 	OperatorTip *big.Int
 
-	// The address of the bridge contract to be used. Defaults to the default zkSync bridge
-	// (either L1EthBridge or L1Erc20Bridge).
-	BridgeAddress *common.Address
+	BridgeAddress *common.Address // The address of the bridge contract to be used.
 
 	// Whether should the token approval be performed under the hood. Set this flag to true if you
 	// bridge an ERC20 token and didn't call the ApproveToken function beforehand.
@@ -872,6 +885,7 @@ type DepositTransaction struct {
 
 }
 
+// ToRequestExecuteTransaction transforms DepositTransaction to RequestExecuteTransaction.
 func (t *DepositTransaction) ToRequestExecuteTransaction() *RequestExecuteTransaction {
 	return &RequestExecuteTransaction{
 		ContractAddress:   t.To,
@@ -882,6 +896,7 @@ func (t *DepositTransaction) ToRequestExecuteTransaction() *RequestExecuteTransa
 	}
 }
 
+// ToDepositCallMsg transforms DepositTransaction to DepositCallMsg.
 func (t *DepositTransaction) ToDepositCallMsg(opts *TransactOptsL1) DepositCallMsg {
 	return DepositCallMsg{
 		To:                t.To,
@@ -900,6 +915,7 @@ func (t *DepositTransaction) ToDepositCallMsg(opts *TransactOptsL1) DepositCallM
 	}
 }
 
+// PopulateEmptyFields populates required empty fields with default values.
 func (t *DepositTransaction) PopulateEmptyFields(from common.Address) {
 	if t.To == (common.Address{}) {
 		t.To = from
@@ -937,6 +953,7 @@ type CreateTransaction struct {
 	Dependencies [][]byte // The bytecode of dependent smart contracts or smart accounts.
 }
 
+// ToTransaction transforms CreateTransaction to Transaction.
 func (t *CreateTransaction) ToTransaction(deploymentType DeploymentType, opts *TransactOpts) (*Transaction, error) {
 	var (
 		data []byte
@@ -998,6 +1015,7 @@ type Create2Transaction struct {
 	Dependencies [][]byte // The bytecode of dependent smart contracts or smart accounts.
 }
 
+// ToTransaction transforms Create2Transaction to Transaction.
 func (t *Create2Transaction) ToTransaction(deploymentType DeploymentType, opts *TransactOpts) (*Transaction, error) {
 	var (
 		data []byte

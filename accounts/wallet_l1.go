@@ -324,7 +324,7 @@ func (w *WalletL1) DepositAllowanceParams(opts *CallOpts, msg DepositCallMsg) ([
 // In this case, depending on is the chain ETH-based or not DepositTransaction.ApproveToken or
 // DepositTransaction.ApproveBaseToken can be enabled to perform token approval.
 // If there are already enough approved tokens for the L1 bridge, token approval will be skipped.
-// To check the amount of approved tokens for a specific bridge, use the AdapterL1.AllowanceL1 method.
+// To check the amount of approved tokens for a specific bridge, use the WalletL1.AllowanceL1 method.
 func (w *WalletL1) Deposit(auth *TransactOptsL1, tx DepositTransaction) (*ethTypes.Transaction, error) {
 	opts := ensureTransactOptsL1(auth)
 	if tx.Token == utils.LegacyEthAddress {
