@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/zksync-sdk/zksync2-go/clients"
@@ -76,31 +75,28 @@ func (a *SmartAccount) Address() common.Address {
 
 // Balance returns the balance of the specified token that can be either base token or any ERC20 token.
 // The block number can be nil, in which case the balance is taken from the latest known block.
-func (a *SmartAccount) Balance(ctx context.Context, token common.Address, at *big.Int) (*big.Int, error) {
-	err := a.cacheData(ctx)
+func (a *SmartAccount) Balance(opts *CallOpts, token common.Address) (*big.Int, error) {
+	callOpts := ensureCallOpts(opts).ToCallOpts(a.Address())
+	err := a.cacheData(callOpts.Context)
 	if err != nil {
 		return nil, err
 	}
 
 	if token == utils.LegacyEthAddress || token == utils.EthAddressInContracts {
-		token, err = a.client.L2TokenAddress(ctx, token)
+		token, err = a.client.L2TokenAddress(callOpts.Context, token)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if token == utils.L2BaseTokenAddress {
-		return a.client.BalanceAt(ensureContext(ctx), a.Address(), at)
+		return a.client.BalanceAt(ensureContext(callOpts.Context), a.Address(), callOpts.BlockNumber)
 	}
 	erc20Token, err := erc20.NewIERC20(token, a.client)
 	if err != nil {
 		return nil, err
 	}
-	return erc20Token.BalanceOf(&bind.CallOpts{
-		From:        a.Address(),
-		BlockNumber: at,
-		Context:     ensureContext(ctx),
-	}, a.Address())
+	return erc20Token.BalanceOf(callOpts, a.Address())
 }
 
 // AllBalances returns all balances for confirmed tokens given by an associated account.

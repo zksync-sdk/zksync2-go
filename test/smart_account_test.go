@@ -51,7 +51,7 @@ func TestIntegrationSmartAccount_BalanceETH(t *testing.T) {
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	balance, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balance, err := account.Balance(nil, utils.LegacyEthAddress)
 
 	assert.NoError(t, err, "Balance should not return an error")
 	assert.True(t, balance.Cmp(big.NewInt(0)) >= 0, "Balance should return a non-negative number")
@@ -64,7 +64,7 @@ func TestIntegrationSmartAccount_BalanceToken(t *testing.T) {
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	balance, err := account.Balance(context.Background(), L2Dai, nil)
+	balance, err := account.Balance(nil, L2Dai)
 
 	assert.NoError(t, err, "Balance should not return an error")
 	assert.True(t, balance.Cmp(big.NewInt(0)) >= 0, "Balance should return a non-negative number")
@@ -138,7 +138,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	withdrawHash, err := account.Withdraw(nil, accounts.WithdrawalTransaction{
@@ -159,7 +159,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
@@ -184,7 +184,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 	l2EthAddress, err := client.L2TokenAddress(context.Background(), utils.EthAddressInContracts)
 	assert.NoError(t, err, "L2TokenAddress should not return an error")
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), l2EthAddress, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	withdrawHash, err := account.Withdraw(nil, accounts.WithdrawalTransaction{
@@ -205,7 +205,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEth(t *testing.T) {
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), l2EthAddress, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
@@ -231,7 +231,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *tes
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeWithdrawal, err := approvalToken.BalanceOf(nil, Address1)
@@ -272,7 +272,7 @@ func TestIntegration_EthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *tes
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterWithdrawal, err := approvalToken.BalanceOf(nil, Address1)
@@ -314,7 +314,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), l2EthAddress, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeWithdrawal, err := approvalToken.BalanceOf(nil, Address1)
@@ -355,7 +355,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawEthUsingPaymaster(t *
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), l2EthAddress, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterWithdrawal, err := approvalToken.BalanceOf(nil, Address1)
@@ -390,7 +390,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseToken(t *testing.
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, utils.L2BaseTokenAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	withdrawHash, err := account.Withdraw(nil, accounts.WithdrawalTransaction{
@@ -411,7 +411,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseToken(t *testing.
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, utils.L2BaseTokenAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
@@ -437,7 +437,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseTokenUsingPaymast
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, utils.L2BaseTokenAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeWithdrawal, err := approvalToken.BalanceOf(nil, Address1)
@@ -478,7 +478,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_WithdrawBaseTokenUsingPaymast
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, utils.L2BaseTokenAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterWithdrawal, err := approvalToken.BalanceOf(nil, Address1)
@@ -513,7 +513,7 @@ func TestIntegrationSmartAccount_WithdrawToken(t *testing.T) {
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), L2Dai, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	withdrawHash, err := account.Withdraw(nil, accounts.WithdrawalTransaction{
@@ -534,7 +534,7 @@ func TestIntegrationSmartAccount_WithdrawToken(t *testing.T) {
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), L2Dai, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
@@ -560,7 +560,7 @@ func TestIntegrationSmartAccount_WithdrawTokenUsingPaymaster(t *testing.T) {
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), L2Dai, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeWithdrawal, err := approvalToken.BalanceOf(nil, Address1)
@@ -601,7 +601,7 @@ func TestIntegrationSmartAccount_WithdrawTokenUsingPaymaster(t *testing.T) {
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), L2Dai, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterWithdrawal, err := approvalToken.BalanceOf(nil, Address1)
@@ -629,7 +629,7 @@ func TestIntegration_EthBasedChain_SmartAccount_TransferEth(t *testing.T) {
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	balanceBeforeTransferSender, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceBeforeTransferSender, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	balanceBeforeTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
@@ -646,7 +646,7 @@ func TestIntegration_EthBasedChain_SmartAccount_TransferEth(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceAfterTransferSender, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	balanceAfterTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
@@ -669,7 +669,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferEth(t *testing.T) {
 	l2EthAddress, err := client.L2TokenAddress(context.Background(), utils.EthAddressInContracts)
 	assert.NoError(t, err, "L2TokenAddress should not return an error")
 
-	balanceBeforeTransferSender, err := sender.Balance(context.Background(), l2EthAddress, nil)
+	balanceBeforeTransferSender, err := sender.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	balanceBeforeTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
@@ -686,10 +686,10 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferEth(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := sender.Balance(context.Background(), l2EthAddress, nil)
+	balanceAfterTransferSender, err := sender.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceAfterTransferReceiver, err := receiver.Balance(context.Background(), l2EthAddress, nil)
+	balanceAfterTransferReceiver, err := receiver.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	assert.True(t, new(big.Int).Sub(balanceBeforeTransferSender, balanceAfterTransferSender).Cmp(amount) >= 0, "Sender balance should be decreased")
@@ -709,7 +709,7 @@ func TestIntegration_EthBasedChain_SmartAccount_TransferEthUsingPaymaster(t *tes
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	balanceBeforeTransferSender, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceBeforeTransferSender, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeTransferSender, err := approvalToken.BalanceOf(nil, Address1)
@@ -746,7 +746,7 @@ func TestIntegration_EthBasedChain_SmartAccount_TransferEthUsingPaymaster(t *tes
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceAfterTransferSender, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterTransferSender, err := approvalToken.BalanceOf(nil, Address1)
@@ -787,13 +787,13 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferEthUsingPaymaster(t *
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	balanceBeforeTransferSender, err := sender.Balance(context.Background(), l2EthAddress, nil)
+	balanceBeforeTransferSender, err := sender.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeTransferSender, err := approvalToken.BalanceOf(nil, Address1)
 	assert.NoError(t, err, "BalanceOf should not return an error")
 
-	balanceBeforeTransferReceiver, err := receiver.Balance(context.Background(), l2EthAddress, nil)
+	balanceBeforeTransferReceiver, err := receiver.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	balanceBeforeTransferPaymaster, err := client.BalanceAt(context.Background(), Paymaster, nil)
@@ -824,13 +824,13 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferEthUsingPaymaster(t *
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := sender.Balance(context.Background(), l2EthAddress, nil)
+	balanceAfterTransferSender, err := sender.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterTransferSender, err := approvalToken.BalanceOf(nil, Address1)
 	assert.NoError(t, err, "BalanceOf should not return an error")
 
-	balanceAfterTransferReceiver, err := receiver.Balance(context.Background(), l2EthAddress, nil)
+	balanceAfterTransferReceiver, err := receiver.Balance(nil, l2EthAddress)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	balanceAfterTransferPaymaster, err := client.BalanceAt(context.Background(), Paymaster, nil)
@@ -861,7 +861,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferBaseToken(t *testing.
 
 	account := accounts.NewECDSASmartAccount(Address1, PrivateKey1, client)
 
-	balanceBeforeTransferSender, err := account.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	balanceBeforeTransferSender, err := account.Balance(nil, utils.L2BaseTokenAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	balanceBeforeTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
@@ -878,7 +878,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferBaseToken(t *testing.
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := account.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	balanceAfterTransferSender, err := account.Balance(nil, utils.L2BaseTokenAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	balanceAfterTransferReceiver, err := client.BalanceAt(context.Background(), Address2, nil)
@@ -905,7 +905,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferBaseTokenUsingPaymast
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	balanceBeforeTransferSender, err := account.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	balanceBeforeTransferSender, err := account.Balance(nil, utils.L2BaseTokenAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeTransferSender, err := approvalToken.BalanceOf(nil, Address1)
@@ -942,7 +942,7 @@ func TestIntegration_NonEthBasedChain_SmartAccount_TransferBaseTokenUsingPaymast
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := account.Balance(context.Background(), utils.L2BaseTokenAddress, nil)
+	balanceAfterTransferSender, err := account.Balance(nil, utils.L2BaseTokenAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterTransferSender, err := approvalToken.BalanceOf(nil, Address1)
@@ -978,7 +978,7 @@ func TestIntegrationSmartAccount_TransferToken(t *testing.T) {
 	token, err := erc20.NewIERC20(L2Dai, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	balanceBeforeTransferSender, err := account.Balance(context.Background(), L2Dai, nil)
+	balanceBeforeTransferSender, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	balanceBeforeTransferReceiver, err := token.BalanceOf(nil, Address2)
@@ -995,7 +995,7 @@ func TestIntegrationSmartAccount_TransferToken(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := account.Balance(context.Background(), L2Dai, nil)
+	balanceAfterTransferSender, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	balanceAfterTransferReceiver, err := token.BalanceOf(nil, Address2)
@@ -1025,7 +1025,7 @@ func TestIntegrationSmartAccount_TransferTokenUsingPaymaster(t *testing.T) {
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	balanceBeforeTransferSender, err := account.Balance(context.Background(), L2Dai, nil)
+	balanceBeforeTransferSender, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeTransferSender, err := approvalToken.BalanceOf(nil, Address1)
@@ -1062,7 +1062,7 @@ func TestIntegrationSmartAccount_TransferTokenUsingPaymaster(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := account.Balance(context.Background(), L2Dai, nil)
+	balanceAfterTransferSender, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterTransferSender, err := approvalToken.BalanceOf(nil, Address1)
@@ -1217,7 +1217,7 @@ func TestIntegrationMultisigSmartAccount_Withdraw(t *testing.T) {
 
 	account := accounts.NewMultisigECDSASmartAccount(MultisigAccount, []string{PrivateKey1, PrivateKey2}, client)
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	withdrawHash, err := account.Withdraw(nil, accounts.WithdrawalTransaction{
@@ -1238,7 +1238,7 @@ func TestIntegrationMultisigSmartAccount_Withdraw(t *testing.T) {
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
@@ -1264,7 +1264,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawUsingPaymaster(t *testing.T) {
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeWithdrawal, err := approvalToken.BalanceOf(nil, MultisigAccount)
@@ -1305,7 +1305,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawUsingPaymaster(t *testing.T) {
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterWithdrawal, err := approvalToken.BalanceOf(nil, MultisigAccount)
@@ -1340,7 +1340,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawToken(t *testing.T) {
 
 	account := accounts.NewMultisigECDSASmartAccount(MultisigAccount, []string{PrivateKey1, PrivateKey2}, client)
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), L2Dai, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	withdrawHash, err := account.Withdraw(nil, accounts.WithdrawalTransaction{
@@ -1361,7 +1361,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawToken(t *testing.T) {
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), L2Dai, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	assert.True(t, new(big.Int).Sub(l2BalanceBeforeWithdrawal, l2BalanceAfterWithdrawal).Cmp(amount) >= 0, "Balance on L2 should be decreased")
@@ -1387,7 +1387,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawTokenUsingPaymaster(t *testing.
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	l2BalanceBeforeWithdrawal, err := account.Balance(context.Background(), L2Dai, nil)
+	l2BalanceBeforeWithdrawal, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeWithdrawal, err := approvalToken.BalanceOf(nil, MultisigAccount)
@@ -1428,7 +1428,7 @@ func TestIntegrationMultisigSmartAccount_WithdrawTokenUsingPaymaster(t *testing.
 	assert.NoError(t, err, "bind.WaitMined should not return an error")
 	assert.NotNil(t, finalizeWithdrawReceipt.BlockHash, "Finalize withdraw transaction should be mined")
 
-	l2BalanceAfterWithdrawal, err := account.Balance(context.Background(), L2Dai, nil)
+	l2BalanceAfterWithdrawal, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterWithdrawal, err := approvalToken.BalanceOf(nil, MultisigAccount)
@@ -1457,10 +1457,10 @@ func TestIntegrationMultisigSmartAccount_TransferEth(t *testing.T) {
 	sender := accounts.NewMultisigECDSASmartAccount(MultisigAccount, []string{PrivateKey1, PrivateKey2}, client)
 	receiver := accounts.NewECDSASmartAccount(Address2, PrivateKey2, client)
 
-	balanceBeforeTransferSender, err := sender.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceBeforeTransferSender, err := sender.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceBeforeTransferReceiver, err := receiver.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceBeforeTransferReceiver, err := receiver.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	txHash, err := sender.Transfer(nil, accounts.TransferTransaction{
@@ -1474,10 +1474,10 @@ func TestIntegrationMultisigSmartAccount_TransferEth(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := sender.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceAfterTransferSender, err := sender.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
-	balanceAfterTransferReceiver, err := receiver.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceAfterTransferReceiver, err := receiver.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	assert.True(t, new(big.Int).Sub(balanceBeforeTransferSender, balanceAfterTransferSender).Cmp(amount) >= 0, "Sender balance should be decreased")
@@ -1498,13 +1498,13 @@ func TestIntegrationMultisigSmartAccount_TransferEthUsingPaymaster(t *testing.T)
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	balanceBeforeTransferSender, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceBeforeTransferSender, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeTransferSender, err := approvalToken.BalanceOf(nil, MultisigAccount)
 	assert.NoError(t, err, "BalanceOf should not return an error")
 
-	balanceBeforeTransferReceiver, err := receiver.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceBeforeTransferReceiver, err := receiver.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	balanceBeforeTransferPaymaster, err := client.BalanceAt(context.Background(), Paymaster, nil)
@@ -1535,13 +1535,13 @@ func TestIntegrationMultisigSmartAccount_TransferEthUsingPaymaster(t *testing.T)
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := account.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceAfterTransferSender, err := account.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterTransferSender, err := approvalToken.BalanceOf(nil, MultisigAccount)
 	assert.NoError(t, err, "BalanceOf should not return an error")
 
-	balanceAfterTransferReceiver, err := receiver.Balance(context.Background(), utils.LegacyEthAddress, nil)
+	balanceAfterTransferReceiver, err := receiver.Balance(nil, utils.LegacyEthAddress)
 	assert.NoError(t, err, "BalanceAt should not return an error")
 
 	balanceAfterTransferPaymaster, err := client.BalanceAt(context.Background(), Paymaster, nil)
@@ -1571,7 +1571,7 @@ func TestIntegrationMultisigSmartAccount_TransferToken(t *testing.T) {
 	token, err := erc20.NewIERC20(L2Dai, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	balanceBeforeTransferSender, err := account.Balance(context.Background(), L2Dai, nil)
+	balanceBeforeTransferSender, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	balanceBeforeTransferReceiver, err := token.BalanceOf(nil, Address2)
@@ -1588,7 +1588,7 @@ func TestIntegrationMultisigSmartAccount_TransferToken(t *testing.T) {
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := account.Balance(context.Background(), L2Dai, nil)
+	balanceAfterTransferSender, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	balanceAfterTransferReceiver, err := token.BalanceOf(nil, Address2)
@@ -1618,7 +1618,7 @@ func TestIntegrationMultisigSmartAccount_TransferTokenUsingPaymaster(t *testing.
 	approvalToken, err := erc20.NewIERC20(ApprovalToken, client)
 	assert.NoError(t, err, "NewIERC20 should not return an error")
 
-	balanceBeforeTransferSender, err := account.Balance(context.Background(), L2Dai, nil)
+	balanceBeforeTransferSender, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceBeforeTransferSender, err := approvalToken.BalanceOf(nil, MultisigAccount)
@@ -1655,7 +1655,7 @@ func TestIntegrationMultisigSmartAccount_TransferTokenUsingPaymaster(t *testing.
 	assert.NoError(t, err, "client.WaitMined should not return an error")
 	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
 
-	balanceAfterTransferSender, err := account.Balance(context.Background(), L2Dai, nil)
+	balanceAfterTransferSender, err := account.Balance(nil, L2Dai)
 	assert.NoError(t, err, "Balance should not return an error")
 
 	approvalTokenBalanceAfterTransferSender, err := approvalToken.BalanceOf(nil, MultisigAccount)
