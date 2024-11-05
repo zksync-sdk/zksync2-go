@@ -153,9 +153,9 @@ func (w *WalletL2) IsBaseToken(ctx context.Context, token common.Address) (bool,
 // Withdraw initiates the withdrawal process which withdraws ETH or any ERC20
 // token from the associated account on L2 network to the target account on L1
 // network.
-func (w *WalletL2) Withdraw(auth *TransactOptsL1, tx WithdrawalTransaction) (common.Hash, error) {
+func (w *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (common.Hash, error) {
 	opts := ensureTransactOpts(auth)
-	w.insertGasPrice(opts)
+	insertGasPrice(opts)
 
 	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
 		var err error
@@ -192,7 +192,7 @@ func (w *WalletL2) Withdraw(auth *TransactOptsL1, tx WithdrawalTransaction) (com
 			Data:            data,
 			ChainID:         w.signer.ChainID(),
 			GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
-			PaymasterParams: tx.PaymasterParams,
+			PaymasterParams: opts.PaymasterParams,
 		})
 	}
 
@@ -224,7 +224,7 @@ func (w *WalletL2) Withdraw(auth *TransactOptsL1, tx WithdrawalTransaction) (com
 		Data:            data,
 		ChainID:         w.signer.ChainID(),
 		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
-		PaymasterParams: tx.PaymasterParams,
+		PaymasterParams: opts.PaymasterParams,
 	})
 }
 
@@ -234,9 +234,9 @@ func (w *WalletL2) EstimateGasWithdraw(ctx context.Context, msg WithdrawalCallMs
 }
 
 // Transfer moves the base token or any ERC20 token from the associated account to the target account.
-func (w *WalletL2) Transfer(auth *TransactOptsL1, tx TransferTransaction) (common.Hash, error) {
+func (w *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (common.Hash, error) {
 	opts := ensureTransactOpts(auth)
-	w.insertGasPrice(opts)
+	insertGasPrice(opts)
 
 	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
 		var err error
@@ -256,7 +256,7 @@ func (w *WalletL2) Transfer(auth *TransactOptsL1, tx TransferTransaction) (commo
 			Value:           tx.Amount,
 			ChainID:         w.signer.ChainID(),
 			GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
-			PaymasterParams: tx.PaymasterParams,
+			PaymasterParams: opts.PaymasterParams,
 		})
 	}
 
@@ -280,7 +280,7 @@ func (w *WalletL2) Transfer(auth *TransactOptsL1, tx TransferTransaction) (commo
 		Data:            data,
 		ChainID:         w.signer.ChainID(),
 		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
-		PaymasterParams: tx.PaymasterParams,
+		PaymasterParams: opts.PaymasterParams,
 	})
 }
 
@@ -445,13 +445,5 @@ func (w *WalletL2) transferBaseToken(auth *TransactOptsL1, tx TransferTransactio
 			return nil, err
 		}
 		return signedTx, nil
-	}
-}
-
-func (w *WalletL2) insertGasPrice(opts *TransactOptsL1) {
-	if opts.GasPrice != nil {
-		opts.GasFeeCap = opts.GasPrice
-		opts.GasTipCap = nil
-		opts.GasPrice = nil
 	}
 }
