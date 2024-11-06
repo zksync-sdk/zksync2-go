@@ -736,28 +736,32 @@ type TransferTransaction struct {
 }
 
 // ToTransaction transforms TransferTransaction to Transaction.
-func (t *TransferTransaction) ToTransaction(opts *TransactOptsL1) *Transaction {
+func (t *TransferTransaction) ToTransaction(opts *TransactOpts) *Transaction {
 	return &Transaction{
-		To:        &t.To,
-		Value:     t.Amount,
-		Nonce:     opts.Nonce,
-		GasFeeCap: opts.GasFeeCap,
-		GasTipCap: opts.GasTipCap,
-		Gas:       opts.GasLimit,
+		To:              &t.To,
+		Value:           t.Amount,
+		Nonce:           opts.Nonce,
+		GasFeeCap:       opts.GasFeeCap,
+		GasTipCap:       opts.GasTipCap,
+		Gas:             opts.GasLimit,
+		GasPerPubdata:   opts.GasPerPubdata,
+		PaymasterParams: opts.PaymasterParams,
 	}
 }
 
 // ToTransferCallMsg transforms TransferTransaction to clients.TransferCallMsg.
-func (t *TransferTransaction) ToTransferCallMsg(from common.Address, opts *TransactOptsL1) clients.TransferCallMsg {
+func (t *TransferTransaction) ToTransferCallMsg(from common.Address, opts *TransactOpts) clients.TransferCallMsg {
 	return clients.TransferCallMsg{
-		To:        t.To,
-		Amount:    t.Amount,
-		Token:     t.Token,
-		From:      from,
-		Gas:       opts.GasLimit,
-		GasPrice:  opts.GasPrice,
-		GasFeeCap: opts.GasFeeCap,
-		GasTipCap: opts.GasTipCap,
+		To:              t.To,
+		Amount:          t.Amount,
+		Token:           t.Token,
+		From:            from,
+		Gas:             opts.GasLimit,
+		GasPrice:        opts.GasPrice,
+		GasFeeCap:       opts.GasFeeCap,
+		GasTipCap:       opts.GasTipCap,
+		GasPerPubdata:   opts.GasPerPubdata,
+		PaymasterParams: opts.PaymasterParams,
 	}
 }
 
@@ -771,17 +775,19 @@ type WithdrawalTransaction struct {
 }
 
 // ToWithdrawalCallMsg transforms WithdrawalTransaction to clients.WithdrawalCallMsg.
-func (t *WithdrawalTransaction) ToWithdrawalCallMsg(from common.Address, opts *TransactOptsL1) *clients.WithdrawalCallMsg {
+func (t *WithdrawalTransaction) ToWithdrawalCallMsg(from common.Address, opts *TransactOpts) *clients.WithdrawalCallMsg {
 	return &clients.WithdrawalCallMsg{
-		To:            t.To,
-		Amount:        t.Amount,
-		Token:         t.Token,
-		BridgeAddress: t.BridgeAddress,
-		From:          from,
-		Gas:           opts.GasLimit,
-		GasPrice:      opts.GasPrice,
-		GasFeeCap:     opts.GasFeeCap,
-		GasTipCap:     opts.GasTipCap,
+		To:              t.To,
+		Amount:          t.Amount,
+		Token:           t.Token,
+		BridgeAddress:   t.BridgeAddress,
+		From:            from,
+		Gas:             opts.GasLimit,
+		GasPrice:        opts.GasPrice,
+		GasFeeCap:       opts.GasFeeCap,
+		GasTipCap:       opts.GasTipCap,
+		GasPerPubdata:   opts.GasPerPubdata,
+		PaymasterParams: opts.PaymasterParams,
 	}
 }
 
