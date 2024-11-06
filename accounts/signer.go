@@ -118,7 +118,7 @@ func (s *ECDSASigner) SignMessage(_ context.Context, msg []byte) ([]byte, error)
 	return sig, nil
 }
 
-// SignTransaction signs the ZKsync transaction.
+// SignTransaction signs the L2 transaction.
 func (s *ECDSASigner) SignTransaction(ctx context.Context, tx *types.Transaction) ([]byte, error) {
 	typedData, err := tx.TypedData()
 	if err != nil {
