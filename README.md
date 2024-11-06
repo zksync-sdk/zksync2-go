@@ -99,7 +99,7 @@ fmt.Printf("%+v\n", block)
 
 ```ts
 privateKey := os.Getenv("PRIVATE_KEY")
-w, err := accounts.NewWallet(common.Hex2Bytes(privateKey), &client, ethClient)
+w, err := accounts.NewWallet(common.Hex2Bytes(privateKey), client, ethClient)
 if err != nil {
     log.Panic(err)
 }
@@ -108,7 +108,7 @@ if err != nil {
 ### Check account balances
 
 ```go
-balance, err := w.Balance(context.Background(), utils.EthAddress, nil) // balance on ZKsync Era network
+balance, err := w.Balance(nil, utils.EthAddress) // balance on ZKsync Era network
 if err != nil {
     log.Panic(err)
 }
@@ -131,7 +131,7 @@ chainID, err := client.ChainID(context.Background())
 if err != nil {
     log.Panic(err)
 }
-receiver, err := accounts.NewRandomWallet(chainID.Int64(), &client, ethClient)
+receiver, err := accounts.NewRandomWallet(chainID.Int64(), client, ethClient)
 if err != nil {
     log.Panic(err)
 }
@@ -169,9 +169,9 @@ Transfer funds from L2 to L1 network.
 
 ```ts
 tx, err := w.Withdraw(accounts.WithdrawalTransaction{
-    To:     w.Address(),
-        Amount: big.NewInt(1_000_000_000_000_000_000),
-        Token:  utils.EthAddress,
+    To:     w.Address(), 
+    Amount: big.NewInt(1_000_000_000_000_000_000),
+    Token:  utils.EthAddress,
 })
 if err != nil {
     log.Panic(err)

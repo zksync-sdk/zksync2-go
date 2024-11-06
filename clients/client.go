@@ -28,7 +28,7 @@ import (
 )
 
 // Client provides RPC methods on ZKsync Era node.
-// Interface contains same methods as ethclient.Client except for FeeHistory method.
+// Contains same methods as ethclient.Client except for FeeHistory method.
 // Additionally, it has extra methods capable of working with EIP712 transactions.
 // It is designed to be compatible with bind.ContractBackend interface, enabling support for
 // smart contracts generated using the abigen tool.

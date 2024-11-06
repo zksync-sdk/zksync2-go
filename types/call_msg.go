@@ -7,7 +7,7 @@ import (
 	"math/big"
 )
 
-// CallMsg contains parameters for contract call using EIP-712 transaction.
+// CallMsg contains parameters for contract call using L2 transaction.
 type CallMsg struct {
 	From      common.Address  // The sender of the 'transaction'.
 	To        *common.Address // The destination contract (nil for contract creation).

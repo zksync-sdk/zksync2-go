@@ -17,7 +17,7 @@ import (
 // TxType represents a L2 transaction type.
 const TxType = `0x71`
 
-// Transaction provides support for ZKsync Era-specific features
+// Transaction provides support for ZKsync specific features
 // such as account abstraction and paymasters.
 // Smart contracts must be deployed with this transaction type.
 type Transaction struct {
