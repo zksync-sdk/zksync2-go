@@ -396,7 +396,7 @@ func (w *WalletL2) SendTransaction(ctx context.Context, tx *Transaction) (common
 	return w.client.SendRawTransaction(ensureContext(ctx), rawTx)
 }
 
-func (w *WalletL2) transferBaseToken(auth *TransactOptsL1, tx TransferTransaction) (*ethTypes.Transaction, error) {
+func (w *WalletL2) transferBaseToken(auth *TransactOpts, tx TransferTransaction) (*ethTypes.Transaction, error) {
 	if auth.GasPrice != nil {
 		if auth.Nonce == nil {
 			nonce, err := w.client.NonceAt(auth.Context, w.Address(), nil)
