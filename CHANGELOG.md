@@ -1,3 +1,109 @@
+# [1.0.0](https://github.com/zksync-sdk/zksync2-go/compare/v0.7.0...v1.0.0) (2024-11-06)
+
+
+### Bug Fixes
+
+* **accounts:** implement lazy chaching in wallets ([60f84ab](https://github.com/zksync-sdk/zksync2-go/commit/60f84abc8964932d0d015c1e7a25ad5233cbcb93))
+
+
+### Features
+
+* **accounts:** add `Cache` which provides lazy caching for bridge contracts ([542647f](https://github.com/zksync-sdk/zksync2-go/commit/542647fe0526002e4cad6f33ebfdafa23a99e52b))
+* **accounts:** add `PaymasterParams` and `GasPerPubdata` to `TransferCallMsg` ([8cf5594](https://github.com/zksync-sdk/zksync2-go/commit/8cf5594ce1e9e65d4023fd64fda044ebdc8f20ec))
+* **accounts:** add `PaymasterParams` and `GasPerPubdata` to `WithdrawalCallMsg` ([d294db0](https://github.com/zksync-sdk/zksync2-go/commit/d294db0cb0479bced356fca84220b37bcc4f30e8))
+* **accounts:** add `TransactionOpts` with ZKsync features ([f4321a3](https://github.com/zksync-sdk/zksync2-go/commit/f4321a393da4d8995ad715a5628dc5ecf3e3cd12))
+* **accounts:** change `SmartAccount.Balance` to utilize `CallOpts` ([e4155d6](https://github.com/zksync-sdk/zksync2-go/commit/e4155d644bee419ff80f3a57afd8d704d0a6aaf6))
+* **accounts:** change `WalletL2.Balance` to utilize `CallOpts` ([1d28994](https://github.com/zksync-sdk/zksync2-go/commit/1d28994a2cfb7a03f982984f708bde0aec93d6eb))
+* **accounts:** remove `PaymasterParams` from transfer and withdrawal tx ([efc0f60](https://github.com/zksync-sdk/zksync2-go/commit/efc0f6067e5cb08f5b474583c5b125f30d452b46))
+* **accounts:** rename `DepositTransaction` fields ([c070cfe](https://github.com/zksync-sdk/zksync2-go/commit/c070cfeb0a73f548a04f693c5ec6b9f0703e45a6))
+* **accounts:** rename `NewBaseSignerFromMnemonic` method ([1b2bf80](https://github.com/zksync-sdk/zksync2-go/commit/1b2bf802ff14da77461520ee80ec5045cb708669))
+* **accounts:** rename `Transaction` method ([fb1bbe9](https://github.com/zksync-sdk/zksync2-go/commit/fb1bbe9c43db39d578914c1ee761d43301d1b05c))
+* **accounts:** rename `TransactionOpts` to `TransactionOptsL1` ([ba3ad1e](https://github.com/zksync-sdk/zksync2-go/commit/ba3ad1ec83204915da993e3d5ea0d6f1caa8d523))
+* **accounts:** rename `WalletL1.ApproveERC20` to `WalletL1.ApproveToken` ([80dd564](https://github.com/zksync-sdk/zksync2-go/commit/80dd564b524a95aaee355f7a2f4cc5f75457bdf2))
+* **accounts:** rename `WalletL1.EstimateCustomBridgeDepositL2Gas` ([f310974](https://github.com/zksync-sdk/zksync2-go/commit/f31097484092fbd45277ada1df1972cbfda4766b))
+* **accounts:** rename `WalletL1.EstimateDefaultBridgeDepositL2Gas` ([bbc0b48](https://github.com/zksync-sdk/zksync2-go/commit/bbc0b488b265394f3fb0a222257981a4db51dc33))
+* **accounts:** use `TransactionOptsL1` in `WalletL1` ([2757f4b](https://github.com/zksync-sdk/zksync2-go/commit/2757f4bb2a8ee7dc2fa177f796a5c17013d90897))
+* **accounts:** use `TransactOpts` in `Deployer` ([5491f63](https://github.com/zksync-sdk/zksync2-go/commit/5491f639b93b103516da0fe8538a3256b84f0317))
+* **accounts:** use zksync transaction for transfer and withdrawal ([99762f5](https://github.com/zksync-sdk/zksync2-go/commit/99762f56c95cbeda0278dd3965ece760bc3c4324))
+* **clients:** add `CustomSignature` and `GasPerPubdata` to `TransferCallMsq` ([df00687](https://github.com/zksync-sdk/zksync2-go/commit/df006870c5eb50b27e6468d1465ee4cd7122e4d7))
+* **clients:** add `CustomSignature` and `GasPerPubdata` to `WithdrawalCallMsq` ([4cd0dcf](https://github.com/zksync-sdk/zksync2-go/commit/4cd0dcfb971c00abeb0e71b7a17820a2d9e94cf2))
+* **clients:** rename `TransferCallMsg` methods ([487b902](https://github.com/zksync-sdk/zksync2-go/commit/487b9022113da38912a067cb28c8c58421902c93))
+* **clients:** rename `WithdrawalCallMsg` methods ([bd63b3d](https://github.com/zksync-sdk/zksync2-go/commit/bd63b3dd1840dde38245ae7c7af241204a58a5b8))
+* **eip712:** change the API of `Domain` struct ([670010a](https://github.com/zksync-sdk/zksync2-go/commit/670010aa040ab89600501ece8703ce11b9ca9df1))
+* **eip712:** remove `TypedData` interface ([9f69f2e](https://github.com/zksync-sdk/zksync2-go/commit/9f69f2eee913d2427457328956618dcc2921e067))
+* redesign `Signer` and replace `BaseSigner` with `ECDSASigner` ([a38b8bc](https://github.com/zksync-sdk/zksync2-go/commit/a38b8bc5d956782d41ddf0eda8ab7646adf401f2))
+* remove `AllowList` field from transaction and message types ([571fb96](https://github.com/zksync-sdk/zksync2-go/commit/571fb9636b04ba83238477b28d0c2038c18e4826))
+* remove `Deployer`, `AdapterL1` and `AdapterL1` interfaces ([dfcc937](https://github.com/zksync-sdk/zksync2-go/commit/dfcc937b5fb6e20da13e5dd9ebffeb0461eca2db))
+* remove `EIP712Meta` struct and inline its properties in `CallMsg` ([4e48d91](https://github.com/zksync-sdk/zksync2-go/commit/4e48d9187254c569c6acc0959793c26c5136cfd7))
+* remove deprecated code ([269f787](https://github.com/zksync-sdk/zksync2-go/commit/269f78797dc86bcb52d983ce80113a948fa20cff))
+* rename `BaseClient` to `Client` ([e91f3bc](https://github.com/zksync-sdk/zksync2-go/commit/e91f3bc918718af6e60cd45f5f70161b7833108b))
+* **types:** improve the design of L2 transaction ([c2aa297](https://github.com/zksync-sdk/zksync2-go/commit/c2aa2975af618992db355c1c1355ddddfe1399e8))
+* **types:** rename `EIP712TxType` to `TxType` ([f009818](https://github.com/zksync-sdk/zksync2-go/commit/f0098188c09751fa1f433745e3ae262c8e0483ac))
+* **types:** rename the fields for default ERC20 bridges in `BridgeContracts` ([5fb3925](https://github.com/zksync-sdk/zksync2-go/commit/5fb3925f0882a835cf5b0fd199134874dfd3d817))
+* **types:** update `FeeParams` field types from `uint64` to `big.Int` ([02d02a2](https://github.com/zksync-sdk/zksync2-go/commit/02d02a2398d5dc66d21eaec72cd3c916b3548327))
+* **types:** use `big.Int` for block and batch number in `BlockDetails` ([8fb632b](https://github.com/zksync-sdk/zksync2-go/commit/8fb632b15b00fc9a62fdfb3387e429f2a4b34432))
+* **types:** use `big.Int` for gas prices and block numbers in `BatchDetails` ([02a6e8e](https://github.com/zksync-sdk/zksync2-go/commit/02a6e8ea450171f20b9db51c866952e90819be67))
+
+
+### BREAKING CHANGES
+
+* **accounts:** Rename `NewBaseSignerFromMnemonic` method to
+`NewECDSASignerFromMenmonic`.
+* **types:** Change `FeeParams` field types from `uint64` to
+`big.Int`.
+* **accounts:** Rename `Transaction.ToTransaction712` to
+`Transaction.ToTransaction`.
+* **accounts:** Renamed `DepositTransaction` fields:
+`ApproveERC20` to `ApproveToken`, `ApproveBaseERC20` to
+`ApproveBaseToken`.
+* **accounts:** Rename `WalletL1.ApproveERC20` to `WalletL1.ApproveToken`.
+* **accounts:** The `SmartAccount.Balance` method utilizes `CallOpts`.
+* **accounts:** The `WalletL2.Balance` method utilizes `CallOpts`.
+* **accounts:** Remove `PaymasterParams` from `TransferTransaction`
+and `WithdrawalTransaction` since it can be utilze using `TransactionOpts`.
+* **accounts:** Use `TransactionOptsL1` in `WalletL1` when
+interacting with contract API.
+* **accounts:** The `TransactionOpts` is renamed to
+`TransactionOptsL1` since it's changed to be used only for
+L1 interaction.
+* **accounts:** `WalletL2` and `Wallet` for `transfer` and
+`withdraw` methods use zksync transaction in order to provide
+utilization of zksync features.
+* **clients:** Rename `WithdrawalCallMsg.ToCallMsg` to
+`WithdrawalCallMsg.ToL1CallMsg` and `WithdrawalCallMsg.ToZkCallMsg`
+to `WithdrawalCallMsg.ToCallMsg`.
+* **clients:** Rename `TransferCallMsg.ToCallMsg` to
+`TransferCallMsg.ToL1CallMsg` and `TransferCallMsg.ToZkCallMsg` to
+`TransferCallMsg.ToCallMsg`.
+* **eip712:** The `eip712.Domain` methods have been renamed
+to be more convenient.
+* **eip712:** Removed `eip712.TypedData` interface.
+* **types:** Rename properties `L1Erc20DefaultBridge` to `L1Erc20Bridge`
+and `L2Erc20DefaultBridge` to `L2Erc20Bridge` in `BridgeContracts`.
+* **types:** Use `big.Int` type in `BlockDetails` for `Number`
+and `L1BatchNumber`.
+* **types:** Use `big.Int` type in `BatchDetails` for `Number`,
+`L2FairGasPrice` and `L1GasPrice`.
+* The `EIP712Meta` struct has been removed, and its properties
+are now directly inlined into the `CallMsg` struct.
+* **types:** Rename constant `EIP712TxType` to `TxType`.
+* The `Signer` interface has been redesigned to be minimal and more
+extensible. The `BaseSigner` has been replaced by `ECDSASigner`. Additionally,
+`Wallet`, `WalletL1`, and `WalletL2` now use `ECDSASigner` in their constructors.
+* **types:** `Transaction712` has been replaced by `Transaction`, an improved version
+that offers a more convenient API and greater extensibility.
+* **accounts:** Rename `WalletL1.EstimateCustomBridgeDepositL2Gas` to
+`WalletL1.EstimateDepositL2GasFromCustomBridge`. Added the missing
+`l2Value` parameter.
+* **accounts:** Rename `WalletL1.EstimateDefaultBridgeDepositL2Gas` to
+`WalletL1.EstimateDepositL2GasFromDefaultBridge`.
+* Remove `Deployer`, `AdapterL1` and `AdapterL2`
+interfaces. Rename `BaseDeployer` to `Deployer`.
+* Remove `Client` interface and rename `BaseClient`
+to `Client`.
+* Remove `AllowList` field from transaction and message types.
+* Remove deprecated code.
+
 # [0.7.0](https://github.com/zksync-sdk/zksync2-go/compare/v0.6.0...v0.7.0) (2024-07-27)
 
 
