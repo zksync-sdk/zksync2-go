@@ -8,6 +8,9 @@
 
 [![ZKsync Era Logo](logo.svg)](https://zksync.io/)
 
+> [!WARNING]  
+> Development of this SDK has been put on the community support. There is no active development of the repository, but the pull requests will be reviewed and merged.
+
 In order to provide easy access to all the features of ZKsync Era, the `zksync2-go` Golang SDK was created,
 which is made in a way that has an interface very similar to those of [geth](https://geth.ethereum.org/). In
 fact, `geth` is a dependency of our library and most of the objects exported by `zksync2-go` (
