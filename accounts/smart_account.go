@@ -3,6 +3,8 @@ package accounts
 import (
 	"context"
 	"errors"
+	"math/big"
+
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
@@ -13,7 +15,6 @@ import (
 	"github.com/zksync-sdk/zksync2-go/contracts/nonceholder"
 	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
-	"math/big"
 )
 
 // SmartAccount is a signer which can be configured to sign various payloads using a provided secret.
@@ -344,7 +345,9 @@ func (a *SmartAccount) cacheData(ctx context.Context) error {
 		if err != nil {
 			return bridgeErr
 		}
-		a.sharedL2BridgeAddress = bridges.L2SharedBridge
+		if bridges != nil {
+			a.sharedL2BridgeAddress = bridges.L2SharedBridge
+		}
 	}
 	return nil
 }
