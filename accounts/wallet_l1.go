@@ -15,11 +15,13 @@ import (
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/bridgehub"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
+	"github.com/zksync-sdk/zksync2-go/contracts/l1assetrouter"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1messenger"
+	"github.com/zksync-sdk/zksync2-go/contracts/l1nullifier"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1sharedbridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2assetrouter"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
-	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/zksynchyperchain"
 	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
@@ -580,58 +582,23 @@ func (w *WalletL1) FinalizeWithdraw(auth *TransactOptsL1, withdrawalHash common.
 	}
 	sender := common.BytesToAddress(log.Topics[1].Bytes()[12:])
 
-	if sender == utils.L2BaseTokenAddress {
-		l1SharedBridge, bridgeErr := w.cache.L1SharedBridge()
-		if bridgeErr != nil {
-			return nil, bridgeErr
-		}
-		fmt.Println(l1SharedBridge)
-		return l1SharedBridge.FinalizeWithdrawal(
-			opts,
-			w.l2ChainId,
-			log.L1BatchNumber.ToInt(),
-			big.NewInt(int64(proof.Id)),
-			uint16(l1BatchTxId.Uint64()),
-			message,
-			proof32)
-	}
-
-	var l1Bridge *l1sharedbridge.IL1SharedBridge
-	isLegacyBridge, err := w.clientL2.IsL2BridgeLegacy(opts.Context, sender)
+	l1BridgeContracts, err := w.cache.L1BridgeContracts()
 	if err != nil {
-		return nil, fmt.Errorf("failed to check if L2 bridge is legacy: %w", err)
+		return nil, err
 	}
 
-	if isLegacyBridge {
-		l2Bridge, errL2Bridge := l2bridge.NewIL2Bridge(sender, w.clientL2)
-		if errL2Bridge != nil {
-			return nil, fmt.Errorf("failed to connect to legacy L2 bridge: %w", errL2Bridge)
-		}
-		l1BridgeAddress, errL1Bridge := l2Bridge.L1Bridge(&bind.CallOpts{Context: opts.Context})
-		if errL1Bridge != nil {
-			return nil, errL1Bridge
-		}
-		l1Bridge, errL1Bridge = l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, w.clientL1)
-	} else {
-		l2Bridge, errL2Bridge := l2sharedbridge.NewIL2SharedBridge(sender, w.clientL2)
-		if errL2Bridge != nil {
-			return nil, fmt.Errorf("failed to connect to legacy L2 bridge: %w", errL2Bridge)
-		}
-		l1BridgeAddress, errL1Bridge := l2Bridge.L1SharedBridge(&bind.CallOpts{Context: opts.Context})
-		if errL1Bridge != nil {
-			return nil, errL1Bridge
-		}
-		l1Bridge, errL1Bridge = l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, w.clientL1)
-	}
-
-	return l1Bridge.FinalizeWithdrawal(
+	return l1BridgeContracts.Nullifier.FinalizeDeposit(
 		opts,
-		w.l2ChainId,
-		log.L1BatchNumber.ToInt(),
-		big.NewInt(int64(proof.Id)),
-		uint16(l1BatchTxId.Uint64()),
-		message,
-		proof32)
+		l1nullifier.FinalizeL1DepositParams{
+			ChainId:           w.l2ChainId,
+			L2BatchNumber:     log.L1BatchNumber.ToInt(),
+			L2MessageIndex:    big.NewInt(int64(proof.Id)),
+			L2Sender:          sender,
+			L2TxNumberInBatch: uint16(l1BatchTxId.Uint64()),
+			Message:           message,
+			MerkleProof:       proof32,
+		},
+	)
 }
 
 // IsWithdrawFinalized checks if the withdrawal finalized on L1 network.
@@ -651,7 +618,6 @@ func (w *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Has
 	if len(log.Topics) < 2 {
 		return false, errors.New("not enough Topics count")
 	}
-	sender := common.BytesToAddress(log.Topics[1].Bytes()[12:])
 	proof, err := w.clientL2.LogProof(callOpts.Context, withdrawalHash, l2ToL1LogIndex)
 	if err != nil {
 		return false, fmt.Errorf("failed to get L2ToL1LogProof: %w", err)
@@ -661,23 +627,7 @@ func (w *WalletL1) IsWithdrawFinalized(opts *CallOpts, withdrawalHash common.Has
 	if addressError != nil {
 		return false, addressError
 	}
-	l1BridgeAddress := l1SharedBridgeAddress
-	isBaseToken, err := w.clientL2.IsBaseToken(callOpts.Context, sender)
-	if err != nil {
-		return false, err
-	}
-	if !isBaseToken {
-		l2Bridge, bridgeErr := l2sharedbridge.NewIL2SharedBridge(sender, w.clientL2)
-		if bridgeErr != nil {
-			return false, fmt.Errorf("failed to init l2Bridge: %w", err)
-		}
-		l1BridgeAddress, bridgeErr = l2Bridge.L1SharedBridge(callOpts)
-		if bridgeErr != nil {
-			return false, fmt.Errorf("failed to get l1BridgeAddress: %w", err)
-		}
-	}
-
-	l1Bridge, err := l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, w.clientL1)
+	l1Bridge, err := l1sharedbridge.NewIL1SharedBridge(l1SharedBridgeAddress, w.clientL1)
 	if err != nil {
 		return false, fmt.Errorf("failed to init l1Bridge: %w", err)
 	}
@@ -718,29 +668,111 @@ func (w *WalletL1) ClaimFailedDeposit(auth *TransactOptsL1, depositHash common.H
 
 	// Undo the aliasing, since the Mailbox contract set it as for contract address.
 	l1BridgeAddress := utils.UndoL1ToL2Alias(receipt.From)
-	l1Bridge, err := l1sharedbridge.NewIL1SharedBridge(l1BridgeAddress, w.clientL1)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init l1Bridge: %w", err)
-	}
 	l2Bridge, err := abi.JSON(strings.NewReader(l2bridge.IL2BridgeMetaData.ABI))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load l2Bridge ABI: %w", err)
 	}
+	l1AssetRouter, err := l1assetrouter.NewIL1AssetRouter(l1BridgeAddress, w.clientL1)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init l1AssetRouter: %w", err)
+	}
+	l1BridgeContracts, err := w.cache.L1BridgeContracts()
+	if err != nil {
+		return nil, err
+	}
+	l1NativeTokenVault := l1BridgeContracts.NativeTokenVault
+
+	var (
+		depositSender common.Address
+		assetId       [32]byte
+		assetData     []byte
+	)
+
 	// skip first 4 bytes is the function selector, the input values are the rest
 	finalizeDepositMethod, err := l2Bridge.MethodById(tx.Data[:4])
 	if err != nil {
 		return nil, err
 	}
 	inputValues, err := finalizeDepositMethod.Inputs.Unpack(tx.Data[4:])
-	if err != nil {
-		return nil, err
+	useL2AssetRouter := err != nil || len(inputValues) < 4
+
+	if !useL2AssetRouter {
+		depositSender = inputValues[0].(common.Address)
+		l2Receiver := inputValues[1].(common.Address)
+		l1Token := inputValues[2].(common.Address)
+		amount := inputValues[3].(*big.Int)
+		assetData, err = utils.NativeTokenVaultTransferData(amount, l2Receiver, l1Token)
+		if err != nil {
+			return nil, err
+		}
+		assetId, err = l1NativeTokenVault.AssetId(&bind.CallOpts{Context: opts.Context}, l1Token)
+		if err != nil {
+			return nil, err
+		}
+
+		if assetId == (common.Hash{}) {
+			useL2AssetRouter = true
+		}
 	}
-	if len(inputValues) < 4 {
-		return nil, errors.New("unpacked calldata is empty")
+
+	if useL2AssetRouter {
+		l2AssetRouter, errAssetRouter := abi.JSON(strings.NewReader(l2assetrouter.IL2AssetRouterMetaData.ABI))
+		if errAssetRouter != nil {
+			return nil, fmt.Errorf("failed to load l2AssetRouter ABI: %w", err)
+		}
+
+		// skip first 4 bytes is the function selector, the input values are the rest
+		method, errMethod := l2AssetRouter.MethodById(tx.Data[:4])
+		if errMethod != nil {
+			return nil, errMethod
+		}
+
+		calldata, errUnpack := method.Inputs.Unpack(tx.Data[4:])
+		if errUnpack != nil {
+			return nil, errUnpack
+		}
+		assetId = calldata[1].([32]byte)
+		transferData := calldata[2].([]byte)
+		l1TokenAddress, errAddress := l1NativeTokenVault.TokenAddress(&bind.CallOpts{Context: opts.Context}, assetId)
+		if errAddress != nil {
+			return nil, errAddress
+		}
+
+		uint256AbiType, errAbiType := abi.NewType("uint256", "", nil)
+		if errAbiType != nil {
+			return nil, errAbiType
+		}
+		addressAbiType, errAbiType := abi.NewType("address", "", nil)
+		if errAbiType != nil {
+			return nil, errAbiType
+		}
+		bytesAbiType, errAbiType := abi.NewType("bytes", "", nil)
+		if errAbiType != nil {
+			return nil, errAbiType
+		}
+
+		transferDataDecoded, errUnpack := abi.Arguments{
+			{Type: addressAbiType},
+			{Type: addressAbiType},
+			{Type: addressAbiType},
+			{Type: uint256AbiType},
+			{Type: bytesAbiType},
+		}.Unpack(transferData)
+		if errUnpack != nil {
+			return nil, errUnpack
+		}
+
+		assetData, err = abi.Arguments{
+			{Type: uint256AbiType},
+			{Type: addressAbiType},
+			{Type: addressAbiType},
+		}.Pack(transferDataDecoded[3], transferDataDecoded[1], l1TokenAddress)
+		if err != nil {
+			return nil, err
+		}
+
+		depositSender = transferDataDecoded[0].(common.Address)
 	}
-	l1Sender := inputValues[0].(common.Address)
-	l1Token := inputValues[2].(common.Address)
-	amount := inputValues[3].(*big.Int)
 
 	proof, err := w.clientL2.LogProof(opts.Context, depositHash, successL2ToL1LogIndex)
 	if err != nil {
@@ -752,12 +784,12 @@ func (w *WalletL1) ClaimFailedDeposit(auth *TransactOptsL1, depositHash common.H
 		proof32[i] = pr
 	}
 
-	return l1Bridge.ClaimFailedDeposit(
+	return l1AssetRouter.BridgeRecoverFailedTransfer0(
 		opts.ToTransactOpts(w.auth.From, w.auth.Signer),
 		w.l2ChainId,
-		l1Sender,
-		l1Token,
-		amount,
+		depositSender,
+		assetId,
+		assetData,
 		depositHash,
 		receipt.L1BatchNumber.ToInt(),
 		big.NewInt(int64(proof.Id)),
@@ -1003,7 +1035,7 @@ func (w *WalletL1) prepareDepositTokenToEthBasedChain(opts *TransactOptsL1, tx *
 		secondBridgeAddress = *tx.BridgeAddress
 	}
 
-	secondBridgeCalldata, err := w.secondBridgeCalldata(tx.Token, tx.To, tx.Amount)
+	secondBridgeCalldata, err := w.secondBridgeCalldata(opts.Context, tx.Token, tx.To, tx.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -1077,7 +1109,7 @@ func (w *WalletL1) prepareDepositEthToNonEthBasedChain(opts *TransactOptsL1, tx 
 	if opts.Value == nil {
 		opts.Value = tx.Amount
 	}
-	secondBridgeCalldata, err := w.secondBridgeCalldata(utils.EthAddressInContracts, tx.To, big.NewInt(0))
+	secondBridgeCalldata, err := w.secondBridgeCalldata(opts.Context, utils.EthAddressInContracts, tx.To, tx.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -1224,7 +1256,7 @@ func (w *WalletL1) prepareDepositNonBasedTokenToNonEthBasedChain(opts *TransactO
 	if opts.Value == nil {
 		opts.Value = big.NewInt(0)
 	}
-	secondBridgeCalldata, err := w.secondBridgeCalldata(tx.Token, tx.To, tx.Amount)
+	secondBridgeCalldata, err := w.secondBridgeCalldata(opts.Context, tx.Token, tx.To, tx.Amount)
 	if err != nil {
 		return nil, err
 	}
@@ -1359,20 +1391,24 @@ func (w *WalletL1) calculateMintValueFromBaseCost(baseCost *big.Int, tx *Deposit
 	}
 }
 
-func (w *WalletL1) secondBridgeCalldata(token, to common.Address, amount *big.Int) ([]byte, error) {
-	addressAbiType, err := abi.NewType("address", "", nil)
+func (w *WalletL1) secondBridgeCalldata(ctx context.Context, token, to common.Address, amount *big.Int) ([]byte, error) {
+	contracts, err := w.cache.L1BridgeContracts()
 	if err != nil {
 		return nil, err
 	}
-	uint256AbiType, err := abi.NewType("uint256", "", nil)
+	assetId, err := utils.ResolveAssetId(ctx, contracts.NativeTokenVault, token, w.l1ChainId)
 	if err != nil {
 		return nil, err
 	}
-	return abi.Arguments{
-		abi.Argument{Name: "token", Type: addressAbiType},
-		abi.Argument{Name: "amount", Type: uint256AbiType},
-		abi.Argument{Name: "to", Type: addressAbiType},
-	}.Pack(token, amount, to)
+	ntvData, err := utils.NativeTokenVaultTransferData(amount, to, token)
+	if err != nil {
+		return nil, err
+	}
+	secondBridgeCalldata, err := utils.SecondBridgeDataV1(assetId, ntvData)
+	if err != nil {
+		return nil, err
+	}
+	return secondBridgeCalldata, nil
 }
 
 func (w *WalletL1) approveERC20(auth *TransactOptsL1, token common.Address, amount *big.Int, bridgeAddress common.Address) error {

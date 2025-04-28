@@ -30,6 +30,10 @@ var (
 	L2BaseTokenAddress = common.HexToAddress("0x000000000000000000000000000000000000800a")
 	// NonceHolderAddress The address of the Nonce holder.
 	NonceHolderAddress = common.HexToAddress("0x0000000000000000000000000000000000008003")
+	// L2AssetRouterAddress The address of the L2 asset router.
+	L2AssetRouterAddress = common.HexToAddress("0x0000000000000000000000000000000000010003")
+	// L2NativeTokenVaultAddress The address of the L2 native token vault
+	L2NativeTokenVaultAddress = common.HexToAddress("0x0000000000000000000000000000000000010004")
 
 	// L1ToL2AliasOffset Used for applying and undoing aliases on contract addresses during bridging from L1 to L2.
 	L1ToL2AliasOffset = common.HexToAddress("0x1111000000000000000000000000000000001111")

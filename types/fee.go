@@ -21,8 +21,8 @@ type FeeParams struct {
 		// Settings related to transaction fee computation.
 		Config struct {
 			MinimalL2GasPrice   *big.Int `json:"minimal_l2_gas_price"`  // Minimal gas price on L2.
-			ComputeOverheadPart *big.Int `json:"compute_overhead_part"` // Compute overhead part in fee calculation.
-			PubdataOverheadPart *big.Int `json:"pubdata_overhead_part"` // Public data overhead part in fee calculation.
+			ComputeOverheadPart float32  `json:"compute_overhead_part"` // Compute overhead part in fee calculation.
+			PubdataOverheadPart float32  `json:"pubdata_overhead_part"` // Public data overhead part in fee calculation.
 			BatchOverheadL1Gas  *big.Int `json:"batch_overhead_l1_gas"` // Overhead in L1 gas for a batch of transactions.
 			MaxGasPerBatch      *big.Int `json:"max_gas_per_batch"`     // Maximum gas allowed per batch.
 			MaxPubdataPerBatch  *big.Int `json:"max_pubdata_per_batch"` // Maximum amount of public data allowed per batch.

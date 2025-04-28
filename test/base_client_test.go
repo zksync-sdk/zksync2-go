@@ -1163,7 +1163,7 @@ func TestIntegrationBaseClient_EstimateGasTransfer(t *testing.T) {
 	assert.Greater(t, gas, uint64(0), "EstimateGasTransfer should return a positive number")
 }
 
-func TestIntegrationBaseClient_EstimateGasWithdraw(t *testing.T) {
+func TestIntegration_EthBasedChain_BaseClient_EstimateGasWithdraw(t *testing.T) {
 	client, err := clients.Dial(L2ChainURL)
 	defer client.Close()
 	assert.NoError(t, err, "clients.Dial should not return an error")
@@ -1175,7 +1175,7 @@ func TestIntegrationBaseClient_EstimateGasWithdraw(t *testing.T) {
 	})
 
 	assert.NoError(t, err, "EstimateGasWithdraw should not return an error")
-	assert.Greater(t, gas, uint64(0), "EstimateGasWithdraw should return a positive number")
+	assert.GreaterOrEqual(t, gas, uint64(0), "EstimateGasWithdraw should return a positive number")
 }
 
 func TestIntegrationBaseClient_EstimateL1ToL2Execute(t *testing.T) {

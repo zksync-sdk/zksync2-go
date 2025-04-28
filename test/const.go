@@ -29,9 +29,12 @@ var Paymaster = common.HexToAddress("0xe1438081bF20c4C910266aa1229930473446b283"
 // and is deployed using create2 and Salt
 var MultisigAccount = common.HexToAddress("0x60222D60b22D3e2A6F459Dc7264aEbf9f8735363")
 
+// NtvAddress is the address where Native Token Vault is deployed on ZK chains
+var NtvAddress = common.HexToAddress("0x0000000000000000000000000000000000010004")
+
 var L1Tokens []TokenData
 var L2Dai common.Address
-var L1Dai common.Address
+var L1Dai = common.HexToAddress("0xDb6ca4Dd98d4F7248f7dEaE35204706e10492Ef7")
 var L2DepositTx common.Hash
 var L1DepositTx common.Hash
 
