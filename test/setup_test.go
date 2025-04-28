@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/zksync-sdk/zksync2-go/accounts"
 	"github.com/zksync-sdk/zksync2-go/clients"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2nativetokenvault"
 	"github.com/zksync-sdk/zksync2-go/contracts/testneterc20token"
 	"github.com/zksync-sdk/zksync2-go/utils"
 	"log"
@@ -302,6 +303,51 @@ func sendTokenToL2(wallet *accounts.Wallet, client *clients.Client, ethClient *e
 	return l2TokenAddress, l1Tx.Hash(), l2Tx.Hash
 }
 
+func prepareL2NativeBridging(wallet *accounts.Wallet, client *clients.Client, l2TokenAddress common.Address) {
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		log.Fatal(chainID)
+	}
+	opts, err := bind.NewKeyedTransactorWithChainID(wallet.Signer().PrivateKey(), chainID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ntv, err := l2nativetokenvault.NewIL2NativeTokenVault(NtvAddress, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	registerToken, err := ntv.RegisterToken(opts, l2TokenAddress)
+	if err != nil {
+		log.Printf("Failed to register L2 token to native token vault (this is normal if executing multiple times): %s", err)
+		return
+	}
+	_, err = client.WaitMined(context.Background(), registerToken.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	token, err := NewToken(l2TokenAddress, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	balance, err := wallet.Balance(nil, l2TokenAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	approve, err := token.Approve(opts, NtvAddress, balance)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = client.WaitMined(context.Background(), approve.Hash())
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func wait() {
 	const maxAttempts = 30
 
@@ -326,9 +372,6 @@ func wait() {
 }
 
 func prepare() {
-	L1Tokens = readTokens()
-	L1Dai = L1Tokens[0].Address
-
 	client, err := clients.Dial(L2ChainURL)
 	if err != nil {
 		log.Fatal(err)
@@ -445,6 +488,8 @@ func prepare() {
 	} else if bytecodeErr != nil {
 		log.Fatal(bytecodeErr)
 	}
+
+	prepareL2NativeBridging(wallet, client, ApprovalToken)
 }
 
 func TestMain(m *testing.M) {
@@ -453,9 +498,11 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		IsEthBasedChain = true
 	}
-
 	if !IsEthBasedChain {
 		L2ChainURL = "http://localhost:15200"
+	}
+	if customToken, present := os.LookupEnv("CUSTOM_TOKEN_ADDRESS"); present {
+		L1Dai = common.HexToAddress(customToken)
 	}
 
 	wait()

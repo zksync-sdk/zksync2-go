@@ -10,7 +10,10 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/bridgehub"
+	"github.com/zksync-sdk/zksync2-go/contracts/l1assetrouter"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l1nativetokenvault"
+	"github.com/zksync-sdk/zksync2-go/contracts/l1nullifier"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
@@ -182,7 +185,7 @@ func (c *Cache) L2BridgeContracts() (*types.L2BridgeContracts, error) {
 // It is not cached, fetches the contracts, cache them and
 // returns the value from cache.
 func (c *Cache) L1BridgeContracts() (*types.L1BridgeContracts, error) {
-	if c.l2BridgeContracts == nil {
+	if c.l1BridgeContracts == nil {
 		defaultBridge, err := c.L1DefaultBridge()
 		if err != nil {
 			return nil, err
@@ -191,7 +194,40 @@ func (c *Cache) L1BridgeContracts() (*types.L1BridgeContracts, error) {
 		if err != nil {
 			return nil, err
 		}
-		c.l1BridgeContracts = &types.L1BridgeContracts{Erc20: defaultBridge, Shared: sharedBridge}
+		if c.bridgeAddresses.L1Nullifier == (common.Address{}) {
+			sharedBridgeAddress, errAddress := c.L1SharedBridgeAddress()
+			if errAddress != nil {
+				return nil, errAddress
+			}
+			l1AssetRouter, errL1AssetRouter := l1assetrouter.NewIL1AssetRouter(sharedBridgeAddress, c.clientL1)
+			if errL1AssetRouter != nil {
+				return nil, errL1AssetRouter
+			}
+			l1Nullifier, errL1nullifier := l1AssetRouter.L1NULLIFIER(nil)
+			if errL1nullifier != nil {
+				return nil, errL1nullifier
+			}
+			l1NativeTokenVault, errL1NativeTokenVault := l1AssetRouter.NativeTokenVault(nil)
+			if errL1NativeTokenVault != nil {
+				return nil, errL1NativeTokenVault
+			}
+			c.bridgeAddresses.L1Nullifier = l1Nullifier
+			c.bridgeAddresses.L1NativeTokenVault = l1NativeTokenVault
+		}
+		l1Nullifier, err := l1nullifier.NewIL1Nullifier(c.bridgeAddresses.L1Nullifier, c.clientL1)
+		if err != nil {
+			return nil, err
+		}
+		l1NativeTokenVault, err := l1nativetokenvault.NewIL1NativeTokenVault(c.bridgeAddresses.L1NativeTokenVault, c.clientL1)
+		if err != nil {
+			return nil, err
+		}
+		c.l1BridgeContracts = &types.L1BridgeContracts{
+			Erc20:            defaultBridge,
+			Shared:           sharedBridge,
+			Nullifier:        l1Nullifier,
+			NativeTokenVault: l1NativeTokenVault,
+		}
 	}
 	return c.l1BridgeContracts, nil
 }
@@ -266,6 +302,32 @@ func (c *Cache) L1SharedBridge() (*l1sharedbridge.IL1SharedBridge, error) {
 		}
 	}
 	return c.l1BridgeContracts.Shared, nil
+}
+
+// L1NullifierAddress returns the L1 Nullifier address from cache.
+// It is not cached, fetches the contract, cache it and
+// returns the value from cache.
+func (c *Cache) L1NullifierAddress() (common.Address, error) {
+	if c.bridgeAddresses == nil || c.bridgeAddresses.L1Nullifier == (common.Address{}) {
+		_, err := c.L1BridgeContracts()
+		if err != nil {
+			return common.Address{}, err
+		}
+	}
+	return c.bridgeAddresses.L1Nullifier, nil
+}
+
+// L1NativeTokenVaultAddress returns the L1 native token vault address from cache.
+// It is not cached, fetches the contract, cache it and
+// returns the value from cache.
+func (c *Cache) L1NativeTokenVaultAddress() (common.Address, error) {
+	if c.bridgeAddresses == nil || c.bridgeAddresses.L1NativeTokenVault == (common.Address{}) {
+		_, err := c.L1BridgeContracts()
+		if err != nil {
+			return common.Address{}, err
+		}
+	}
+	return c.bridgeAddresses.L1NativeTokenVault, nil
 }
 
 // CallOpts is the collection of options to fine tune a contract call request from

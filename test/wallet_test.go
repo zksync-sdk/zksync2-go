@@ -18,6 +18,7 @@ import (
 	"math/big"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestIntegration_NewWalletFromMnemonic(t *testing.T) {
@@ -987,7 +988,7 @@ func TestIntegration_NonEthBasedChain_Wallet_TransferEthUsingPaymaster(t *testin
 	assert.True(t, new(big.Int).Sub(balanceAfterTransferReceiver, balanceBeforeTransferReceiver).Cmp(amount) >= 0, "Address2 balance should be increased")
 }
 
-func TestIntegration_Wallet_TransferToken(t *testing.T) {
+func TestIntegrationWallet_TransferToken(t *testing.T) {
 	amount := big.NewInt(5)
 
 	client, err := clients.Dial(L2ChainURL)
@@ -1380,69 +1381,56 @@ func TestIntegrationWallet_DeployAccount(t *testing.T) {
 	assert.NotNil(t, contractAddress, "Contract should be deployed")
 }
 
-//func TestIntegration_Wallet_ClaimFailedDeposit(t *testing.T) {
-//	client, err := clients.Dial(L2ChainURL)
-//	defer client.Close()
-//	assert.NoError(t, err, "clients.Dial should not return an error")
-//
-//	ethClient, err := ethclient.Dial(L1ChainURL)
-//	assert.NoError(t, err, "ethclient.Dial should not return an error")
-//	defer ethClient.Close()
-//
-//	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
-//	assert.NoError(t, err, "NewWallet should not return an error")
-//
-//	tx, err := wallet.ClaimFailedDeposit(nil, common.HexToHash("0x2b870d89f1060463091ed1ed47fa156b37c602d954ee0e41d05a5d5344f3ac23"))
-//	assert.NoError(t, err, "ClaimFailedDeposit should not return an error")
-//
-//	receipt, err := bind.WaitMined(context.Background(), ethClient, tx)
-//	assert.NoError(t, err, "bind.WaitMined should not return an error")
-//
-//	assert.NoError(t, err, "ClaimFailedDeposit should not return an error")
-//	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
-//}
+func TestIntegration_EthBasedChain_Wallet_ClaimFailedDeposit(t *testing.T) {
+	client, err := clients.Dial(L2ChainURL)
+	defer client.Close()
+	assert.NoError(t, err, "clients.Dial should not return an error")
 
-//func TestIntegration_Wallet_ClaimFailedDeposit(t *testing.T) {
-//	var (
-//		wallet    *accounts.Wallet
-//		ethClient *ethclient.Client
-//		tx        *ethTypes.Transaction
-//	)
-//
-//	defer func() {
-//		if r := recover(); r != nil {
-//			claimFailedDepositTx, claimFailedDepositErr := wallet.ClaimFailedDeposit(nil, tx.Hash())
-//			assert.NoError(t, claimFailedDepositErr, "NewWallet should not return an error")
-//
-//			_, waitErr := bind.WaitMined(context.Background(), ethClient, claimFailedDepositTx)
-//			assert.NoError(t, waitErr, "bind.WaitMined should not return an error")
-//		}
-//	}()
-//
-//	client, err := clients.Dial(L2ChainURL)
-//	defer client.Close()
-//	assert.NoError(t, err, "clients.Dial should not return an error")
-//
-//	ethClient, err = ethclient.Dial(L1ChainURL)
-//	assert.NoError(t, err, "ethclient.Dial should not return an error")
-//	defer ethClient.Close()
-//
-//	wallet, err = accounts.NewWallet(common.Hex2Bytes(PrivateKey1), &client, ethClient)
-//	assert.NoError(t, err, "NewWallet should not return an error")
-//
-//	tx, err = wallet.Deposit(nil, accounts.DepositTransaction{
-//		Token:            L1Dai,
-//		To:               wallet.Address1(),
-//		Amount:           big.NewInt(5),
-//		ApproveToken:     true,
-//		ApproveBaseToken: true,
-//		L2GasLimit:       big.NewInt(255_000), // make it fail because of low gas
-//	})
-//
-//	assert.NoError(t, err, "Deposit should not return an error")
-//
-//	_, err = bind.WaitMined(context.Background(), ethClient, tx)
-//}
+	ethClient, err := ethclient.Dial(L1ChainURL)
+	assert.NoError(t, err, "ethclient.Dial should not return an error")
+	defer ethClient.Close()
+
+	wallet, err := accounts.NewWallet(common.Hex2Bytes(PrivateKey1), client, ethClient)
+	assert.NoError(t, err, "NewWallet should not return an error")
+
+	depositTx, err := wallet.Deposit(nil, accounts.DepositTransaction{
+		To:              wallet.Address(),
+		Token:           L1Dai,
+		Amount:          big.NewInt(5),
+		ApproveToken:    true,
+		RefundRecipient: wallet.Address(),
+		L2GasLimit:      big.NewInt(300_000), // make it fail because of low gas
+	})
+	assert.NoError(t, err, "Deposit should not return an error")
+
+	l1Receipt, err := bind.WaitMined(context.Background(), ethClient, depositTx)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+
+	l2Tx, err := client.L2TransactionFromPriorityOp(context.Background(), l1Receipt)
+	assert.NoError(t, err, "L2TransactionFromPriorityOp should not return an error")
+
+	l2Receipt, err := client.WaitFinalized(context.Background(), l2Tx.Hash)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+	assert.NotNil(t, l2Receipt.BlockHash, "Transaction should be finalized")
+
+	for {
+		blockDetails, errBlock := client.BlockDetails(context.Background(), uint32(l2Receipt.BlockNumber.Uint64()))
+		assert.NoError(t, errBlock, "BlockDetails should not return an error")
+		if blockDetails != nil && blockDetails.ExecuteTxHash != nil {
+			break
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	tx, err := wallet.ClaimFailedDeposit(nil, l2Receipt.TxHash)
+	assert.NoError(t, err, "ClaimFailedDeposit should not return an error")
+
+	receipt, err := bind.WaitMined(context.Background(), ethClient, tx)
+	assert.NoError(t, err, "bind.WaitMined should not return an error")
+
+	assert.NoError(t, err, "ClaimFailedDeposit should not return an error")
+	assert.NotNil(t, receipt.BlockHash, "Transaction should be mined")
+}
 
 func TestIntegration_Wallet_ClaimFailedDepositSuccessfulDeposit(t *testing.T) {
 	client, err := clients.Dial(L2ChainURL)

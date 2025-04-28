@@ -11,7 +11,9 @@ import (
 	"github.com/zksync-sdk/zksync2-go/clients"
 	"github.com/zksync-sdk/zksync2-go/contracts/erc20"
 	"github.com/zksync-sdk/zksync2-go/contracts/ethtoken"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2assetrouter"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l2nativetokenvault"
 	"github.com/zksync-sdk/zksync2-go/contracts/nonceholder"
 	"github.com/zksync-sdk/zksync2-go/types"
 	"github.com/zksync-sdk/zksync2-go/utils"
@@ -156,7 +158,7 @@ func (w *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (commo
 
 	if tx.Token == utils.LegacyEthAddress || tx.Token == utils.EthAddressInContracts {
 		var err error
-		tx.Token, err = w.client.L2TokenAddress(opts.Context, tx.Token)
+		tx.Token, err = w.client.L2TokenAddress(opts.Context, utils.EthAddressInContracts)
 		if err != nil {
 			return common.Hash{}, err
 		}
@@ -188,17 +190,75 @@ func (w *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (commo
 			Value:           opts.Value,
 			Data:            data,
 			ChainID:         w.signer.ChainID(),
-			GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+			GasPerPubdata:   opts.GasPerPubdata,
 			PaymasterParams: opts.PaymasterParams,
 		})
 	}
 
-	if tx.BridgeAddress == nil {
-		sharedL2BridgeAddress, err := w.cache.L2SharedBridgeAddress()
-		if err != nil {
+	ntv, err := l2nativetokenvault.NewIL2NativeTokenVault(utils.L2NativeTokenVaultAddress, w.client)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to init l2NativeTokenVault: %w", err)
+	}
+	assetId, err := ntv.AssetId(&bind.CallOpts{Context: opts.Context}, tx.Token)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get asset id from l2NativeTokenVault: %w", err)
+	}
+	originChainId, err := ntv.OriginChainId(&bind.CallOpts{Context: opts.Context}, assetId)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get origin chain id from l2NativeTokenVault: %w", err)
+	}
+	l1ChainId, err := w.client.L1ChainID(opts.Context)
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("failed to get L1 chain id: %w", err)
+	}
+	isTokenL1Native := originChainId.Cmp(l1ChainId) == 0 || tx.Token == utils.EthAddressInContracts
+	if tx.BridgeAddress == nil && isTokenL1Native {
+		// If the legacy L2SharedBridge is deployed we use it for l1 native tokens.
+		sharedL2BridgeAddress, errBridgeAddress := w.cache.L2SharedBridgeAddress()
+		if errBridgeAddress != nil {
 			return common.Hash{}, err
 		}
 		tx.BridgeAddress = &sharedL2BridgeAddress
+	} else if tx.BridgeAddress == nil && !isTokenL1Native {
+		tx.BridgeAddress = &utils.L2AssetRouterAddress
+	}
+
+	// For non L1 native tokens we need to use the AssetRouter.
+	// For L1 native tokens we can use the legacy withdraw method.
+	if !isTokenL1Native {
+		chainId, errChainId := w.client.ChainID(auth.Context)
+		if errChainId != nil {
+			return common.Hash{}, fmt.Errorf("failed to get chain id: %w", err)
+		}
+		nativeAssetId, errNativeAssetId := utils.NativeTokenVaultAssetId(chainId, tx.Token)
+		if errNativeAssetId != nil {
+			return common.Hash{}, fmt.Errorf("failed to encode asset id: %w", err)
+		}
+		nativeAssetData, errNativeAssetData := utils.NativeTokenVaultTransferData(tx.Amount, tx.To, tx.Token)
+		if errNativeAssetData != nil {
+			return common.Hash{}, fmt.Errorf("failed to encode asset data: %w", err)
+		}
+		bridgeAbi, errBridgeAbi := l2assetrouter.IL2AssetRouterMetaData.GetAbi()
+		if errBridgeAbi != nil {
+			return common.Hash{}, fmt.Errorf("failed to load l2AssetRouterAbi: %w", err)
+		}
+		data, errData := bridgeAbi.Pack("withdraw", nativeAssetId, nativeAssetData)
+		if errData != nil {
+			return common.Hash{}, fmt.Errorf("failed to pack withdraw function: %w", err)
+		}
+
+		return w.SendTransaction(opts.Context, &Transaction{
+			Nonce:           opts.Nonce,
+			GasTipCap:       opts.GasTipCap,
+			GasFeeCap:       opts.GasFeeCap,
+			Gas:             opts.GasLimit,
+			To:              tx.BridgeAddress,
+			Value:           opts.Value,
+			Data:            data,
+			ChainID:         w.signer.ChainID(),
+			GasPerPubdata:   opts.GasPerPubdata,
+			PaymasterParams: opts.PaymasterParams,
+		})
 	}
 
 	abi, abiErr := l2bridge.IL2BridgeMetaData.GetAbi()
@@ -220,7 +280,7 @@ func (w *WalletL2) Withdraw(auth *TransactOpts, tx WithdrawalTransaction) (commo
 		Value:           opts.Value,
 		Data:            data,
 		ChainID:         w.signer.ChainID(),
-		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+		GasPerPubdata:   opts.GasPerPubdata,
 		PaymasterParams: opts.PaymasterParams,
 	})
 }
@@ -252,7 +312,7 @@ func (w *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (common.
 			To:              &tx.To,
 			Value:           tx.Amount,
 			ChainID:         w.signer.ChainID(),
-			GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+			GasPerPubdata:   opts.GasPerPubdata,
 			PaymasterParams: opts.PaymasterParams,
 		})
 	}
@@ -276,7 +336,7 @@ func (w *WalletL2) Transfer(auth *TransactOpts, tx TransferTransaction) (common.
 		Value:           big.NewInt(0),
 		Data:            data,
 		ChainID:         w.signer.ChainID(),
-		GasPerPubdata:   utils.DefaultGasPerPubdataLimit,
+		GasPerPubdata:   opts.GasPerPubdata,
 		PaymasterParams: opts.PaymasterParams,
 	})
 }

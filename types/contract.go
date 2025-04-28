@@ -3,6 +3,8 @@ package types
 import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1bridge"
+	"github.com/zksync-sdk/zksync2-go/contracts/l1nativetokenvault"
+	"github.com/zksync-sdk/zksync2-go/contracts/l1nullifier"
 	"github.com/zksync-sdk/zksync2-go/contracts/l1sharedbridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2bridge"
 	"github.com/zksync-sdk/zksync2-go/contracts/l2sharedbridge"
@@ -10,18 +12,22 @@ import (
 
 // BridgeContracts represents the addresses of default bridge contracts for both L1 and L2.
 type BridgeContracts struct {
-	L1Erc20Bridge  common.Address `json:"l1Erc20DefaultBridge"`  // Default L1Bridge contract address.
-	L2Erc20Bridge  common.Address `json:"l2Erc20DefaultBridge"`  // Default L2Bridge contract address.
-	L1WethBridge   common.Address `json:"l1WethBridge"`          // WETH L1Bridge contract address.
-	L2WethBridge   common.Address `json:"l2WethBridge"`          // WETH L2Bridge contract address.
-	L1SharedBridge common.Address `json:"l1SharedDefaultBridge"` // Default L1SharedBridge contract address.
-	L2SharedBridge common.Address `json:"l2SharedDefaultBridge"` // Default L2SharedBridge contract address.
+	L1Erc20Bridge      common.Address `json:"l1Erc20DefaultBridge"`  // Default L1Bridge contract address.
+	L2Erc20Bridge      common.Address `json:"l2Erc20DefaultBridge"`  // Default L2Bridge contract address.
+	L1WethBridge       common.Address `json:"l1WethBridge"`          // WETH L1Bridge contract address.
+	L2WethBridge       common.Address `json:"l2WethBridge"`          // WETH L2Bridge contract address.
+	L1SharedBridge     common.Address `json:"l1SharedDefaultBridge"` // Default L1SharedBridge contract address.
+	L2SharedBridge     common.Address `json:"l2SharedDefaultBridge"` // Default L2SharedBridge contract address.
+	L1Nullifier        common.Address `json:"l1Nullifier"`           // L1Nullifier contracts address.
+	L1NativeTokenVault common.Address `json:"l1NativeTokenVault"`    // L1 native token vault contract address.
 }
 
 // L1BridgeContracts represents the L1 bridge contracts.
 type L1BridgeContracts struct {
-	Erc20  *l1bridge.IL1Bridge             // Default L1Bridge contract.
-	Shared *l1sharedbridge.IL1SharedBridge // L1SharedBridge contract.
+	Erc20            *l1bridge.IL1Bridge                     // Default L1Bridge contract.
+	Shared           *l1sharedbridge.IL1SharedBridge         // L1SharedBridge contract.
+	Nullifier        *l1nullifier.IL1Nullifier               // L1Nullifier contract.
+	NativeTokenVault *l1nativetokenvault.IL1NativeTokenVault // L1NativeTokenVault contract
 }
 
 // L2BridgeContracts represents the L2 bridge contracts.
