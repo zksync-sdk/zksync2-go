@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/zksync-sdk/zksync2-go/compare/v1.0.0...v1.1.0) (2025-05-14)
+
+
+### Features
+
+* add support for v26 protocol ([c89c0a8](https://github.com/zksync-sdk/zksync2-go/commit/c89c0a83ee299c58543fff945c8777a430f047a3))
+
 # [1.0.0](https://github.com/zksync-sdk/zksync2-go/compare/v0.7.0...v1.0.0) (2024-11-06)
 
 
