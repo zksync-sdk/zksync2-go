@@ -56,7 +56,7 @@ func NewWalletL1(rawPrivateKey []byte, clientL1 *ethclient.Client, clientL2 *cli
 }
 
 // NewWalletL1FromSigner creates an instance of WalletL1 associated with the account provided by the signer.
-func NewWalletL1FromSigner(signer *ECDSASigner, clientL1 *ethclient.Client, clientL2 *clients.Client) (*WalletL1, error) {
+func NewWalletL1FromSigner(signer Signer, clientL1 *ethclient.Client, clientL2 *clients.Client) (*WalletL1, error) {
 	if signer == nil {
 		return nil, errors.New("signer is not provided")
 	} else if clientL1 == nil {
@@ -103,7 +103,7 @@ func NewWalletL1FromSigner(signer *ECDSASigner, clientL1 *ethclient.Client, clie
 
 // NewWalletL1FromSignerAndCache creates an instance of WalletL1 associated with the account provided by the signer with cache.
 // The cache is optional and if it is not provided, new empty cache is used.
-func NewWalletL1FromSignerAndCache(signer *ECDSASigner, clientL1 *ethclient.Client, clientL2 *clients.Client, cache *Cache) (*WalletL1, error) {
+func NewWalletL1FromSignerAndCache(signer Signer, clientL1 *ethclient.Client, clientL2 *clients.Client, cache *Cache) (*WalletL1, error) {
 	if signer == nil {
 		return nil, errors.New("signer is not provided")
 	} else if clientL1 == nil {

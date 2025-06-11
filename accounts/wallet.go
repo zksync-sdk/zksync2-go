@@ -41,7 +41,7 @@ func NewWallet(rawPrivateKey []byte, clientL2 *clients.Client, clientL1 *ethclie
 // require communication with the network.
 // A runner that contains only a signer can be configured to communicate with L2 and L1 networks by
 // using Wallet.Connect and Wallet.ConnectL1, respectively.
-func NewWalletFromSigner(signer *ECDSASigner, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
+func NewWalletFromSigner(signer Signer, clientL2 *clients.Client, clientL1 *ethclient.Client) (*Wallet, error) {
 	if signer == nil {
 		return nil, errors.New("signer must be provided")
 	}

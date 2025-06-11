@@ -16,6 +16,10 @@ import (
 
 // Signer provides support for signing various types of payloads using some kind of secret.
 type Signer interface {
+	PrivateKey() *ecdsa.PrivateKey
+	Address() common.Address
+	ChainID() *big.Int
+
 	// SignMessage sings an arbitrary message.
 	SignMessage(ctx context.Context, message []byte) ([]byte, error)
 	// SignTransaction signs the given transaction.

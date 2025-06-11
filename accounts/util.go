@@ -50,7 +50,7 @@ func ensureTransactOpts(auth *TransactOpts) *TransactOpts {
 	return auth
 }
 
-func newTransactorWithSigner(signer *ECDSASigner, chainID *big.Int) (*bind.TransactOpts, error) {
+func newTransactorWithSigner(signer Signer, chainID *big.Int) (*bind.TransactOpts, error) {
 	if chainID == nil {
 		return nil, bind.ErrNoChainID
 	}
