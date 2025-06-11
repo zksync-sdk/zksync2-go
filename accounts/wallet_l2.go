@@ -24,7 +24,7 @@ import (
 // L2 network for the associated account.
 type WalletL2 struct {
 	client *clients.Client
-	signer *ECDSASigner
+	signer Signer
 	auth   *bind.TransactOpts
 	cache  *Cache
 }
@@ -69,7 +69,7 @@ func NewWalletL2FromSigner(signer *ECDSASigner, client *clients.Client) (*Wallet
 // The clientL2 can be optional and if it is not provided, only WalletL2.SignTransaction,
 // WalletL2.Address, WalletL2.Signer can be performed, as the rest of the
 // functionalities require communication to the network.
-func NewWalletL2FromSignerAndCache(signer *ECDSASigner, client *clients.Client, cache *Cache) (*WalletL2, error) {
+func NewWalletL2FromSignerAndCache(signer Signer, client *clients.Client, cache *Cache) (*WalletL2, error) {
 	if client == nil {
 		return &WalletL2{signer: signer}, nil
 	}
@@ -98,7 +98,7 @@ func (w *WalletL2) Address() common.Address {
 }
 
 // Signer returns the signer of the associated account.
-func (w *WalletL2) Signer() *ECDSASigner {
+func (w *WalletL2) Signer() Signer {
 	return w.signer
 }
 
