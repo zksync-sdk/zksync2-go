@@ -4,6 +4,9 @@ fetch-contracts:
 generate-contracts:
 	cd scripts/generate-contracts && ./execute.sh && cd ../..
 
+generate-contracts-zksso:
+	cd scripts/zksync-sso && ./execute.sh && cd ../..
+
 run-tests-on-eth-based-chain:
 	go test -p 1 -timeout 20m -v -skip='^.*_NonEthBasedChain_.*$\' ./test  ./accounts ./utils ./types
 
